@@ -21,7 +21,7 @@ export default function AdminLayout({
     : "lg:ml-[90px]";
 
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="dashboard-shell min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white/90 xl:flex">
       {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />

@@ -5,6 +5,7 @@
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -168,6 +169,107 @@
 }
 
 /*
+ * Dashboard theme
+ * Scoped to the admin shell so the Positivus landing page keeps its own
+ * independent visual system. Components continue to consume the shared
+ * Tailwind semantic scales instead of carrying one-off palette values.
+ */
+.dashboard-shell {
+  --dashboard-accent: #b9ff66;
+  --dashboard-dark: #191a23;
+  --dashboard-light: #f3f3f3;
+  --theme-background: var(--dashboard-light);
+  --theme-surface: #ffffff;
+  --theme-surface-muted: #e9e9e5;
+  --theme-text: var(--dashboard-dark);
+  --theme-text-muted: #666760;
+  --theme-border: #d5d5cf;
+  --theme-accent: var(--dashboard-accent);
+  --theme-on-accent: var(--dashboard-dark);
+
+  --color-brand-25: #fbfff6;
+  --color-brand-50: #f3ffe5;
+  --color-brand-100: #e7ffca;
+  --color-brand-200: #d6ffa3;
+  --color-brand-300: #c6ff80;
+  --color-brand-400: #b9ff66;
+  --color-brand-500: #b9ff66;
+  --color-brand-600: #83bd36;
+  --color-brand-700: #5f9024;
+  --color-brand-800: #426818;
+  --color-brand-900: #2c4810;
+  --color-brand-950: #172807;
+
+  --color-gray-25: #fafaf8;
+  --color-gray-50: #f3f3f3;
+  --color-gray-100: #e9e9e5;
+  --color-gray-200: #d5d5cf;
+  --color-gray-300: #b6b7b0;
+  --color-gray-400: #898a83;
+  --color-gray-500: #666760;
+  --color-gray-600: #4b4c46;
+  --color-gray-700: #34352f;
+  --color-gray-800: #25262f;
+  --color-gray-900: #191a23;
+  --color-gray-950: #101116;
+  --color-gray-dark: #20212b;
+
+  --shadow-focus-ring: 0 0 0 4px rgb(185 255 102 / 0.28);
+  --shadow-theme-xs: 0 1px 2px rgb(25 26 35 / 0.08);
+  --shadow-theme-sm: 0 2px 5px rgb(25 26 35 / 0.1);
+  --shadow-theme-md: 0 8px 18px -8px rgb(25 26 35 / 0.22);
+  --shadow-theme-lg: 0 16px 30px -14px rgb(25 26 35 / 0.28);
+  --shadow-theme-xl: 0 24px 45px -20px rgb(25 26 35 / 0.36);
+
+  font-family: var(--font-space-grotesk), sans-serif;
+  background: var(--theme-background);
+  color: var(--theme-text);
+}
+
+.dashboard-shell :is(h1, h2, h3) {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-shell :is(button, input, select, textarea) {
+  font: inherit;
+}
+
+.dashboard-shell :focus-visible {
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: 2px;
+}
+
+/* The reference green is deliberately bright; dark ink keeps filled accents accessible. */
+.dashboard-shell [class~="bg-brand-500"][class~="text-white"],
+.dashboard-shell [class~="bg-brand-500"][class~="text-white/90"] {
+  color: var(--dashboard-dark) !important;
+}
+
+.dashboard-shell .text-brand-500,
+.dashboard-shell .text-brand-600 {
+  color: var(--color-brand-700);
+}
+
+.dark .dashboard-shell .text-brand-500,
+.dark .dashboard-shell .text-brand-600,
+.dark .dashboard-shell .text-brand-400 {
+  color: var(--dashboard-accent);
+}
+
+.dark .dashboard-shell {
+  --theme-background: var(--dashboard-dark);
+  --theme-surface: #20212b;
+  --theme-surface-muted: #25262f;
+  --theme-text: var(--dashboard-light);
+  --theme-text-muted: #b6b7b0;
+  --theme-border: #34352f;
+
+  color-scheme: dark;
+}
+
+/*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.
@@ -276,7 +378,7 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #344054;
+  background-color: var(--color-gray-700);
 }
 
 
@@ -426,7 +528,7 @@ span.flatpickr-weekday,
   @apply !bg-none;
 }
 .flatpickr-day.inRange {
-  box-shadow: -5px 0 0 #f9fafb, 5px 0 0 #f9fafb !important;
+  box-shadow: -5px 0 0 var(--color-gray-50), 5px 0 0 var(--color-gray-50) !important;
   @apply dark:!shadow-datepicker;
 }
 .flatpickr-day.inRange,
@@ -467,13 +569,13 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
+  background: var(--color-brand-500);
   @apply !border-brand-500 !bg-brand-500 hover:!border-brand-50 hover:!bg-brand-500;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 var(--color-brand-500);
 }
 
 .flatpickr-months .flatpickr-prev-month svg,

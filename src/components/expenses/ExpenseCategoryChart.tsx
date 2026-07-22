@@ -5,6 +5,7 @@ import type { ApexOptions } from "apexcharts";
 import ComponentCard from "@/components/common/ComponentCard";
 import { formatBhd } from "@/lib/formatters";
 import type { Expense, ExpenseCategory } from "@/types/expenses";
+import { useTheme } from "@/context/ThemeContext";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -15,6 +16,7 @@ export default function ExpenseCategoryChart({
   expenses: Expense[];
   categories: ExpenseCategory[];
 }) {
+  const { theme } = useTheme();
   const totals = categories
     .map((category) => ({
       category,
@@ -24,12 +26,17 @@ export default function ExpenseCategoryChart({
     }))
     .filter((item) => item.total > 0);
   const options: ApexOptions = {
-    chart: { type: "donut", fontFamily: "Outfit, sans-serif" },
+    chart: { type: "donut", fontFamily: "var(--font-space-grotesk), sans-serif" },
+    theme: { mode: theme },
     labels: totals.map((item) => item.category.name),
     colors: totals.map((item) => item.category.colorHex),
-    legend: { position: "bottom", fontFamily: "Outfit" },
+    legend: {
+      position: "bottom",
+      fontFamily: "var(--font-space-grotesk), sans-serif",
+      labels: { colors: theme === "dark" ? "var(--color-gray-400)" : "var(--color-gray-500)" },
+    },
     dataLabels: { enabled: false },
-    stroke: { width: 2, colors: ["#ffffff"] },
+    stroke: { width: 2, colors: ["var(--theme-surface)"] },
     tooltip: { y: { formatter: (value) => formatBhd(value) } },
     plotOptions: { pie: { donut: { size: "64%" } } },
   };
