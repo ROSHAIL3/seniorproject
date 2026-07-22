@@ -277,7 +277,6 @@
 .dashboard-shell svg[class*="text-"],
 .dashboard-shell svg[class*="fill-"],
 .dashboard-shell svg[class*="stroke-"] {
-  display: block;
   flex: 0 0 auto;
   overflow: visible;
   vertical-align: middle;
@@ -292,6 +291,11 @@
 
 .dashboard-shell :is(button, a, [role="button"]) > svg {
   align-self: center;
+}
+
+.dashboard-shell :is(button, a, [role="button"]):has(> svg:only-child) {
+  overflow: visible;
+  line-height: 0;
 }
 
 .dashboard-shell :focus-visible {
