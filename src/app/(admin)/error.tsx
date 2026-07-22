@@ -9,7 +9,7 @@ export default function AdminError({ reset }: { reset: () => void }) {
         This page could not be loaded
       </h2>
       <p className="mt-2 max-w-md text-sm text-gray-500 dark:text-gray-400">
-        The data service returned an error. Try loading the page again.
+        The data service returned an error. Try Loading the page again.
       </p>
       <Button className="mt-5" size="sm" onClick={reset}>
         Try again
