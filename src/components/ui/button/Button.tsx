@@ -15,7 +15,7 @@ interface ButtonProps {
 }
 
 const iconSlotClass =
-  "inline-flex size-[18px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[18px]";
+  "inline-flex size-5 shrink-0 items-center justify-center overflow-visible leading-none [&>svg]:block [&>svg]:max-h-[18px] [&>svg]:max-w-[18px] [&>svg]:shrink-0 [&>svg]:overflow-visible";
 
 export default function Button({
   children,

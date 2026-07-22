@@ -55,7 +55,7 @@ export default function Select({
           {selectedOption?.label ?? placeholder}
         </span>
         <ChevronDownIcon
-          className={`size-[18px] shrink-0 text-gray-400 transition-transform duration-200 ${
+          className={`max-h-[18px] max-w-[18px] shrink-0 overflow-visible text-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180 text-brand-500" : ""
           }`}
         />
@@ -81,7 +81,7 @@ export default function Select({
               >
                 <span>{option.label}</span>
                 {isSelected && (
-                  <CheckLineIcon className="size-4 shrink-0 text-brand-500" />
+                  <CheckLineIcon className="max-h-4 max-w-4 shrink-0 overflow-visible text-brand-500" />
                 )}
               </DropdownItem>
             );

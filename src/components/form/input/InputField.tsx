@@ -68,7 +68,7 @@ const Input: FC<InputProps> = ({
   return (
     <div className="relative">
       {fieldIcon && (
-        <span className={`pointer-events-none absolute inset-y-0 left-0 z-10 inline-flex h-full items-center justify-center text-gray-500 dark:text-gray-400 [&>svg]:block [&>svg]:size-4 [&>svg]:shrink-0 ${startIconDivider ? "w-10 rounded-l-lg border-r border-gray-300 dark:border-gray-700" : "ml-3 w-4"}`}>
+        <span className={`pointer-events-none absolute inset-y-0 left-0 z-10 inline-flex h-full items-center justify-center overflow-visible leading-none text-gray-500 dark:text-gray-400 [&>svg]:block [&>svg]:max-h-4 [&>svg]:max-w-4 [&>svg]:shrink-0 [&>svg]:overflow-visible ${startIconDivider ? "w-10 rounded-l-lg border-r border-gray-300 dark:border-gray-700" : "ml-2.5 w-5"}`}>
           {fieldIcon}
         </span>
       )}
