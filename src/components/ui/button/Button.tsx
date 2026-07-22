@@ -15,7 +15,7 @@ interface ButtonProps {
 }
 
 const iconSlotClass =
-  "inline-flex size-5 shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-5";
+  "inline-flex size-[18px] shrink-0 items-center justify-center [&>svg]:block [&>svg]:size-[18px]";
 
 export default function Button({
   children,
@@ -30,8 +30,8 @@ export default function Button({
   href,
 }: ButtonProps) {
   const sizeClasses = {
-    sm: "min-h-11 px-4 py-2.5 text-sm",
-    md: "min-h-12 px-5 py-3 text-sm",
+    sm: "min-h-9 px-3.5 py-2 text-[13px]",
+    md: "min-h-10 px-4 py-2.5 text-sm",
   };
 
   const variantClasses = {

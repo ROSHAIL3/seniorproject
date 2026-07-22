@@ -222,6 +222,8 @@
   --shadow-theme-xl: 0 24px 45px -20px rgb(25 26 35 / 0.36);
 
   font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.45;
   background: var(--theme-background);
   color: var(--theme-text);
 }
@@ -229,7 +231,28 @@
 .dashboard-shell :is(h1, h2, h3) {
   font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 650;
+  line-height: 1.2;
   letter-spacing: -0.025em;
+}
+
+.dashboard-shell .text-3xl {
+  font-size: 1.625rem;
+  line-height: 2rem;
+}
+
+.dashboard-shell .text-2xl {
+  font-size: 1.375rem;
+  line-height: 1.75rem;
+}
+
+.dashboard-shell .text-xl {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+
+.dashboard-shell .text-lg {
+  font-size: 1rem;
+  line-height: 1.4rem;
 }
 
 .dashboard-shell :is(button, input, select, textarea) {
@@ -239,6 +262,81 @@
 .dashboard-shell :focus-visible {
   outline: 2px solid var(--dashboard-accent);
   outline-offset: 2px;
+}
+
+/* Compact, readable navigation with a restrained accent rail. */
+.dashboard-shell .menu-item {
+  min-height: 2.375rem;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.dashboard-shell .menu-item svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.dashboard-shell .menu-item-active {
+  color: var(--dashboard-dark);
+  background: color-mix(in srgb, var(--dashboard-accent) 22%, white);
+  box-shadow: inset 3px 0 0 var(--dashboard-accent);
+  font-weight: 650;
+}
+
+.dashboard-shell .menu-item-active .menu-item-icon-active {
+  color: var(--color-brand-800);
+}
+
+.dark .dashboard-shell .menu-item-active {
+  color: var(--dashboard-light);
+  background: color-mix(in srgb, var(--dashboard-accent) 12%, var(--dashboard-dark));
+  box-shadow: inset 3px 0 0 var(--dashboard-accent);
+}
+
+.dark .dashboard-shell .menu-item-active .menu-item-icon-active {
+  color: var(--dashboard-accent);
+}
+
+/* Normalize roomy template utilities without changing page structure. */
+.dashboard-shell [class~="p-6"] {
+  padding: 1.25rem;
+}
+
+.dashboard-shell [class~="p-5"] {
+  padding: 1.125rem;
+}
+
+.dashboard-shell [class~="px-6"] {
+  padding-inline: 1.25rem;
+}
+
+.dashboard-shell [class~="py-6"] {
+  padding-block: 1.25rem;
+}
+
+.dashboard-shell [class~="gap-6"] {
+  gap: 1.25rem;
+}
+
+.dashboard-shell [class~="space-y-6"] > :not(:last-child) {
+  margin-block-end: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .dashboard-shell [class~="sm:p-6"] {
+    padding: 1.25rem;
+  }
+
+  .dashboard-shell [class~="sm:px-6"] {
+    padding-inline: 1.25rem;
+  }
+
+  .dashboard-shell [class~="sm:py-6"] {
+    padding-block: 1.25rem;
+  }
 }
 
 /* The reference green is deliberately bright; dark ink keeps filled accents accessible. */

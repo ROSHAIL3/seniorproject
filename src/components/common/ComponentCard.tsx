@@ -17,9 +17,9 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   className = "",
   desc = "",
   action,
-  bodyClassName = "p-4 sm:p-6",
-  headerClassName = "px-6 py-5",
-  contentClassName = "space-y-6",
+  bodyClassName = "p-4 sm:p-5",
+  headerClassName = "px-4 py-3.5 sm:px-5 sm:py-4",
+  contentClassName = "space-y-4",
 }) => {
   return (
     <div

@@ -176,14 +176,14 @@ export default function AppSidebar() {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-50 mt-16 flex h-screen flex-col border-r border-gray-200 bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 lg:mt-0 ${
-        isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"
+      className={`fixed top-0 left-0 z-50 mt-16 flex h-screen flex-col border-r border-gray-200 bg-white px-4 text-gray-900 transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 lg:mt-0 ${
+        isExpanded || isMobileOpen || isHovered ? "w-[264px]" : "w-[80px]"
       } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`flex py-8 ${
+        className={`flex py-6 ${
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
@@ -194,16 +194,16 @@ export default function AppSidebar() {
                 className="dark:hidden"
                 src="/images/logo/logo.svg"
                 alt="TailAdmin"
-                width={150}
-                height={40}
+                width={138}
+                height={36}
                 priority
               />
               <Image
                 className="hidden dark:block"
                 src="/images/logo/logo-dark.svg"
                 alt="TailAdmin"
-                width={150}
-                height={40}
+                width={138}
+                height={36}
                 priority
               />
             </>
@@ -211,8 +211,8 @@ export default function AppSidebar() {
             <Image
               src="/images/logo/logo-icon.svg"
               alt="TailAdmin"
-              width={32}
-              height={32}
+              width={28}
+              height={28}
               priority
             />
           )}
@@ -223,7 +223,7 @@ export default function AppSidebar() {
         {(isSettingsMenu || isReportsMenu) && (
           <Link
             href="/dashboard"
-            className={`menu-item menu-item-inactive group mb-5 border border-gray-200 dark:border-gray-800 ${
+            className={`menu-item menu-item-inactive group mb-4 border border-gray-200 dark:border-gray-800 ${
               showLabels ? "justify-start" : "lg:justify-center"
             }`}
           >
@@ -239,12 +239,12 @@ export default function AppSidebar() {
                 key={section.label}
                 className={
                   sectionIndex === 0
-                    ? "pb-5"
-                    : "border-t border-gray-200 py-5 dark:border-gray-800"
+                    ? "pb-4"
+                    : "border-t border-gray-200 py-4 dark:border-gray-800"
                 }
               >
                 <h2
-                  className={`mb-3 flex text-xs font-medium uppercase leading-5 tracking-wider text-gray-400 ${
+                  className={`mb-2.5 flex text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-gray-500 dark:text-gray-400 ${
                     !isExpanded && !isHovered
                       ? "lg:justify-center"
                       : "justify-start"
@@ -253,7 +253,7 @@ export default function AppSidebar() {
                   {showLabels ? section.label : <HorizontaLDots />}
                 </h2>
 
-                <ul className="flex flex-col gap-1.5">
+                <ul className="flex flex-col gap-1">
                   {section.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;

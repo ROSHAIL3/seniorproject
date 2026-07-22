@@ -52,7 +52,7 @@ const Input: FC<InputProps> = ({
   }
   const fieldIcon = startIcon ?? (type === "email" ? <MailIcon /> : undefined);
   // Determine input styles based on state (disabled, success, error)
-  let inputClasses = `h-11 w-full rounded-lg border appearance-none ${fieldIcon ? startIconDivider ? "pl-[60px] pr-4" : "pl-11 pr-4" : "px-4"} py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
+  let inputClasses = `h-10 w-full rounded-lg border appearance-none ${fieldIcon ? startIconDivider ? "pl-12 pr-3.5" : "pl-10 pr-3.5" : "px-3.5"} py-2 text-[13px] shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
 
   // Add styles for the different states
   if (disabled) {
@@ -68,7 +68,7 @@ const Input: FC<InputProps> = ({
   return (
     <div className="relative">
       {fieldIcon && (
-        <span className={`pointer-events-none absolute inset-y-0 left-0 z-10 inline-flex h-full items-center justify-center text-gray-500 dark:text-gray-400 [&>svg]:block [&>svg]:size-[18px] [&>svg]:shrink-0 ${startIconDivider ? "w-12 rounded-l-lg border-r border-gray-300 dark:border-gray-700" : "ml-3 w-5"}`}>
+        <span className={`pointer-events-none absolute inset-y-0 left-0 z-10 inline-flex h-full items-center justify-center text-gray-500 dark:text-gray-400 [&>svg]:block [&>svg]:size-4 [&>svg]:shrink-0 ${startIconDivider ? "w-10 rounded-l-lg border-r border-gray-300 dark:border-gray-700" : "ml-3 w-4"}`}>
           {fieldIcon}
         </span>
       )}

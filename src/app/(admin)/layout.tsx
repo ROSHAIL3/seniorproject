@@ -17,8 +17,8 @@ export default function AdminLayout({
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[290px]"
-    : "lg:ml-[90px]";
+    ? "lg:ml-[264px]"
+    : "lg:ml-[80px]";
 
   return (
     <div className="dashboard-shell min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white/90 xl:flex">
@@ -32,7 +32,7 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">{children}</div>
       </div>
     </div>
   );

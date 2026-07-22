@@ -45,7 +45,7 @@ export default function Select({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className={`dropdown-toggle flex h-11 w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-left text-sm shadow-theme-xs transition-colors hover:border-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600 dark:focus:border-brand-800 ${
+        className={`dropdown-toggle flex h-10 w-full items-center justify-between gap-2.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-left text-[13px] shadow-theme-xs transition-colors hover:border-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600 dark:focus:border-brand-800 ${
           selectedOption
             ? "text-gray-800 dark:text-white/90"
             : "text-gray-400 dark:text-gray-400"
@@ -55,7 +55,7 @@ export default function Select({
           {selectedOption?.label ?? placeholder}
         </span>
         <ChevronDownIcon
-          className={`size-5 shrink-0 text-gray-400 transition-transform duration-200 ${
+          className={`size-[18px] shrink-0 text-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180 text-brand-500" : ""
           }`}
         />
@@ -73,7 +73,7 @@ export default function Select({
               <DropdownItem
                 key={option.value}
                 onClick={() => selectOption(option.value)}
-                baseClassName={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                baseClassName={`flex w-full items-center justify-between gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] transition-colors ${
                   isSelected
                     ? "bg-brand-50 font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
