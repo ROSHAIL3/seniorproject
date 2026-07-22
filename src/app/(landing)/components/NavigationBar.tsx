@@ -32,7 +32,7 @@ export default function NavigationBar() {
         className="flex items-start overflow-clip px-0 py-[10px] relative max-md:w-full"
         aria-label="Home"
       >
-        <Logo className="h-[36px] relative shrink-0 w-[219.537px] max-md:max-w-[180px] max-md:w-full" />
+        <Logo className="relative" />
       </Link>
       <div className="flex gap-[40px] items-center justify-center relative shrink-0 max-xl:hidden">
         {navLinks.map(({ href, label }, index) => (

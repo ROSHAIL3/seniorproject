@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, SVGProps } from "react";
 import { useSidebar } from "@/context/SidebarContext";
+import BrandLogo from "@/components/common/BrandLogo";
 import {
   BellIcon,
   BoxCubeIcon,
@@ -188,34 +188,13 @@ export default function AppSidebar() {
         }`}
       >
         <Link href="/dashboard" aria-label="Dashboard">
-          {showLabels ? (
-            <>
-              <Image
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="TailAdmin"
-                width={138}
-                height={36}
-                priority
-              />
-              <Image
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="TailAdmin"
-                width={138}
-                height={36}
-                priority
-              />
-            </>
-          ) : (
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="TailAdmin"
-              width={28}
-              height={28}
-              priority
-            />
-          )}
+          <BrandLogo
+            size={showLabels ? "md" : "sm"}
+            iconOnly={!showLabels}
+            preserveMark
+            className="text-gray-900 dark:text-white"
+            priority
+          />
         </Link>
       </div>
 

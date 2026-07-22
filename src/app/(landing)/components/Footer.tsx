@@ -34,7 +34,7 @@ export default function Footer({ className }: { className?: string }) {
           {/* Top section: Logo, Navigation, Social Icons */}
           <div className="flex justify-between items-center relative w-full gap-[20px] max-lg:flex-wrap">
             {/* Logo with white fill */}
-            <Logo className="w-[180px] h-[30px] text-white" />
+            <Logo inverted size="md" className="text-white" />
 
             {/* Navigation Links */}
             <div className="flex font-normal gap-[40.5px] max-xl:gap-[20px] items-start leading-[normal] relative shrink-0 text-[18px] text-white underline max-lg:w-full max-lg:order-1 flex-wrap">
