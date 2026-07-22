@@ -1,0 +1,8 @@
+import type { Service } from "@/types/services";
+
+export const mockServices: Service[] = [
+  { id: "service-haircut", name: "Women's Haircut", kind: "service", categoryId: "category-hair-cut", description: "Consultation, wash, cut and finish.", durationMinutes: 45, priceBhd: 18, imageUrl: "/images/product/product-01.jpg", staffIds: ["staff-sophia", "staff-daniel"], isActive: true, vatApplicable: true, createdAt: "2026-06-01T08:00:00.000Z", updatedAt: "2026-06-01T08:00:00.000Z" },
+  { id: "service-color", name: "Hair Color & Treatment", kind: "service", categoryId: "category-hair-color", description: "Professional color application and conditioning treatment.", durationMinutes: 90, priceBhd: 42.5, imageUrl: "/images/product/product-02.jpg", staffIds: ["staff-sophia"], isActive: true, vatApplicable: true, createdAt: "2026-06-01T08:05:00.000Z", updatedAt: "2026-06-01T08:05:00.000Z" },
+  { id: "service-massage", name: "Deep Tissue Massage", kind: "service", categoryId: "category-massage", description: "Focused massage for muscular tension and recovery.", durationMinutes: 60, priceBhd: 30, imageUrl: "/images/product/product-03.jpg", staffIds: ["staff-james"], isActive: true, vatApplicable: true, createdAt: "2026-06-01T08:10:00.000Z", updatedAt: "2026-06-01T08:10:00.000Z" },
+  { id: "service-manicure", name: "Classic Manicure", kind: "service", categoryId: "category-nails", description: "Nail shaping, cuticle care and classic polish.", durationMinutes: 45, priceBhd: 15, imageUrl: "/images/product/product-04.jpg", staffIds: ["staff-mia"], isActive: true, vatApplicable: true, createdAt: "2026-06-01T08:15:00.000Z", updatedAt: "2026-06-01T08:15:00.000Z" },
+];

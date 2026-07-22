@@ -1,0 +1,2 @@
+"use client";
+export default function ErrorPage({ reset }: { reset: () => void }) { return <div className="rounded-2xl border border-error-200 bg-error-50 p-8 text-center"><h1 className="text-xl font-semibold text-error-700">Catalog could not be loaded</h1><button type="button" onClick={reset} className="mt-5 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white">Try again</button></div>; }

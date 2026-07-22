@@ -1,0 +1,11 @@
+html {
+  scroll-behavior: smooth;
+}
+
+.positivus-landing {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-space-grotesk), "Space Grotesk", Arial, Helvetica,
+    sans-serif;
+}
