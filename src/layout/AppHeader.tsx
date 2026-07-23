@@ -86,7 +86,6 @@ const AppHeader: React.FC = () => {
           <Link href="/dashboard" className="lg:hidden">
             <BrandLogo
               size="md"
-              preserveMark
               className="text-gray-900 dark:text-white"
               priority
             />

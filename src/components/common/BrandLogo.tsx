@@ -6,7 +6,6 @@ type BrandLogoProps = {
   className?: string;
   iconOnly?: boolean;
   inverted?: boolean;
-  preserveMark?: boolean;
   priority?: boolean;
   size?: BrandLogoSize;
 };
@@ -20,8 +19,6 @@ const sizeClasses: Record<BrandLogoSize, { mark: string; name: string; gap: stri
 export default function BrandLogo({
   className = "",
   iconOnly = false,
-  inverted = false,
-  preserveMark = false,
   priority = false,
   size = "md",
 }: BrandLogoProps) {
@@ -40,13 +37,7 @@ export default function BrandLogo({
         priority={priority}
         alt=""
         aria-hidden="true"
-        className={`${styles.mark} shrink-0 object-contain ${
-          preserveMark
-            ? ""
-            : inverted
-              ? "brightness-100"
-              : "brightness-0 dark:brightness-100"
-        }`}
+        className={`${styles.mark} shrink-0 object-contain`}
       />
       {!iconOnly && (
         <span

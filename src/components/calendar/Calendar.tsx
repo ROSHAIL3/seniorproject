@@ -93,6 +93,10 @@ export default function Calendar({
     extendedProps: {
       bookingNumber: appointment.bookingNumber,
       calendar: statusCalendar[appointment.status],
+      customerName: appointment.customerName,
+      serviceName: appointment.serviceName,
+      startTime: appointment.startTime,
+      endTime: appointment.endTime,
     },
   }));
 
@@ -114,6 +118,19 @@ export default function Calendar({
   };
 
   const renderDayCell = (day: DayCellContentArg) => {
+    // Time-grid cells and its all-day lane also invoke this callback. Counts
+    // belong in the time-grid date header, not in those layout cells.
+    if (day.view.type === "dayGridWeek") {
+      const count = appointmentCounts.get(toIsoDate(day.date)) ?? 0;
+      return count === 0 ? (
+        <span className="calendar-week-empty-label">No appointments</span>
+      ) : null;
+    }
+
+    if (day.view.type !== "dayGridMonth") {
+      return day.dayNumberText;
+    }
+
     const date = toIsoDate(day.date);
     const count = appointmentCounts.get(date) ?? 0;
 
@@ -134,6 +151,25 @@ export default function Calendar({
 
   const renderDayHeader = (day: DayHeaderContentArg) => {
     const count = appointmentCounts.get(toIsoDate(day.date)) ?? 0;
+    if (day.view.type === "dayGridWeek") {
+      return (
+        <div className="calendar-week-day-header">
+          <span className="calendar-week-day-name">
+            {day.date.toLocaleDateString(undefined, { weekday: "short" })}
+          </span>
+          <span className="calendar-week-day-number">{day.date.getDate()}</span>
+          {count > 0 && (
+            <span
+              aria-label={`${count} appointment${count === 1 ? "" : "s"}`}
+              className="calendar-appointment-count"
+            >
+              {count}
+            </span>
+          )}
+        </div>
+      );
+    }
+
     if (!day.view.type.startsWith("timeGrid") || count === 0) {
       return day.text;
     }
@@ -176,12 +212,28 @@ export default function Calendar({
             headerToolbar={{
               left: "prev,next addAppointmentButton",
               center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
+              right: "dayGridMonth,dayGridWeek,timeGridDay",
+            }}
+            views={{
+              dayGridMonth: {
+                buttonText: "month",
+                dayMaxEvents: 2,
+              },
+              dayGridWeek: {
+                buttonText: "week",
+                dayMaxEvents: false,
+                duration: { weeks: 1 },
+              },
+              timeGridDay: {
+                buttonText: "day",
+              },
             }}
             events={events}
             height="auto"
-            dayMaxEvents={2}
             eventMaxStack={2}
+            eventOrder="start"
+            displayEventEnd
+            slotEventOverlap={false}
             moreLinkClick={handleMoreClick}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
@@ -189,8 +241,27 @@ export default function Calendar({
             dayCellContent={renderDayCell}
             dayHeaderContent={renderDayHeader}
             dayCellClassNames={(day) =>
+              [
+                ...(toIsoDate(day.date) === selectedDate
+                  ? [
+                      day.view.type.startsWith("timeGrid")
+                        ? "calendar-selected-column"
+                        : "calendar-selected-date",
+                    ]
+                  : []),
+                ...(day.view.type === "dayGridWeek"
+                  ? [
+                      (appointmentCounts.get(toIsoDate(day.date)) ?? 0) === 0
+                        ? "calendar-week-empty"
+                        : "calendar-week-has-events",
+                    ]
+                  : []),
+              ]
+            }
+            dayHeaderClassNames={(day) =>
+              day.view.type !== "dayGridMonth" &&
               toIsoDate(day.date) === selectedDate
-                ? ["calendar-selected-date"]
+                ? ["calendar-selected-header"]
                 : []
             }
             customButtons={{
@@ -282,10 +353,46 @@ function AppointmentListField({ label, value }: { label: string; value: string }
 
 const renderEventContent = (eventInfo: EventContentArg) => {
   const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar}`;
+  const isTimeGrid = eventInfo.view.type.startsWith("timeGrid");
+  const isWeekBoard = eventInfo.view.type === "dayGridWeek";
+  const {
+    customerName,
+    serviceName,
+    startTime,
+    endTime,
+  } = eventInfo.event.extendedProps as {
+    customerName: string;
+    serviceName: string;
+    startTime: string;
+    endTime: string;
+  };
+
+  if (isWeekBoard) {
+    return (
+      <div className={`event-fc-color calendar-week-event ${colorClass}`}>
+        <div className="calendar-event-time-range">
+          {startTime} – {endTime}
+        </div>
+        <div className="calendar-event-customer">{customerName}</div>
+        <div className="calendar-event-service">{serviceName}</div>
+      </div>
+    );
+  }
+
+  if (isTimeGrid) {
+    return (
+      <div className={`event-fc-color calendar-timegrid-event ${colorClass}`}>
+        <div className="calendar-event-time-range">
+          {startTime} – {endTime}
+        </div>
+        <div className="calendar-event-customer">{customerName}</div>
+        <div className="calendar-event-service">{serviceName}</div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`event-fc-color flex fc-event-main ${colorClass} rounded-sm p-1`}
-    >
+    <div className={`event-fc-color calendar-daygrid-event ${colorClass}`}>
       <div className="fc-daygrid-event-dot" />
       <div className="fc-event-time">{eventInfo.timeText}</div>
       <div className="fc-event-title">{eventInfo.event.title}</div>

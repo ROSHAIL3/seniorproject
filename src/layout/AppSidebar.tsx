@@ -191,7 +191,6 @@ export default function AppSidebar() {
           <BrandLogo
             size={showLabels ? "md" : "sm"}
             iconOnly={!showLabels}
-            preserveMark
             className="text-gray-900 dark:text-white"
             priority
           />
