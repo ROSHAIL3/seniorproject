@@ -6,28 +6,27 @@ export default function Header({ className }: { className?: string }) {
   return (
     <main
       className={cn(
-        "flex items-center max-md:flex-col justify-between gap-[20px] px-[100px] max-xl:px-[60px] max-sm:px-[30px] py-0 relative w-full max-w-[1440px] mx-auto",
+        "relative mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-x-[72px] gap-y-[48px] px-[100px] max-xl:gap-x-[48px] max-xl:px-[60px] max-md:gap-y-[40px] max-sm:px-[24px] lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]",
         className
       )}
     >
-      <div className="flex flex-col gap-[35px] max-xl:gap-[25px] items-start relative shrink-0 flex-1 pb-[34px] max-md:pb-0 max-w-[531px] max-md:max-w-none">
-        <h1 className="font-medium relative shrink-0 text-[60px]/[normal] max-xl:text-[48px]/[1] whitespace-pre-wrap">
-          Navigating the digital landscape for success
+      <div className="relative flex min-w-0 max-w-[650px] flex-col items-start">
+        <h1 className="relative text-[clamp(42px,4.45vw,64px)] font-medium leading-[1.04] tracking-[-0.035em] max-sm:text-[40px]">
+          Manage every booking in one simple place for any business
         </h1>
-        <HeroGraphic className="hidden max-md:flex mx-auto max-w-[480px] -my-[10px]" />
-        <p className="font-normal relative shrink-0 text-[20px]/[28px] max-xl:text-[16px]/[24px] max-w-[498px] max-md:max-w-none whitespace-pre-wrap">
-          Our digital marketing agency helps businesses grow and succeed online
-          through a range of services including SEO, PPC, social media
-          marketing, and content creation.
+        <p className="relative mt-[28px] max-w-[590px] text-[19px] font-normal leading-[1.55] max-xl:mt-[24px] max-xl:text-[17px] max-sm:text-[16px]">
+          Slotova helps businesses across every industry manage appointments,
+          customers, staff, schedules, reminders, and daily operations through
+          one flexible and easy-to-use platform.
         </p>
         <Button
           variant="primary"
-          className="py-[19px] pr-[36px] max-md:w-full justify-center"
+          className="mt-[32px] min-h-[58px] justify-center px-[34px] py-[16px] max-xl:mt-[28px] max-sm:w-full"
         >
           Book a consultation
         </Button>
       </div>
-      <HeroGraphic className="max-md:hidden ml-auto flex-1" priority />
+      <HeroGraphic className="mx-auto max-w-[520px] lg:mr-0" priority />
     </main>
   );
 }

@@ -1,6 +1,5 @@
 import NavigationBar from "./components/NavigationBar";
 import Header from "./components/Header";
-import Logotypes from "./components/Logotypes";
 import Attribution from "./components/Attribution";
 import HeadingSubheading from "./components/HeadingSubheading";
 import Services from "./components/Services";
@@ -18,9 +17,8 @@ export default async function Home() {
     <div className="relative pt-[60px] max-sm:pt-[30px]">
       <NavigationBar />
       <Header className="mt-[70px] max-sm:mt-[40px]" />
-      <Logotypes className="mt-[70px] max-sm:mt-[40px]" />
       <HeadingSubheading
-        className="mt-[140px] max-lg:mt-[100px] max-sm:mt-[60px]"
+        className="mt-[100px] max-lg:mt-[80px] max-sm:mt-[60px]"
         heading="Services"
         subheading="At our digital marketing agency, we offer a range of services to help businesses grow and succeed online. These services include:"
       />
