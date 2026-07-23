@@ -174,7 +174,7 @@
  * independent visual system. Components continue to consume the shared
  * Tailwind semantic scales instead of carrying one-off palette values.
  */
-.dashboard-shell {
+:is(.dashboard-shell, .auth-shell) {
   --dashboard-accent: #b9ff66;
   --dashboard-dark: #191a23;
   --dashboard-light: #f3f3f3;
@@ -228,7 +228,7 @@
   color: var(--theme-text);
 }
 
-.dashboard-shell :is(h1, h2, h3) {
+:is(.dashboard-shell, .auth-shell) :is(h1, h2, h3) {
   font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 650;
   line-height: 1.2;
@@ -255,7 +255,7 @@
   line-height: 1.4rem;
 }
 
-.dashboard-shell :is(button, input, select, textarea) {
+:is(.dashboard-shell, .auth-shell) :is(button, input, select, textarea) {
   font: inherit;
 }
 
@@ -264,7 +264,7 @@
  * Keep each icon's native aspect ratio, prevent flex compression, and allow
  * edge strokes to render beyond the SVG viewport without changing artwork.
  */
-.dashboard-shell :is(
+:is(.dashboard-shell, .auth-shell) :is(
   button,
   a,
   label,
@@ -273,32 +273,32 @@
   th,
   [class*="menu-item"]
 ) svg,
-.dashboard-shell svg[class*="size-"],
-.dashboard-shell svg[class*="text-"],
-.dashboard-shell svg[class*="fill-"],
-.dashboard-shell svg[class*="stroke-"] {
+:is(.dashboard-shell, .auth-shell) svg[class*="size-"],
+:is(.dashboard-shell, .auth-shell) svg[class*="text-"],
+:is(.dashboard-shell, .auth-shell) svg[class*="fill-"],
+:is(.dashboard-shell, .auth-shell) svg[class*="stroke-"] {
   flex: 0 0 auto;
   overflow: visible;
   vertical-align: middle;
 }
 
-.dashboard-shell [class*="[&>svg]"] > svg {
+:is(.dashboard-shell, .auth-shell) [class*="[&>svg]"] > svg {
   display: block;
   flex: 0 0 auto;
   overflow: visible;
   vertical-align: middle;
 }
 
-.dashboard-shell :is(button, a, [role="button"]) > svg {
+:is(.dashboard-shell, .auth-shell) :is(button, a, [role="button"]) > svg {
   align-self: center;
 }
 
-.dashboard-shell :is(button, a, [role="button"]):has(> svg:only-child) {
+:is(.dashboard-shell, .auth-shell) :is(button, a, [role="button"]):has(> svg:only-child) {
   overflow: visible;
   line-height: 0;
 }
 
-.dashboard-shell :focus-visible {
+:is(.dashboard-shell, .auth-shell) :focus-visible {
   outline: 2px solid var(--dashboard-accent);
   outline-offset: 2px;
 }
@@ -392,23 +392,23 @@
 }
 
 /* The reference green is deliberately bright; dark ink keeps filled accents accessible. */
-.dashboard-shell [class~="bg-brand-500"][class~="text-white"],
-.dashboard-shell [class~="bg-brand-500"][class~="text-white/90"] {
+:is(.dashboard-shell, .auth-shell) [class~="bg-brand-500"][class~="text-white"],
+:is(.dashboard-shell, .auth-shell) [class~="bg-brand-500"][class~="text-white/90"] {
   color: var(--dashboard-dark) !important;
 }
 
-.dashboard-shell .text-brand-500,
-.dashboard-shell .text-brand-600 {
+:is(.dashboard-shell, .auth-shell) .text-brand-500,
+:is(.dashboard-shell, .auth-shell) .text-brand-600 {
   color: var(--color-brand-700);
 }
 
-.dark .dashboard-shell .text-brand-500,
-.dark .dashboard-shell .text-brand-600,
-.dark .dashboard-shell .text-brand-400 {
+.dark :is(.dashboard-shell, .auth-shell) .text-brand-500,
+.dark :is(.dashboard-shell, .auth-shell) .text-brand-600,
+.dark :is(.dashboard-shell, .auth-shell) .text-brand-400 {
   color: var(--dashboard-accent);
 }
 
-.dark .dashboard-shell {
+.dark :is(.dashboard-shell, .auth-shell) {
   --theme-background: var(--dashboard-dark);
   --theme-surface: #20212b;
   --theme-surface-muted: #25262f;
