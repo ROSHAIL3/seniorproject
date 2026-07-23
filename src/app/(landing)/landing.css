@@ -9,3 +9,127 @@ html {
   font-family: var(--font-space-grotesk), "Space Grotesk", Arial, Helvetica,
     sans-serif;
 }
+
+.slotova-hero-art {
+  isolation: isolate;
+}
+
+.slotova-hero-halo {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(185, 255, 102, 0.24), transparent 64%),
+    linear-gradient(135deg, rgba(185, 255, 102, 0.12), rgba(255, 255, 255, 0));
+  filter: blur(2px);
+  animation: slotova-halo-pulse 6s ease-in-out infinite;
+}
+
+.slotova-hero-orbit {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  animation: slotova-orbit 24s linear infinite;
+}
+
+.slotova-hero-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 1px dashed rgba(0, 0, 0, 0.08);
+  border-radius: inherit;
+}
+
+.slotova-hero-orbit-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #b9ff66;
+  box-shadow: 0 0 0 7px rgba(185, 255, 102, 0.18);
+}
+
+.slotova-hero-orbit-dot-small {
+  width: 10px;
+  height: 10px;
+  background: #191a23;
+  box-shadow: 0 0 0 6px rgba(25, 26, 35, 0.08);
+}
+
+.slotova-hero-logo {
+  animation: slotova-logo-float 5.5s ease-in-out infinite;
+  box-shadow: 0 26px 70px rgba(25, 26, 35, 0.08);
+}
+
+.slotova-hero-spark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #191a23;
+  transform: rotate(45deg);
+  animation: slotova-spark 4s ease-in-out infinite;
+}
+
+.slotova-hero-spark-two {
+  width: 12px;
+  height: 12px;
+  border-color: #8acb3f;
+  animation-delay: -1.7s;
+}
+
+.slotova-hero-pill {
+  animation: slotova-pill-float 5.5s ease-in-out infinite;
+}
+
+@keyframes slotova-logo-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-0.4deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(0.4deg);
+  }
+}
+
+@keyframes slotova-pill-float {
+  0%,
+  100% {
+    margin-bottom: 0;
+  }
+  50% {
+    margin-bottom: 5px;
+  }
+}
+
+@keyframes slotova-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slotova-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes slotova-spark {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: rotate(45deg) scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(135deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slotova-hero-halo,
+  .slotova-hero-orbit,
+  .slotova-hero-logo,
+  .slotova-hero-spark,
+  .slotova-hero-pill {
+    animation: none;
+  }
+}
