@@ -12,6 +12,7 @@ import type {
   EventContentArg,
   EventInput,
   MoreLinkArg,
+  MoreLinkSimpleAction,
 } from "@fullcalendar/core";
 import type { DateClickArg } from "@fullcalendar/interaction";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -180,6 +181,9 @@ export default function Calendar({
     const date = toIsoDate(moreInfo.date);
     selectDate(date);
     setMoreAppointmentsDate(date);
+    // FullCalendar treats a void return as a request for its native popover.
+    // A handled, truthy non-view result suppresses that fallback.
+    return true as unknown as MoreLinkSimpleAction;
   };
 
   const handleDatesSet = (dateInfo: DatesSetArg) => {
