@@ -17,7 +17,7 @@ export default function CTA({ className }: CTAProps) {
       <div className="bg-[#f3f3f3] flex items-center justify-between px-[60px] max-xl:px-[40px] max-sm:px-[30px] py-0 gap-[10px] relative rounded-[45px] shrink-0 w-full my-[23px]">
         <div className="flex flex-col gap-[26px] items-start relative shrink-0 flex-3 max-lg:flex-4 py-[40px] max-sm:py-[30px]">
           <h3 className="font-medium leading-[normal] relative shrink-0 text-[30px] text-black max-w-[500px] whitespace-pre-wrap">
-            Let&apos;s make things happen
+            Ready to simplify your bookings?
           </h3>
           <svg
             viewBox="0 0 359 394"
@@ -26,14 +26,14 @@ export default function CTA({ className }: CTAProps) {
             <use href="#cta-illustration" />
           </svg>
           <p className="font-normal relative shrink-0 text-[18px]/[normal] text-black max-w-[500px] whitespace-pre-wrap">
-            Contact us today to learn more about how our digital marketing
-            services can help your business grow and succeed online.
+            Manage appointments, staff, customers, reminders, and daily
+            operations from one flexible platform built for any industry.
           </p>
           <Button
             variant="primary"
             className="py-[19px] mb-[2px] max-sm:w-full justify-center"
           >
-            Get your free proposal
+            Book a free demo
           </Button>
         </div>
         <div className="flex-2 w-full max-w-[494px] flex items-center justify-center shrink-0 relative pr-[40px] -my-[24px] max-md:hidden">

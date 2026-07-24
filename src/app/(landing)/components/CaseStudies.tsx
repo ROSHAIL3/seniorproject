@@ -2,21 +2,25 @@ import { cn } from "@/app/(landing)/lib/utils";
 import LearnMoreLink from "./LearnMoreLink";
 
 type CaseStudy = {
+  title: string;
   description: string;
 };
 
 const caseStudies: CaseStudy[] = [
   {
+    title: "Beauty & Wellness",
     description:
-      "For a local restaurant, we implemented a targeted PPC campaign that resulted in a 50% increase in website traffic and a 25% increase in sales.",
+      "Manage appointments, staff schedules, customer details, and automatic reminders from one place.",
   },
   {
+    title: "Clinics & Professionals",
     description:
-      "For a B2B software company, we developed an SEO strategy that resulted in a first page ranking for key keywords and a 200% increase in organic traffic.",
+      "Organize availability, bookings, customer records, and daily operations with a simple workflow.",
   },
   {
+    title: "Services & Consultations",
     description:
-      "For a national retail chain, we created a social media marketing campaign that increased followers by 25% and generated a 20% increase in online sales.",
+      "Let customers book easily while your team manages schedules, updates, and notifications.",
   },
 ];
 
@@ -38,7 +42,7 @@ export default function CaseStudies({ className }: { className?: string }) {
             <div
               key={index}
               className={cn(
-                "flex flex-col gap-[18px] items-start relative shrink-0 flex-1",
+                "flex h-full flex-col gap-[18px] items-start relative shrink-0 flex-1",
                 index % 2 === 0 &&
                   index === caseStudies.length - 1 &&
                   "max-lg:col-span-2 max-md:col-span-1"
@@ -63,6 +67,9 @@ export default function CaseStudies({ className }: { className?: string }) {
                   aria-hidden="true"
                 />
               )}
+              <h3 className="font-medium relative shrink-0 text-[22px]/[normal] text-white max-w-[286px] whitespace-pre-wrap">
+                {caseStudy.title}
+              </h3>
               <p
                 className={cn(
                   "font-normal relative shrink-0 text-[18px]/[normal] text-white max-w-[286px] whitespace-pre-wrap",
@@ -71,7 +78,9 @@ export default function CaseStudies({ className }: { className?: string }) {
               >
                 {caseStudy.description}
               </p>
-              <LearnMoreLink variant="SimpleGreen" />
+              <LearnMoreLink variant="SimpleGreen" className="mt-auto">
+                Explore use case
+              </LearnMoreLink>
             </div>
           );
         })}

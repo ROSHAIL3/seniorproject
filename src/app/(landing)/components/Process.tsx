@@ -13,39 +13,39 @@ type ProcessItem = {
 const processItems: ProcessItem[] = [
   {
     number: "01",
-    title: "Consultation",
+    title: "Set Up Your Business",
     description:
-      "During the initial consultation, we will discuss your business goals and objectives, target audience, and current marketing efforts. This will allow us to understand your needs and tailor our services to best fit your requirements.",
+      "Add your business information, branches, staff members, services, pricing, working hours, appointment rules, and availability so the platform matches how your business operates.",
   },
   {
     number: "02",
-    title: "Research and Strategy Development",
+    title: "Share Your Booking Link",
     description:
-      "We conduct thorough research on your industry, competitors, and target market to develop a comprehensive strategy that aligns with your business objectives and maximizes your marketing ROI.",
+      "Give customers your unique booking link or let them start through WhatsApp, making it easy to access your services without downloading a separate application.",
   },
   {
     number: "03",
-    title: "Implementation",
+    title: "Customers Book a Time",
     description:
-      "Our team executes the developed strategy, implementing all marketing initiatives across various channels while ensuring consistency and quality in every aspect of the campaign.",
+      "Customers select the service they need, choose an available staff member, pick a suitable date and time, and enter their details to complete the booking.",
   },
   {
     number: "04",
-    title: "Monitoring and Optimization",
+    title: "Manage Appointments",
     description:
-      "We continuously monitor campaign performance, analyze data, and make data-driven optimizations to improve results and ensure your marketing efforts are delivering the best possible outcomes.",
+      "View all bookings from the calendar, filter them by staff or date, and quickly confirm, reschedule, cancel, or update appointment details from one dashboard.",
   },
   {
     number: "05",
-    title: "Reporting and Communication",
+    title: "Send Automatic Reminders",
     description:
-      "Regular reporting and transparent communication keep you informed about campaign progress, key metrics, and insights, ensuring you're always aware of how your marketing investments are performing.",
+      "Automatically send confirmations, upcoming appointment reminders, rescheduling updates, cancellation notices, invoice messages, and payment notifications to customers.",
   },
   {
     number: "06",
-    title: "Continual Improvement",
+    title: "Track and Improve",
     description:
-      "We believe in continuous improvement, regularly reviewing and refining our strategies based on performance data and market changes to ensure long-term success and growth for your business.",
+      "Monitor appointments, customers, revenue, expenses, staff performance, service results, and business activity through clear reports that support better decisions.",
   },
 ];
 

@@ -96,7 +96,7 @@ export default function ServiceCard({
           headingClassName="text-[30px]/[1.27] max-xl:text-[25px]/[1.27]"
           as="h3"
         />
-        <LearnMoreLink variant={linkVariant} />
+        <LearnMoreLink variant={linkVariant}>Explore feature</LearnMoreLink>
       </div>
       <div
         className="relative shrink-0 overflow-hidden flex-1 h-auto max-w-[210px]"

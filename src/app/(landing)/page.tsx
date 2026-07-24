@@ -19,22 +19,22 @@ export default async function Home() {
       <Header className="mt-[70px] max-sm:mt-[40px]" />
       <HeadingSubheading
         className="mt-[100px] max-lg:mt-[80px] max-sm:mt-[60px]"
-        heading="Services"
-        subheading="At our digital marketing agency, we offer a range of services to help businesses grow and succeed online. These services include:"
+        heading="Features"
+        subheading="Everything your business needs to manage bookings, customers, staff, schedules, reminders, and daily operations in one place."
       />
       <Services className="mt-[80px] max-lg:mt-[60px] max-sm:mt-[40px]" />
       <CTA className="mt-[100px] max-sm:mt-[40px]" />
       <HeadingSubheading
         className="mt-[140px] max-lg:mt-[100px] max-sm:mt-[60px]"
-        heading="Case Studies"
-        subheading="Explore Real-Life Examples of Our Proven Digital Marketing Success through Our Case Studies"
+        heading="Built for Every Business"
+        subheading="See how Slotova supports different industries with flexible booking, scheduling, customer management, and automated reminders."
       />
       <CaseStudies className="mt-[80px] max-lg:mt-[60px] max-sm:mt-[40px]" />
       <HeadingSubheading
         className="mt-[140px] max-lg:mt-[100px] max-sm:mt-[60px] max-md:flex-col"
-        heading="Our Working Process"
-        subheading="Step-by-Step Guide to Achieving Your Business Goals"
-        subheadingClassName="max-w-[292px]"
+        heading="How Slotova Works"
+        subheading="From setup to daily operations, Slotova makes booking management simple for any business."
+        subheadingClassName="max-w-[473px]"
       />
       <Process className="mt-[80px] max-lg:mt-[60px] max-sm:mt-[40px]" />
       <HeadingSubheading

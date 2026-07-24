@@ -21,40 +21,40 @@ type ServiceItem = {
 
 const services: ServiceItem[] = [
   {
-    lines: ["Search engine", "optimization"],
+    lines: ["Smart", "Scheduling"],
     cardVariant: "Grey",
     illustrationSrc: imgSEO,
-    illustrationAlt: "Search engine optimization illustration",
+    illustrationAlt: "Smart Scheduling illustration",
     illustrationStyle: {
       containerHeight: 170,
       backgroundSize: { width: 148.84, height: 183.86 },
     },
   },
   {
-    lines: ["Pay-per-click", "advertising"],
+    lines: ["WhatsApp", "Booking"],
     cardVariant: "Green",
     illustrationSrc: imgPPC,
-    illustrationAlt: "Pay-per-click advertising illustration",
+    illustrationAlt: "WhatsApp Booking illustration",
     illustrationStyle: {
       containerHeight: 147.624,
       backgroundSize: { width: 126.73, height: 180.28 },
     },
   },
   {
-    lines: ["Social Media", "Marketing"],
+    lines: ["Customer", "Management"],
     cardVariant: "DarkWhite",
     illustrationSrc: imgSocialMedia,
-    illustrationAlt: "Social Media Marketing illustration",
+    illustrationAlt: "Customer Management illustration",
     illustrationStyle: {
       containerHeight: 210,
       backgroundSize: { width: 141.44, height: 141.44 },
     },
   },
   {
-    lines: ["Email", "Marketing"],
+    lines: ["Automated", "Reminders"],
     cardVariant: "Grey",
     illustrationSrc: imgEmail,
-    illustrationAlt: "Email Marketing illustration",
+    illustrationAlt: "Automated Reminders illustration",
     illustrationStyle: {
       containerHeight: 192.68,
       backgroundSize: { width: 140.67, height: 153.3 },
@@ -63,20 +63,20 @@ const services: ServiceItem[] = [
     },
   },
   {
-    lines: ["Content", "Creation"],
+    lines: ["Staff", "Management"],
     cardVariant: "Green",
     illustrationSrc: imgContent,
-    illustrationAlt: "Content Creation illustration",
+    illustrationAlt: "Staff Management illustration",
     illustrationStyle: {
       containerHeight: 195.915,
       backgroundSize: { width: 132.08, height: 141.26 },
     },
   },
   {
-    lines: ["Analytics and", "Tracking"],
+    lines: ["Reports &", "Analytics"],
     cardVariant: "DarkGreen",
     illustrationSrc: imgAnalytics,
-    illustrationAlt: "Analytics and Tracking illustration",
+    illustrationAlt: "Reports & Analytics illustration",
     illustrationStyle: {
       containerHeight: 170,
       backgroundSize: { width: 108.36, height: 134.02 },
