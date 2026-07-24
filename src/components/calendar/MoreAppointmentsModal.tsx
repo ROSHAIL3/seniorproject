@@ -39,7 +39,7 @@ export default function MoreAppointmentsModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-gray-950/65 p-4 backdrop-blur-[2px] sm:p-10"
+      className="fixed inset-0 z-[9999999] flex items-center justify-center bg-gray-950/65 p-4 backdrop-blur-[2px] sm:p-10"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();

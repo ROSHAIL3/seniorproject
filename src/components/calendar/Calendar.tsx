@@ -18,7 +18,6 @@ import type { DateClickArg } from "@fullcalendar/interaction";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "@/components/form/Select";
-import { REFERENCE_TODAY } from "@/config/business";
 import { useAppointments } from "@/hooks/useAppointments";
 import type { Appointment, AppointmentStatus } from "@/types/appointments";
 import type { StaffMember } from "@/types/staff";
@@ -53,7 +52,8 @@ export default function Calendar({
   const router = useRouter();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const appointments = useAppointments(initialAppointments);
-  const [selectedDate, setSelectedDate] = useState(REFERENCE_TODAY);
+  const [todayDate, setTodayDate] = useState(() => toIsoDate(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
   const [selectedStaffId, setSelectedStaffId] = useState("all");
   const [currentView, setCurrentView] = useState("dayGridMonth");
   const [moreAppointmentsDate, setMoreAppointmentsDate] = useState<
@@ -91,6 +91,19 @@ export default function Calendar({
       resizeObserver.disconnect();
     };
   }, [isExpanded, isHovered, isMobileOpen]);
+
+  useEffect(() => {
+    const updateToday = () => {
+      const nextToday = toIsoDate(new Date());
+      if (nextToday === todayDate) return;
+      setTodayDate(nextToday);
+      setSelectedDate(nextToday);
+      calendarRef.current?.getApi().today();
+    };
+
+    const timer = window.setInterval(updateToday, 60_000);
+    return () => window.clearInterval(timer);
+  }, [todayDate]);
 
   const filteredAppointments = useMemo(
     () =>
@@ -322,7 +335,8 @@ export default function Calendar({
             ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
-            initialDate={REFERENCE_TODAY}
+            initialDate={todayDate}
+            now={todayDate}
             headerToolbar={{
               left: "prev,next addAppointmentButton",
               center: "title",
@@ -332,10 +346,12 @@ export default function Calendar({
               dayGridMonth: {
                 buttonText: "month",
                 dayMaxEvents: 2,
+                fixedWeekCount: true,
+                expandRows: true,
               },
               dayGridWeek: {
                 buttonText: "week",
-                dayMaxEvents: 3,
+                dayMaxEvents: 4,
                 duration: { weeks: 1 },
               },
               timeGridDay: {
@@ -343,7 +359,9 @@ export default function Calendar({
               },
             }}
             events={events}
-            height={currentView === "timeGridDay" ? "auto" : "100%"}
+            height={
+              currentView === "dayGridMonth" ? "100%" : "auto"
+            }
             eventMaxStack={2}
             eventOrder="start"
             eventOrderStrict
