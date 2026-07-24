@@ -101,7 +101,7 @@ export default function DayTimeline({
 
   return (
     <div
-      className="calendar-day-timeline max-h-[720px] overflow-auto border-t border-gray-200 dark:border-gray-800"
+      className="calendar-day-timeline min-h-0 flex-1 overflow-auto border-t border-gray-200 dark:border-gray-800"
       aria-label="Day appointment timeline"
     >
       <div
