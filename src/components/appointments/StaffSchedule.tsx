@@ -99,26 +99,26 @@ export default function StaffSchedule({
         </Button>
       </div>
 
-      <div className="max-w-full overflow-auto">
+      <div className="max-h-[calc(100dvh-13rem)] max-w-full overflow-auto overscroll-contain">
         <div
-          className="min-w-[900px]"
+          className="w-full min-w-max"
           style={{
             display: "grid",
-            gridTemplateColumns: `100px repeat(${staffMembers.length}, minmax(190px, 1fr))`,
+            gridTemplateColumns: `88px repeat(${staffMembers.length}, minmax(170px, 1fr))`,
           }}
         >
-          <div className="sticky left-0 z-30 border-b border-r border-gray-200 bg-gray-50 px-3 py-3 text-xs font-medium text-gray-400 dark:border-gray-800 dark:bg-gray-900">
+          <div className="sticky left-0 top-0 z-40 border-b border-r border-gray-200 bg-gray-100 px-3 py-3 text-xs font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
             Time
           </div>
           {staffMembers.map((staff) => (
             <div
               key={staff.id}
-              className="border-b border-r border-gray-200 bg-gray-50 px-3 py-3 text-center dark:border-gray-800 dark:bg-gray-900"
+              className="sticky top-0 z-30 min-w-0 border-b border-r border-gray-200 bg-gray-100 px-3 py-3 text-center dark:border-gray-700 dark:bg-gray-800"
             >
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              <p className="truncate text-sm font-semibold text-gray-950 dark:text-white">
                 {staff.name}
               </p>
-              <p className="mt-0.5 text-[11px] text-gray-400">
+              <p className="mt-0.5 truncate text-[11px] font-medium text-gray-600 dark:text-gray-300">
                 {staff.branchId === "branch-manama" ? "Manama" : "Seef"} branch
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function StaffSchedule({
             const row = [
               <div
                 key={`time-${time}`}
-                className="sticky left-0 z-10 flex items-start border-b border-r border-gray-200 bg-white px-3 pt-2 text-xs text-gray-400 dark:border-gray-800 dark:bg-gray-900"
+                className="sticky left-0 z-20 flex items-start border-b border-r border-gray-200 bg-white px-3 pt-2 text-xs font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                 style={{ height: SLOT_HEIGHT }}
               >
                 {time}
@@ -173,11 +173,20 @@ export default function StaffSchedule({
                       : coveringAppointment
                         ? ""
                         : undefined;
+              const unavailableKind = isDayOff
+                ? "day-off"
+                : isBreak
+                  ? "break"
+                  : wrongBranch
+                    ? "other-branch"
+                    : unsupportedService
+                      ? "not-assigned"
+                      : "occupied";
 
               row.push(
                 <div
                   key={`${staff.id}-${time}`}
-                  className="relative border-b border-r border-gray-200 dark:border-gray-800"
+                  className="relative min-w-0 border-b border-r border-gray-200 dark:border-gray-700"
                   style={{ height: SLOT_HEIGHT }}
                 >
                   <TimeSlot
@@ -194,6 +203,7 @@ export default function StaffSchedule({
                       !!coveringAppointment
                     }
                     unavailableLabel={unavailableLabel}
+                    unavailableKind={unavailableKind}
                     appointment={startingAppointment}
                     appointmentHeight={
                       startingAppointment
