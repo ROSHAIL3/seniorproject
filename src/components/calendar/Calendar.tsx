@@ -25,6 +25,7 @@ import type { Appointment, AppointmentStatus } from "@/types/appointments";
 import type { StaffMember } from "@/types/staff";
 import { useSidebar } from "@/context/SidebarContext";
 import DayTimeline from "./DayTimeline";
+import MoreAppointmentsModal from "./MoreAppointmentsModal";
 
 type CalendarProps = {
   initialAppointments: Appointment[];
@@ -56,6 +57,9 @@ export default function Calendar({
   const [selectedDate, setSelectedDate] = useState(REFERENCE_TODAY);
   const [selectedStaffId, setSelectedStaffId] = useState("all");
   const [currentView, setCurrentView] = useState("dayGridMonth");
+  const [moreAppointmentsDate, setMoreAppointmentsDate] = useState<
+    string | null
+  >(null);
   const calendarRef = useRef<FullCalendar | null>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const selectedAppointmentsRef = useRef<HTMLElement>(null);
@@ -133,6 +137,23 @@ export default function Calendar({
     [filteredAppointments, selectedDate],
   );
 
+  const moreAppointments = useMemo(
+    () =>
+      moreAppointmentsDate
+        ? filteredAppointments
+            .filter(
+              (appointment) =>
+                appointment.appointmentDate === moreAppointmentsDate,
+            )
+            .sort(
+              (first, second) =>
+                first.startTime.localeCompare(second.startTime) ||
+                first.endTime.localeCompare(second.endTime),
+            )
+        : [],
+    [filteredAppointments, moreAppointmentsDate],
+  );
+
   const events: EventInput[] = [...filteredAppointments]
     .sort(
       (first, second) =>
@@ -169,7 +190,9 @@ export default function Calendar({
   };
 
   const handleMoreClick = (moreInfo: MoreLinkArg) => {
-    selectDate(toIsoDate(moreInfo.date));
+    const date = toIsoDate(moreInfo.date);
+    selectDate(date, false);
+    setMoreAppointmentsDate(date);
   };
 
   const handleDatesSet = (dateInfo: DatesSetArg) => {
@@ -448,6 +471,16 @@ export default function Calendar({
           </div>
         )}
       </section>
+      {moreAppointmentsDate && (
+        <MoreAppointmentsModal
+          date={moreAppointmentsDate}
+          appointments={moreAppointments}
+          onClose={() => setMoreAppointmentsDate(null)}
+          onAppointmentClick={(appointment) =>
+            router.push(`/appointments/${appointment.bookingNumber}`)
+          }
+        />
+      )}
     </div>
   );
 }
