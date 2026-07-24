@@ -14,6 +14,8 @@ type DayTimelineProps = {
 const PIXELS_PER_MINUTE = 1.8;
 const DEFAULT_START_MINUTES = 8 * 60;
 const DEFAULT_END_MINUTES = 20 * 60;
+const TIME_AXIS_WIDTH = 88;
+const TIMELINE_VERTICAL_PADDING = 24;
 
 const statusClasses: Record<AppointmentStatus, string> = {
   Booked:
@@ -81,7 +83,9 @@ export default function DayTimeline({
   const endMinutes = Math.max(DEFAULT_END_MINUTES, ...appointmentTimes);
   const roundedStart = Math.floor(startMinutes / 60) * 60;
   const roundedEnd = Math.ceil(endMinutes / 60) * 60;
-  const timelineHeight = (roundedEnd - roundedStart) * PIXELS_PER_MINUTE;
+  const timelineHeight =
+    (roundedEnd - roundedStart) * PIXELS_PER_MINUTE +
+    TIMELINE_VERTICAL_PADDING * 2;
   const hourMarkers = Array.from(
     { length: (roundedEnd - roundedStart) / 60 + 1 },
     (_, index) => roundedStart + index * 60,
@@ -107,10 +111,10 @@ export default function DayTimeline({
       <div
         className="calendar-day-grid grid"
         style={{
-          gridTemplateColumns: `72px repeat(${visibleStaff.length}, ${columnWidth})`,
+          gridTemplateColumns: `${TIME_AXIS_WIDTH}px repeat(${visibleStaff.length}, ${columnWidth})`,
           minWidth:
             selectedStaffId === "all"
-              ? `${72 + visibleStaff.length * 240}px`
+              ? `${TIME_AXIS_WIDTH + visibleStaff.length * 240}px`
               : "100%",
         }}
       >
@@ -131,9 +135,11 @@ export default function DayTimeline({
           {hourMarkers.map((minutes) => (
             <span
               key={minutes}
-              className="absolute right-2 -translate-y-1/2 text-[11px] font-medium text-gray-500 dark:text-gray-400"
+              className="absolute right-3 -translate-y-1/2 whitespace-nowrap text-[11px] font-medium text-gray-500 dark:text-gray-400"
               style={{
-                top: (minutes - roundedStart) * PIXELS_PER_MINUTE,
+                top:
+                  TIMELINE_VERTICAL_PADDING +
+                  (minutes - roundedStart) * PIXELS_PER_MINUTE,
               }}
             >
               {formatHour(minutes)}
@@ -159,7 +165,9 @@ export default function DayTimeline({
                   key={minutes}
                   className="pointer-events-none absolute left-0 right-0 border-t border-gray-100 dark:border-gray-800"
                   style={{
-                    top: (minutes - roundedStart) * PIXELS_PER_MINUTE,
+                    top:
+                      TIMELINE_VERTICAL_PADDING +
+                      (minutes - roundedStart) * PIXELS_PER_MINUTE,
                   }}
                 />
               ))}
@@ -188,6 +196,7 @@ export default function DayTimeline({
                       }`}
                       style={{
                         top:
+                          TIMELINE_VERTICAL_PADDING +
                           (appointmentStart - roundedStart) *
                             PIXELS_PER_MINUTE +
                           1,
@@ -223,7 +232,10 @@ export default function DayTimeline({
               )}
 
               {positioned.length === 0 && (
-                <div className="absolute inset-x-3 top-6 rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">
+                <div
+                  className="absolute inset-x-3 rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500"
+                  style={{ top: TIMELINE_VERTICAL_PADDING + 24 }}
+                >
                   No appointments
                 </div>
               )}
