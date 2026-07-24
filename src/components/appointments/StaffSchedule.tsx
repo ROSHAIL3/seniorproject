@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button/Button";
 import { ChevronLeftIcon } from "@/icons";
+import { getTodayIso } from "@/config/business";
 import { formatDisplayDate } from "@/lib/formatters";
 import TimeSlot from "./TimeSlot";
 import {
@@ -23,7 +24,6 @@ type StaffScheduleProps = {
   appointments: Appointment[];
   staffMembers: StaffMember[];
   businessHours: { startTime: string; endTime: string };
-  referenceToday: string;
   onDateChange: (date: string) => void;
   onSelectSlot: (staffId: string, time: string) => void;
 };
@@ -45,7 +45,6 @@ export default function StaffSchedule({
   appointments,
   staffMembers,
   businessHours,
-  referenceToday,
   onDateChange,
   onSelectSlot,
 }: StaffScheduleProps) {
@@ -93,7 +92,7 @@ export default function StaffSchedule({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onDateChange(referenceToday)}
+          onClick={() => onDateChange(getTodayIso())}
         >
           Today
         </Button>

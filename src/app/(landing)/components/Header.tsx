@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { cn } from "../lib/utils";
 import Button from "./Button";
+import BusinessTypewriter from "./BusinessTypewriter";
 
 export default function Header({ className }: { className?: string }) {
   return (
@@ -11,8 +12,14 @@ export default function Header({ className }: { className?: string }) {
       )}
     >
       <div className="relative flex min-w-0 max-w-[650px] flex-col items-start">
-        <h1 className="relative text-[clamp(42px,4.45vw,64px)] font-medium leading-[1.04] tracking-[-0.035em] max-sm:text-[40px]">
-          Manage every booking in one simple place for any business
+        <h1
+          className="relative text-[clamp(42px,4.45vw,64px)] font-medium leading-[1.04] tracking-[-0.035em] max-sm:text-[40px]"
+          aria-label="Manage every booking in one simple place for businesses across every industry"
+        >
+          <span className="block">Manage every</span>
+          <span className="block">booking in one</span>
+          <span className="block">simple place for</span>
+          <BusinessTypewriter />
         </h1>
         <p className="relative mt-[28px] max-w-[590px] text-[19px] font-normal leading-[1.55] max-xl:mt-[24px] max-xl:text-[17px] max-sm:text-[16px]">
           Slotova helps businesses across every industry manage appointments,

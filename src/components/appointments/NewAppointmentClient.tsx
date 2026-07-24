@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Select from "@/components/form/Select";
 import Alert from "@/components/ui/alert/Alert";
 import Button from "@/components/ui/button/Button";
-import { BUSINESS_HOURS, REFERENCE_TODAY } from "@/config/business";
+import { BUSINESS_HOURS, getTodayIso } from "@/config/business";
 import { CheckCircleIcon, ChevronLeftIcon } from "@/icons";
 import { formatBhd } from "@/lib/formatters";
 import {
@@ -54,6 +54,7 @@ export default function NewAppointmentClient({
   serviceFields,
   initialServiceFieldValues = {},
 }: NewAppointmentClientProps) {
+  const [todayDate, setTodayDate] = useState(() => getTodayIso());
   const [customer, setCustomer] = useState<Customer | null>(
     editingAppointment
       ? customers.find((item) => item.id === editingAppointment.customerId) ?? null
@@ -70,7 +71,7 @@ export default function NewAppointmentClient({
   const [appointmentDate, setAppointmentDate] = useState(
     editingAppointment?.appointmentDate ??
       initialAppointmentDate ??
-      REFERENCE_TODAY,
+      getTodayIso(),
   );
   const [staffId, setStaffId] = useState(editingAppointment?.staffId ?? "");
   const [startTime, setStartTime] = useState(editingAppointment?.startTime ?? "");
@@ -79,6 +80,12 @@ export default function NewAppointmentClient({
   >("idle");
   const [serviceFieldValues, setServiceFieldValues] = useState<ServiceBookingFieldValueMap>(initialServiceFieldValues);
   const [currentServices, setCurrentServices] = useState(services); const [currentStaffMembers, setCurrentStaffMembers] = useState(staffMembers); const [currentServiceFields, setCurrentServiceFields] = useState(serviceFields);
+  useEffect(() => {
+    const refreshToday = () => setTodayDate(getTodayIso());
+    const intervalId = window.setInterval(refreshToday, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
   useEffect(() => { queueMicrotask(() => { Promise.all([getBookableServices(), getPackageBookingOfferings(), getStaffMembers()]).then(async ([catalogServices, packageOfferings, nextStaff]) => { const nextServices = [...catalogServices, ...packageOfferings]; if (editingAppointment && !nextServices.some((item) => item.id === editingAppointment.serviceId)) { const historical = await getServiceById(editingAppointment.serviceId); const historicalPackage = historical ? null : await getPackageById(editingAppointment.serviceId); if (historical) nextServices.push(historical); else if (historicalPackage) nextServices.push(await packageToBookingService(historicalPackage)); } setCurrentServices(nextServices); setCurrentStaffMembers(nextStaff); setCurrentServiceFields((await Promise.all(nextServices.map((item) => getServiceBookingFields(item.id)))).flat()); }); }); }, [editingAppointment]);
   const selectedServiceFields = currentServiceFields.filter((field) => field.serviceId === service?.id);
   const serviceFieldErrors = Object.fromEntries(selectedServiceFields.flatMap((field) => { const value = serviceFieldValues[field.id]; const empty = value === undefined || value === "" || value === false; return field.required && empty ? [[`serviceFields.${field.id}`, `${field.label} is required.`]] : []; }));
@@ -104,11 +111,11 @@ export default function NewAppointmentClient({
           services: currentServices,
           staffMembers: currentStaffMembers,
           businessHours: BUSINESS_HOURS,
-          today: REFERENCE_TODAY,
+          today: todayDate,
         },
         { ignoreAppointmentId: editingAppointment?.id },
       ),
-    [appointments, editingAppointment?.id, formData, currentServices, currentStaffMembers],
+    [appointments, editingAppointment?.id, formData, currentServices, currentStaffMembers, todayDate],
   );
 
   const selectedStaff = currentStaffMembers.find((staff) => staff.id === staffId);
@@ -272,7 +279,6 @@ export default function NewAppointmentClient({
             appointments={appointments}
             staffMembers={scheduleStaffMembers}
             businessHours={BUSINESS_HOURS}
-            referenceToday={REFERENCE_TODAY}
             onDateChange={(selectedDate) => {
               setAppointmentDate(selectedDate);
               setStartTime("");
