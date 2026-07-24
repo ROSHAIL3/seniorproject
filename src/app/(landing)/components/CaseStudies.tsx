@@ -78,7 +78,11 @@ export default function CaseStudies({ className }: { className?: string }) {
               >
                 {caseStudy.description}
               </p>
-              <LearnMoreLink variant="SimpleGreen" className="mt-auto">
+              <LearnMoreLink
+                variant="SimpleGreen"
+                className="mt-auto"
+                href="/signin"
+              >
                 Explore use case
               </LearnMoreLink>
             </div>

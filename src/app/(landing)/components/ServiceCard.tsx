@@ -16,19 +16,11 @@ type LearnMoreLinkVariant =
 
 export type CardVariant = "Grey" | "Green" | "DarkWhite" | "DarkGreen";
 
-export type IllustrationStyle = {
-  containerHeight: number;
-  backgroundSize: { width: number; height: number };
-  backgroundPosition?: { x: number; y: number };
-  transform?: string;
-};
-
 type ServiceCardProps = {
   lines: string[];
   cardVariant: CardVariant;
   illustrationSrc: ComponentType<SVGProps<SVGSVGElement>>;
   illustrationAlt: string;
-  illustrationStyle: IllustrationStyle;
   className?: string;
 };
 
@@ -37,7 +29,6 @@ export default function ServiceCard({
   cardVariant,
   illustrationSrc,
   illustrationAlt,
-  illustrationStyle,
   className,
 }: ServiceCardProps) {
   // Determine card styling based on variant
@@ -96,30 +87,18 @@ export default function ServiceCard({
           headingClassName="text-[30px]/[1.27] max-xl:text-[25px]/[1.27]"
           as="h3"
         />
-        <LearnMoreLink variant={linkVariant}>Explore feature</LearnMoreLink>
+        <LearnMoreLink variant={linkVariant} href="/signin">
+          Explore feature
+        </LearnMoreLink>
       </div>
       <div
-        className="relative shrink-0 overflow-hidden flex-1 h-auto max-w-[210px]"
+        className="relative aspect-square h-auto max-w-[210px] flex-1 shrink-0 overflow-visible"
         data-name="Illustration"
-        style={{
-          aspectRatio: `210 / ${illustrationStyle.containerHeight}`,
-        }}
       >
         <Illustration
           role="img"
           aria-label={illustrationAlt}
-          className="absolute max-w-none max-h-none"
-          style={{
-            width: illustrationStyle.backgroundSize.width + "%",
-            height: illustrationStyle.backgroundSize.height + "%",
-            left:
-              (illustrationStyle.backgroundPosition?.x ??
-                50 - illustrationStyle.backgroundSize.width / 2) + "%",
-            top:
-              (illustrationStyle.backgroundPosition?.y ??
-                50 - illustrationStyle.backgroundSize.height / 2) + "%",
-            transform: illustrationStyle.transform,
-          }}
+          className="block size-full max-h-full max-w-full"
         />
       </div>
     </div>

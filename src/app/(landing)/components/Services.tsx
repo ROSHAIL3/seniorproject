@@ -1,8 +1,5 @@
 import { cn } from "@/app/(landing)/lib/utils";
-import ServiceCard, {
-  type CardVariant,
-  type IllustrationStyle,
-} from "./ServiceCard";
+import ServiceCard, { type CardVariant } from "./ServiceCard";
 import type { ComponentType, SVGProps } from "react";
 import automatedRemindersImage from "@/app/(landing)/assets/illustrations/services/features pictures/Automated Reminders.svg";
 import customerManagementImage from "@/app/(landing)/assets/illustrations/services/features pictures/Customer Management.svg";
@@ -15,7 +12,6 @@ type ServiceItem = {
   lines: string[];
   cardVariant: CardVariant;
   illustrationSrc: FeatureIllustration;
-  illustrationStyle: IllustrationStyle;
 };
 
 type FeatureIllustration = ComponentType<SVGProps<SVGSVGElement>>;
@@ -37,57 +33,31 @@ const services: ServiceItem[] = [
     lines: ["Smart", "Scheduling"],
     cardVariant: "Grey",
     illustrationSrc: featureImages["Smart Scheduling"],
-    illustrationStyle: {
-      containerHeight: 170,
-      backgroundSize: { width: 148.84, height: 183.86 },
-    },
   },
   {
     lines: ["WhatsApp", "Booking"],
     cardVariant: "Green",
     illustrationSrc: featureImages["WhatsApp Booking"],
-    illustrationStyle: {
-      containerHeight: 147.624,
-      backgroundSize: { width: 126.73, height: 180.28 },
-    },
   },
   {
     lines: ["Customer", "Management"],
     cardVariant: "DarkWhite",
     illustrationSrc: featureImages["Customer Management"],
-    illustrationStyle: {
-      containerHeight: 210,
-      backgroundSize: { width: 141.44, height: 141.44 },
-    },
   },
   {
     lines: ["Automated", "Reminders"],
     cardVariant: "Grey",
     illustrationSrc: featureImages["Automated Reminders"],
-    illustrationStyle: {
-      containerHeight: 192.68,
-      backgroundSize: { width: 140.67, height: 153.3 },
-      backgroundPosition: { x: 59 - 75.7, y: 50 - 76.6 },
-      transform: "scaleX(-1)",
-    },
   },
   {
     lines: ["Staff", "Management"],
     cardVariant: "Green",
     illustrationSrc: featureImages["Staff Management"],
-    illustrationStyle: {
-      containerHeight: 195.915,
-      backgroundSize: { width: 132.08, height: 141.26 },
-    },
   },
   {
     lines: ["Reports &", "Analytics"],
     cardVariant: "DarkGreen",
     illustrationSrc: featureImages["Reports & Analytics"],
-    illustrationStyle: {
-      containerHeight: 170,
-      backgroundSize: { width: 108.36, height: 134.02 },
-    },
   },
 ];
 

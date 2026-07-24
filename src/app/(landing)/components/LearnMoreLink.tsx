@@ -1,4 +1,5 @@
 import { cn } from "@/app/(landing)/lib/utils";
+import Link from "next/link";
 
 type LearnMoreLinkVariant =
   | "White"
@@ -15,6 +16,7 @@ type LearnMoreLinkProps = {
   variant?: LearnMoreLinkVariant;
   children?: React.ReactNode;
   className?: string;
+  href?: string;
 };
 
 // Arrow SVG path d attribute - reusable constant
@@ -39,7 +41,7 @@ function ArrowIcon({ isSimple, circleFill, arrowFill }: ArrowIconProps) {
   return (
     <div
       className={cn(
-        "relative shrink-0",
+        "relative shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none",
         isSimple ? "h-[20px] w-[21px]" : "size-[41px]"
       )}
       data-name="Icon"
@@ -62,6 +64,7 @@ export default function LearnMoreLink({
   variant = "Black",
   children = "Learn more",
   className,
+  href = "/signin",
 }: LearnMoreLinkProps) {
   const isSimple =
     variant === "SimpleGreen" ||
@@ -113,9 +116,10 @@ export default function LearnMoreLink({
   const textColor = getTextColor();
 
   return (
-    <div
+    <Link
+      href={href}
       className={cn(
-        "flex items-center relative",
+        "group relative flex w-fit cursor-pointer items-center rounded-md transition-[transform,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b9ff66] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent motion-reduce:transform-none motion-reduce:transition-none",
         isSimple ? "gap-[14px]" : "gap-[15px]",
         className
       )}
@@ -128,14 +132,14 @@ export default function LearnMoreLink({
           arrowFill={arrowFill}
         />
       )}
-      <p
+      <span
         className={cn(
           "font-normal leading-[28px] relative shrink-0 text-[20px]",
           textColor
         )}
       >
         {children}
-      </p>
+      </span>
       {isSimple && (
         <ArrowIcon
           isSimple={isSimple}
@@ -143,6 +147,6 @@ export default function LearnMoreLink({
           arrowFill={arrowFill}
         />
       )}
-    </div>
+    </Link>
   );
 }
