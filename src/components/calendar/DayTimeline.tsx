@@ -191,7 +191,7 @@ export default function DayTimeline({
                       type="button"
                       onClick={() => onAppointmentClick(appointment)}
                       title={`${appointment.startTime}–${appointment.endTime} · ${appointment.customerName} · ${appointment.serviceName} · ${appointment.staffName}`}
-                      className={`absolute overflow-hidden rounded-md border px-2 text-left shadow-theme-xs transition hover:z-10 hover:brightness-95 focus:z-20 focus:outline-none focus:ring-2 focus:ring-brand-500 ${statusClasses[appointment.status]} ${
+                      className={`calendar-appointment-card absolute overflow-hidden rounded-md border px-2 text-left shadow-theme-xs hover:z-10 hover:brightness-95 focus:z-20 focus:outline-none focus:ring-2 focus:ring-brand-500 ${statusClasses[appointment.status]} ${
                         isCompact ? "py-1" : "py-1.5"
                       }`}
                       style={{

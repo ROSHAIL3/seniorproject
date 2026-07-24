@@ -5,7 +5,7 @@ import UserDropdown from "@/components/header/UserDropdown";
 import BrandLogo from "@/components/common/BrandLogo";
 import { useSidebar } from "@/context/SidebarContext";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState } from "react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -23,23 +23,6 @@ const AppHeader: React.FC = () => {
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-        event.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
@@ -111,7 +94,7 @@ const AppHeader: React.FC = () => {
             </svg>
           </button>
 
-          <div className="hidden lg:block">
+          <div className="hidden">
             <form>
               <div className="relative">
                 <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
@@ -132,7 +115,6 @@ const AppHeader: React.FC = () => {
                   </svg>
                 </span>
                 <input
-                  ref={inputRef}
                   type="text"
                   placeholder="Search or type command..."
                   className="dark:bg-dark-900 h-10 w-full rounded-lg border border-gray-200 bg-transparent py-2 pl-11 pr-14 text-[13px] text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[390px]"

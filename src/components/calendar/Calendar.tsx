@@ -376,13 +376,6 @@ export default function Calendar({
             dayHeaderContent={renderDayHeader}
             dayCellClassNames={(day) =>
               [
-                ...(toIsoDate(day.date) === selectedDate
-                  ? [
-                      day.view.type.startsWith("timeGrid")
-                        ? "calendar-selected-column"
-                        : "calendar-selected-date",
-                    ]
-                  : []),
                 ...(day.view.type === "dayGridWeek"
                   ? [
                       (appointmentCounts.get(toIsoDate(day.date)) ?? 0) === 0
@@ -391,12 +384,6 @@ export default function Calendar({
                     ]
                   : []),
               ]
-            }
-            dayHeaderClassNames={(day) =>
-              day.view.type !== "dayGridMonth" &&
-              toIsoDate(day.date) === selectedDate
-                ? ["calendar-selected-header"]
-                : []
             }
             customButtons={{
               addAppointmentButton: {
