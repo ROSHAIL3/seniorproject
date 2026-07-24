@@ -6,6 +6,7 @@ type TeamCardProps = {
   title: string;
   description: string;
   imageSrc: StaticImageData;
+  linkedinUrl: string;
   className?: string;
 };
 
@@ -63,11 +64,13 @@ function PersonPicture({
 function SocialIcon() {
   return (
     <svg
-      width="34"
-      height="34"
+      width="40"
+      height="40"
       viewBox="0 0 34 34"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="block size-full"
+      aria-hidden="true"
     >
       <circle cx="17" cy="17" r="17" fill="black" />
       <path d="M9.31776 25H12.8131V13.6844H9.31776V25Z" fill="#B9FF66" />
@@ -88,6 +91,7 @@ export default function TeamCard({
   title,
   description,
   imageSrc,
+  linkedinUrl,
   className,
 }: TeamCardProps) {
   return (
@@ -97,7 +101,7 @@ export default function TeamCard({
         "grid grid-rows-[auto_auto_minmax(0,1fr)] items-start overflow-clip",
         "px-[34px] py-[39px] max-xl:p-[25px]",
         "relative rounded-[45px] shadow-[0px_5px_0px_0px_#191a23]",
-        "shrink-0 gap-[28px] max-md:gap-[20px] w-full",
+        "min-h-[390px] shrink-0 gap-[28px] max-md:min-h-0 max-md:gap-[20px] w-full",
         className
       )}
       data-name="Card"
@@ -110,12 +114,17 @@ export default function TeamCard({
           imageSrc={imageSrc}
           className="row-span-2 self-end size-[103px] max-xl:size-[80px] max-sm:size-[60px]"
         />
-        <div
-          className="shrink-0 size-[34px] self-start justify-self-end -mb-[2px]"
+        <a
+          href={linkedinUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open ${name}'s LinkedIn profile`}
+          title={`${name} on LinkedIn`}
+          className="-mb-[2px] size-[40px] shrink-0 self-start justify-self-end rounded-full transition duration-150 hover:scale-105 hover:shadow-[0_4px_12px_rgba(0,0,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#191a23] focus-visible:ring-offset-2 max-sm:size-[36px]"
           data-name="Social icon"
         >
           <SocialIcon />
-        </div>
+        </a>
         <div className="leading-[normal] text-black self-end" data-name="Name">
           <p className="font-medium text-[20px]" data-node-id="name">
             {name}
@@ -129,7 +138,7 @@ export default function TeamCard({
         <div className="absolute inset-[-1px_0_0_0] border-t border-[#191a23]"></div>
       </div>
       <p
-        className="font-normal leading-[normal] relative shrink-0 text-[18px] text-black max-w-[317px] max-xl:max-w-none whitespace-pre-wrap"
+        className="relative shrink-0 max-w-[440px] whitespace-pre-wrap text-[18px] font-normal leading-[1.45] text-black max-xl:max-w-none"
         data-name="Description"
       >
         {description}

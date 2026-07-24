@@ -39,9 +39,9 @@ export default async function Home() {
       <Process className="mt-[80px] max-lg:mt-[60px] max-sm:mt-[40px]" />
       <HeadingSubheading
         className="mt-[140px] max-lg:mt-[100px] max-sm:mt-[60px]"
-        heading="Team"
-        subheading="Meet the skilled and experienced team behind our successful digital marketing strategies"
-        subheadingClassName="max-w-[473px]"
+        heading="Project Team"
+        subheading="Meet the developer and academic supervisor behind the development of Slotova."
+        subheadingClassName="max-w-[600px]"
       />
       <Team className="mt-[80px] max-lg:mt-[60px] max-sm:mt-[40px]" />
       <HeadingSubheading

@@ -1,59 +1,34 @@
 import { cn } from "@/app/(landing)/lib/utils";
 import TeamCard from "./TeamCard";
 import type { StaticImageData } from "next/image";
-import personImage1 from "@/app/(landing)/assets/team/person-1.jpg";
-import personImage2 from "@/app/(landing)/assets/team/person-2.jpg";
-import personImage3 from "@/app/(landing)/assets/team/person-3.jpg";
+import roshailImage from "@/app/(landing)/assets/team/roshail-tavnir.png";
+import abdullaImage from "@/app/(landing)/assets/team/abdullah-aldoseri.png";
 
 type TeamMember = {
   name: string;
   title: string;
   description: string;
   imageSrc: StaticImageData;
+  linkedinUrl: string;
 };
 
 const teamMembers: TeamMember[] = [
   {
-    name: "John Smith",
-    title: "CEO and Founder",
+    name: "Roshail Tavnir",
+    title: "Full Stack Developer",
     description:
-      "10+ years of experience in digital marketing. Expertise in SEO, PPC, and content strategy",
-    imageSrc: personImage1,
+      "Responsible for designing, developing, and implementing Slotova, including the user interface, backend, database, and booking management features.",
+    imageSrc: roshailImage,
+    linkedinUrl: "https://www.linkedin.com/in/roshailtanvir/",
   },
   {
-    name: "Jane Doe",
-    title: "Director of Operations",
+    name: "Dr. Abdulla Aldoseri",
+    title: "Project Supervisor",
     description:
-      "7+ years of experience in project management and team leadership. Strong organizational and communication skills",
-    imageSrc: personImage3,
-  },
-  {
-    name: "Michael Brown",
-    title: "Senior SEO Specialist",
-    description:
-      "5+ years of experience in SEO and content creation. Proficient in keyword research and on-page optimization",
-    imageSrc: personImage2,
-  },
-  {
-    name: "Emily Johnson",
-    title: "PPC Manager",
-    description:
-      "3+ years of experience in paid search advertising. Skilled in campaign management and performance analysis",
-    imageSrc: personImage2,
-  },
-  {
-    name: "Brian Williams",
-    title: "Social Media Specialist",
-    description:
-      "4+ years of experience in social media marketing. Proficient in creating and scheduling content, analyzing metrics, and building engagement",
-    imageSrc: personImage3,
-  },
-  {
-    name: "Sarah Kim",
-    title: "Content Creator",
-    description:
-      "2+ years of experience in writing and editing.\nSkilled in creating compelling, SEO-optimized content for various industries",
-    imageSrc: personImage1,
+      "Providing academic guidance, technical feedback, and project oversight throughout the planning, development, and evaluation of the project.",
+    imageSrc: abdullaImage,
+    linkedinUrl:
+      "https://bh.linkedin.com/in/dr-abdullah-aldoseri-0ab6706a",
   },
 ];
 
@@ -65,13 +40,13 @@ export default function Team({ className }: { className?: string }) {
     >
       <div
         className={cn(
-          "grid grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1 gap-[40px] max-xl:gap-[30px] max-sm:gap-[20px] relative",
+          "relative mx-auto grid w-full max-w-[1040px] grid-cols-2 gap-[40px] max-xl:gap-[30px] max-md:max-w-[620px] max-md:grid-cols-1 max-sm:gap-[20px]",
           className
         )}
         data-name="Group of cards"
       >
-        {teamMembers.map((member, index) => (
-          <TeamCard key={index} {...member} />
+        {teamMembers.map((member) => (
+          <TeamCard key={member.name} {...member} />
         ))}
       </div>
     </div>
