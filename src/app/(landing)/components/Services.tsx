@@ -3,28 +3,40 @@ import ServiceCard, {
   type CardVariant,
   type IllustrationStyle,
 } from "./ServiceCard";
-import type { StaticImageData } from "next/image";
-import imgSEO from "@/app/(landing)/assets/illustrations/services/tokyo-magnifier-web-search-with-elements-2.png";
-import imgPPC from "@/app/(landing)/assets/illustrations/services/tokyo-selecting-a-value-in-the-browser-window-1.png";
-import imgSocialMedia from "@/app/(landing)/assets/illustrations/services/tokyo-browser-window-with-emoticon-likes-and-stars-around-2.png";
-import imgEmail from "@/app/(landing)/assets/illustrations/services/tokyo-sending-messages-from-one-place-to-another-1.png";
-import imgContent from "@/app/(landing)/assets/illustrations/services/tokyo-many-browser-windows-with-different-information-1.png";
-import imgAnalytics from "@/app/(landing)/assets/illustrations/services/tokyo-volumetric-analytics-of-different-types-in-web-browsers-2.png";
+import type { ComponentType, SVGProps } from "react";
+import automatedRemindersImage from "@/app/(landing)/assets/illustrations/services/features pictures/Automated Reminders.svg";
+import customerManagementImage from "@/app/(landing)/assets/illustrations/services/features pictures/Customer Management.svg";
+import reportsAnalyticsImage from "@/app/(landing)/assets/illustrations/services/features pictures/Reports & Analytics.svg";
+import smartSchedulingImage from "@/app/(landing)/assets/illustrations/services/features pictures/Smart Scheduling.svg";
+import staffManagementImage from "@/app/(landing)/assets/illustrations/services/features pictures/Staff Management.svg";
+import whatsAppBookingImage from "@/app/(landing)/assets/illustrations/services/features pictures/WhatsApp Booking.svg";
 
 type ServiceItem = {
   lines: string[];
   cardVariant: CardVariant;
-  illustrationSrc: StaticImageData;
-  illustrationAlt: string;
+  illustrationSrc: FeatureIllustration;
   illustrationStyle: IllustrationStyle;
 };
+
+type FeatureIllustration = ComponentType<SVGProps<SVGSVGElement>>;
+
+const featureImages = {
+  "Smart Scheduling": smartSchedulingImage as unknown as FeatureIllustration,
+  "WhatsApp Booking": whatsAppBookingImage as unknown as FeatureIllustration,
+  "Customer Management":
+    customerManagementImage as unknown as FeatureIllustration,
+  "Automated Reminders":
+    automatedRemindersImage as unknown as FeatureIllustration,
+  "Staff Management": staffManagementImage as unknown as FeatureIllustration,
+  "Reports & Analytics":
+    reportsAnalyticsImage as unknown as FeatureIllustration,
+} satisfies Record<string, FeatureIllustration>;
 
 const services: ServiceItem[] = [
   {
     lines: ["Smart", "Scheduling"],
     cardVariant: "Grey",
-    illustrationSrc: imgSEO,
-    illustrationAlt: "Smart Scheduling illustration",
+    illustrationSrc: featureImages["Smart Scheduling"],
     illustrationStyle: {
       containerHeight: 170,
       backgroundSize: { width: 148.84, height: 183.86 },
@@ -33,8 +45,7 @@ const services: ServiceItem[] = [
   {
     lines: ["WhatsApp", "Booking"],
     cardVariant: "Green",
-    illustrationSrc: imgPPC,
-    illustrationAlt: "WhatsApp Booking illustration",
+    illustrationSrc: featureImages["WhatsApp Booking"],
     illustrationStyle: {
       containerHeight: 147.624,
       backgroundSize: { width: 126.73, height: 180.28 },
@@ -43,8 +54,7 @@ const services: ServiceItem[] = [
   {
     lines: ["Customer", "Management"],
     cardVariant: "DarkWhite",
-    illustrationSrc: imgSocialMedia,
-    illustrationAlt: "Customer Management illustration",
+    illustrationSrc: featureImages["Customer Management"],
     illustrationStyle: {
       containerHeight: 210,
       backgroundSize: { width: 141.44, height: 141.44 },
@@ -53,8 +63,7 @@ const services: ServiceItem[] = [
   {
     lines: ["Automated", "Reminders"],
     cardVariant: "Grey",
-    illustrationSrc: imgEmail,
-    illustrationAlt: "Automated Reminders illustration",
+    illustrationSrc: featureImages["Automated Reminders"],
     illustrationStyle: {
       containerHeight: 192.68,
       backgroundSize: { width: 140.67, height: 153.3 },
@@ -65,8 +74,7 @@ const services: ServiceItem[] = [
   {
     lines: ["Staff", "Management"],
     cardVariant: "Green",
-    illustrationSrc: imgContent,
-    illustrationAlt: "Staff Management illustration",
+    illustrationSrc: featureImages["Staff Management"],
     illustrationStyle: {
       containerHeight: 195.915,
       backgroundSize: { width: 132.08, height: 141.26 },
@@ -75,8 +83,7 @@ const services: ServiceItem[] = [
   {
     lines: ["Reports &", "Analytics"],
     cardVariant: "DarkGreen",
-    illustrationSrc: imgAnalytics,
-    illustrationAlt: "Reports & Analytics illustration",
+    illustrationSrc: featureImages["Reports & Analytics"],
     illustrationStyle: {
       containerHeight: 170,
       backgroundSize: { width: 108.36, height: 134.02 },
@@ -93,9 +100,17 @@ export default function Services({ className }: { className?: string }) {
       )}
       id="services"
     >
-      {services.map((service, index) => (
-        <ServiceCard key={index} {...service} />
-      ))}
+      {services.map((service) => {
+        const title = service.lines.join(" ");
+
+        return (
+          <ServiceCard
+            key={title}
+            {...service}
+            illustrationAlt={`${title} illustration`}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import { cn } from "@/app/(landing)/lib/utils";
 import LearnMoreLink from "./LearnMoreLink";
 import Heading, { type HeadingVariant } from "./Heading";
-import type { StaticImageData } from "next/image";
-import Image from "next/image";
+import type { ComponentType, SVGProps } from "react";
 
 type LearnMoreLinkVariant =
   | "White"
@@ -27,7 +26,7 @@ export type IllustrationStyle = {
 type ServiceCardProps = {
   lines: string[];
   cardVariant: CardVariant;
-  illustrationSrc: StaticImageData;
+  illustrationSrc: ComponentType<SVGProps<SVGSVGElement>>;
   illustrationAlt: string;
   illustrationStyle: IllustrationStyle;
   className?: string;
@@ -76,6 +75,7 @@ export default function ServiceCard({
   };
 
   const { backgroundColor, headingVariant, linkVariant } = getCardStyles();
+  const Illustration = illustrationSrc;
 
   return (
     <div
@@ -105,9 +105,9 @@ export default function ServiceCard({
           aspectRatio: `210 / ${illustrationStyle.containerHeight}`,
         }}
       >
-        <Image
-          src={illustrationSrc}
-          alt={illustrationAlt}
+        <Illustration
+          role="img"
+          aria-label={illustrationAlt}
           className="absolute max-w-none max-h-none"
           style={{
             width: illustrationStyle.backgroundSize.width + "%",
