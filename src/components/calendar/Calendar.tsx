@@ -5,6 +5,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type {
+  DatesSetArg,
   DayCellContentArg,
   DayHeaderContentArg,
   EventClickArg,
@@ -13,7 +14,7 @@ import type {
   MoreLinkArg,
 } from "@fullcalendar/core";
 import type { DateClickArg } from "@fullcalendar/interaction";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Select from "@/components/form/Select";
 import AppointmentStatusBadge from "@/components/appointments/AppointmentStatusBadge";
@@ -22,6 +23,8 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { formatDisplayDate } from "@/lib/formatters";
 import type { Appointment, AppointmentStatus } from "@/types/appointments";
 import type { StaffMember } from "@/types/staff";
+import { useSidebar } from "@/context/SidebarContext";
+import DayTimeline from "./DayTimeline";
 
 type CalendarProps = {
   initialAppointments: Appointment[];
@@ -48,9 +51,54 @@ export default function Calendar({
   staffMembers,
 }: CalendarProps) {
   const router = useRouter();
+  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const appointments = useAppointments(initialAppointments);
   const [selectedDate, setSelectedDate] = useState(REFERENCE_TODAY);
   const [selectedStaffId, setSelectedStaffId] = useState("all");
+  const [currentView, setCurrentView] = useState("dayGridMonth");
+  const calendarRef = useRef<FullCalendar | null>(null);
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
+  const selectedAppointmentsRef = useRef<HTMLElement>(null);
+
+  const scrollToSelectedAppointments = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      selectedAppointmentsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, []);
+
+  const selectDate = useCallback(
+    (date: string, shouldScroll = true) => {
+      setSelectedDate(date);
+      if (shouldScroll) scrollToSelectedAppointments();
+    },
+    [scrollToSelectedAppointments],
+  );
+
+  useEffect(() => {
+    const container = calendarContainerRef.current;
+    if (!container) return;
+
+    let resizeFrame = 0;
+    const updateCalendarSize = () => {
+      window.cancelAnimationFrame(resizeFrame);
+      resizeFrame = window.requestAnimationFrame(() => {
+        calendarRef.current?.getApi().updateSize();
+      });
+    };
+    const resizeObserver = new ResizeObserver(updateCalendarSize);
+    resizeObserver.observe(container);
+    updateCalendarSize();
+    const transitionTimer = window.setTimeout(updateCalendarSize, 320);
+
+    return () => {
+      window.clearTimeout(transitionTimer);
+      window.cancelAnimationFrame(resizeFrame);
+      resizeObserver.disconnect();
+    };
+  }, [isExpanded, isHovered, isMobileOpen]);
 
   const filteredAppointments = useMemo(
     () =>
@@ -85,20 +133,27 @@ export default function Calendar({
     [filteredAppointments, selectedDate],
   );
 
-  const events: EventInput[] = filteredAppointments.map((appointment) => ({
-    id: appointment.id,
-    title: `${appointment.customerName} · ${appointment.serviceName}`,
-    start: `${appointment.appointmentDate}T${appointment.startTime}:00`,
-    end: `${appointment.appointmentDate}T${appointment.endTime}:00`,
-    extendedProps: {
-      bookingNumber: appointment.bookingNumber,
-      calendar: statusCalendar[appointment.status],
-      customerName: appointment.customerName,
-      serviceName: appointment.serviceName,
-      startTime: appointment.startTime,
-      endTime: appointment.endTime,
-    },
-  }));
+  const events: EventInput[] = [...filteredAppointments]
+    .sort(
+      (first, second) =>
+        first.appointmentDate.localeCompare(second.appointmentDate) ||
+        first.startTime.localeCompare(second.startTime),
+    )
+    .map((appointment) => ({
+      id: appointment.id,
+      title: `${appointment.customerName} · ${appointment.serviceName}`,
+      start: `${appointment.appointmentDate}T${appointment.startTime}:00`,
+      end: `${appointment.appointmentDate}T${appointment.endTime}:00`,
+      extendedProps: {
+        bookingNumber: appointment.bookingNumber,
+        calendar: statusCalendar[appointment.status],
+        customerName: appointment.customerName,
+        serviceName: appointment.serviceName,
+        staffName: appointment.staffName,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+      },
+    }));
 
   const staffOptions = [
     { value: "all", label: "All staff" },
@@ -106,7 +161,7 @@ export default function Calendar({
   ];
 
   const handleDateClick = (selection: DateClickArg) => {
-    setSelectedDate(selection.dateStr.slice(0, 10));
+    selectDate(selection.dateStr.slice(0, 10));
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -114,7 +169,14 @@ export default function Calendar({
   };
 
   const handleMoreClick = (moreInfo: MoreLinkArg) => {
-    setSelectedDate(toIsoDate(moreInfo.date));
+    selectDate(toIsoDate(moreInfo.date));
+  };
+
+  const handleDatesSet = (dateInfo: DatesSetArg) => {
+    setCurrentView(dateInfo.view.type);
+    if (dateInfo.view.type === "timeGridDay") {
+      selectDate(toIsoDate(dateInfo.start), false);
+    }
   };
 
   const renderDayCell = (day: DayCellContentArg) => {
@@ -136,7 +198,23 @@ export default function Calendar({
 
     return (
       <div className="flex w-full items-start justify-between gap-2">
-        <span>{day.dayNumberText}</span>
+        <span
+          role="button"
+          tabIndex={0}
+          className="calendar-date-trigger"
+          onClick={(event) => {
+            event.stopPropagation();
+            selectDate(date);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              selectDate(date);
+            }
+          }}
+        >
+          {day.dayNumberText}
+        </span>
         {count > 0 && (
           <span
             aria-label={`${count} appointment${count === 1 ? "" : "s"}`}
@@ -152,8 +230,20 @@ export default function Calendar({
   const renderDayHeader = (day: DayHeaderContentArg) => {
     const count = appointmentCounts.get(toIsoDate(day.date)) ?? 0;
     if (day.view.type === "dayGridWeek") {
+      const date = toIsoDate(day.date);
       return (
-        <div className="calendar-week-day-header">
+        <div
+          className="calendar-week-day-header calendar-date-trigger"
+          role="button"
+          tabIndex={0}
+          onClick={() => selectDate(date)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              selectDate(date);
+            }
+          }}
+        >
           <span className="calendar-week-day-name">
             {day.date.toLocaleDateString(undefined, { weekday: "short" })}
           </span>
@@ -203,9 +293,17 @@ export default function Calendar({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:-mx-2">
-        <div className="custom-calendar">
+      <div
+        ref={calendarContainerRef}
+        className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:-mx-2"
+      >
+        <div
+          className={`custom-calendar min-w-0 ${
+            currentView === "timeGridDay" ? "is-custom-day-view" : ""
+          }`}
+        >
           <FullCalendar
+            ref={calendarRef}
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             initialDate={REFERENCE_TODAY}
@@ -221,7 +319,7 @@ export default function Calendar({
               },
               dayGridWeek: {
                 buttonText: "week",
-                dayMaxEvents: false,
+                dayMaxEvents: 3,
                 duration: { weeks: 1 },
               },
               timeGridDay: {
@@ -232,9 +330,11 @@ export default function Calendar({
             height="auto"
             eventMaxStack={2}
             eventOrder="start"
+            eventOrderStrict
             displayEventEnd
             slotEventOverlap={false}
             moreLinkClick={handleMoreClick}
+            datesSet={handleDatesSet}
             dateClick={handleDateClick}
             eventClick={handleEventClick}
             eventContent={renderEventContent}
@@ -271,10 +371,24 @@ export default function Calendar({
               },
             }}
           />
+          {currentView === "timeGridDay" && (
+            <DayTimeline
+              appointments={selectedAppointments}
+              staffMembers={staffMembers}
+              selectedStaffId={selectedStaffId}
+              onAppointmentClick={(appointment) =>
+                router.push(`/appointments/${appointment.bookingNumber}`)
+              }
+            />
+          )}
         </div>
       </div>
 
-      <section aria-labelledby="selected-date-appointments">
+      <section
+        ref={selectedAppointmentsRef}
+        aria-labelledby="selected-date-appointments"
+        className="scroll-mt-24"
+      >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2
             id="selected-date-appointments"
@@ -358,11 +472,13 @@ const renderEventContent = (eventInfo: EventContentArg) => {
   const {
     customerName,
     serviceName,
+    staffName,
     startTime,
     endTime,
   } = eventInfo.event.extendedProps as {
     customerName: string;
     serviceName: string;
+    staffName: string;
     startTime: string;
     endTime: string;
   };
@@ -375,6 +491,7 @@ const renderEventContent = (eventInfo: EventContentArg) => {
         </div>
         <div className="calendar-event-customer">{customerName}</div>
         <div className="calendar-event-service">{serviceName}</div>
+        <div className="calendar-event-staff">{staffName}</div>
       </div>
     );
   }

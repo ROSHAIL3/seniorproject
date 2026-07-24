@@ -744,13 +744,13 @@ span.flatpickr-weekday,
 }
 
 .fc .fc-view-harness {
-  @apply max-w-full overflow-x-auto custom-scrollbar;
+  @apply w-full max-w-full min-w-0 overflow-x-auto custom-scrollbar;
 }
 .fc-dayGridMonth-view.fc-view.fc-daygrid {
-  @apply min-w-[718px];
+  @apply w-full min-w-0;
 }
 .fc-dayGridWeek-view.fc-view.fc-daygrid {
-  @apply min-w-[980px];
+  @apply w-full min-w-0;
 }
 .fc .fc-scrollgrid-section > * {
   border-right-width: 0;
@@ -842,10 +842,10 @@ span.flatpickr-weekday,
   @apply flex items-center;
 }
 .event-fc-color .fc-event-title {
-  @apply min-w-0 truncate p-0 text-xs font-normal text-gray-700;
+  @apply min-w-0 truncate p-0 text-xs font-normal text-gray-700 dark:text-gray-100;
 }
 .event-fc-color .fc-event-time {
-  @apply shrink-0 text-xs font-medium text-gray-700;
+  @apply shrink-0 text-xs font-medium text-gray-700 dark:text-gray-100;
 }
 .fc-daygrid-event-dot {
   @apply ml-0 mr-1.5 h-4 w-1 shrink-0 rounded-sm border-none;
@@ -857,16 +857,16 @@ span.flatpickr-weekday,
   @apply !ml-1.5;
 }
 .event-fc-color.fc-bg-success {
-  @apply border-success-50 bg-success-50;
+  @apply border-success-50 bg-success-50 dark:border-success-500/40 dark:bg-success-500/20;
 }
 .event-fc-color.fc-bg-danger {
-  @apply border-error-50 bg-error-50;
+  @apply border-error-50 bg-error-50 dark:border-error-500/40 dark:bg-error-500/20;
 }
 .event-fc-color.fc-bg-primary {
-  @apply border-brand-50 bg-brand-50;
+  @apply border-brand-50 bg-brand-50 dark:border-brand-500/40 dark:bg-brand-500/20;
 }
 .event-fc-color.fc-bg-warning {
-  @apply border-orange-50 bg-orange-50;
+  @apply border-orange-50 bg-orange-50 dark:border-orange-500/40 dark:bg-orange-500/20;
 }
 .event-fc-color.fc-bg-success .fc-daygrid-event-dot {
   @apply bg-success-500;
@@ -931,7 +931,19 @@ span.flatpickr-weekday,
 }
 
 .custom-calendar .calendar-event-service {
-  @apply max-w-full truncate text-xs leading-4 text-gray-500 dark:text-gray-400;
+  @apply max-w-full truncate text-xs leading-4 text-gray-600 dark:text-gray-200;
+}
+
+.custom-calendar .calendar-event-staff {
+  @apply max-w-full truncate text-[11px] leading-4 text-gray-500 dark:text-gray-300;
+}
+
+.custom-calendar.is-custom-day-view .fc-view-harness {
+  display: none;
+}
+
+.custom-calendar .calendar-date-trigger {
+  @apply cursor-pointer rounded outline-none transition hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:hover:text-brand-400 dark:focus-visible:ring-offset-gray-900;
 }
 .custom-calendar .fc.fc-media-screen {
   min-height: 0;
@@ -985,7 +997,9 @@ span.flatpickr-weekday,
 }
 
 .custom-calendar .fc-dayGridWeek-view .fc-daygrid-day-frame {
-  min-height: 18rem;
+  height: 19rem;
+  min-height: 19rem;
+  overflow: hidden;
   padding: 0.5rem;
 }
 
@@ -1027,7 +1041,7 @@ span.flatpickr-weekday,
 }
 
 .custom-calendar .calendar-week-event {
-  @apply flex min-h-[76px] w-full flex-col items-start justify-center gap-0.5 border p-2.5 shadow-theme-xs;
+  @apply flex h-[76px] w-full flex-col items-start justify-center gap-0.5 border p-2 shadow-theme-xs;
 }
 
 .custom-calendar .fc-daygrid-more-link {
