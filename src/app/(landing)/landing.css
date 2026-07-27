@@ -14,6 +14,12 @@ html {
   isolation: isolate;
 }
 
+.slotova-scroll-progress {
+  transform: scaleX(0.08);
+  transform-origin: left center;
+  will-change: transform;
+}
+
 .slotova-hero-halo {
   background:
     radial-gradient(circle at 50% 45%, rgba(185, 255, 102, 0.24), transparent 64%),
@@ -140,6 +146,10 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .slotova-scroll-progress {
+    will-change: auto;
+  }
+
   .slotova-hero-halo,
   .slotova-hero-orbit,
   .slotova-hero-logo,

@@ -11,12 +11,14 @@ import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import ScrollProgressLine from "./components/ScrollProgressLine";
 
 export default async function Home() {
   return (
-    <div className="relative pt-[60px] max-sm:pt-[30px]">
+    <div className="relative pt-[28px] max-sm:pt-[18px]">
+      <ScrollProgressLine />
       <NavigationBar />
-      <Header className="mt-[70px] max-sm:mt-[40px]" />
+      <Header className="mt-[42px] max-lg:mt-[36px] max-sm:mt-[24px]" />
       <HeadingSubheading
         className="mt-[100px] max-lg:mt-[80px] max-sm:mt-[60px]"
         heading="Features"

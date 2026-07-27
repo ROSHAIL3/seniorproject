@@ -7,7 +7,7 @@ export default function Header({ className }: { className?: string }) {
   return (
     <main
       className={cn(
-        "relative mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-x-[72px] gap-y-[48px] px-[100px] max-xl:gap-x-[48px] max-xl:px-[60px] max-md:gap-y-[40px] max-sm:px-[24px] lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]",
+        "relative mx-auto grid w-full max-w-[1440px] grid-cols-1 items-center gap-x-[72px] gap-y-[48px] px-[100px] max-xl:gap-x-[48px] max-xl:px-[60px] max-md:gap-y-[40px] max-sm:px-[24px] lg:grid-cols-[minmax(0,1.04fr)_minmax(380px,0.96fr)]",
         className
       )}
     >
@@ -33,7 +33,7 @@ export default function Header({ className }: { className?: string }) {
           Book a consultation
         </Button>
       </div>
-      <HeroGraphic className="mx-auto max-w-[520px] lg:mr-0" priority />
+      <HeroGraphic className="mx-auto max-w-[570px] lg:mr-0" priority />
     </main>
   );
 }
@@ -48,7 +48,7 @@ function HeroGraphic({
   return (
     <div
       className={cn(
-        "slotova-hero-art relative flex aspect-square w-full max-w-[535px] shrink-0 items-center justify-center",
+        "slotova-hero-art relative flex aspect-square w-full max-w-[570px] shrink-0 items-center justify-center",
         className,
       )}
       aria-label="Slotova"
