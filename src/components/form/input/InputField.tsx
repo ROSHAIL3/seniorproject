@@ -1,6 +1,7 @@
 import React, { FC, ReactNode } from "react";
 import { MailIcon } from "@/icons";
 import PhoneInput from "@/components/form/group-input/PhoneInput";
+import DatePickerControl from "@/components/form/DatePickerControl";
 
 export interface InputProps {
   type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
@@ -72,23 +73,52 @@ const Input: FC<InputProps> = ({
           {fieldIcon}
         </span>
       )}
-      <input
-        type={type}
-        id={id}
-        name={name}
-        placeholder={placeholder}
-        defaultValue={defaultValue}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        aria-label={ariaLabel}
-        className={inputClasses}
-      />
+      {type === "date" ? (
+        <DatePickerControl
+          id={id}
+          name={name}
+          value={value === undefined ? undefined : String(value)}
+          defaultValue={
+            defaultValue === undefined ? undefined : String(defaultValue)
+          }
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          disabled={disabled}
+          ariaLabel={ariaLabel}
+          className={`${inputClasses} flex cursor-pointer items-center justify-between gap-3 text-left`}
+          onChange={(nextValue) =>
+            onChange?.({
+              target: { value: nextValue, name, id, type: "date" },
+              currentTarget: { value: nextValue, name, id, type: "date" },
+            } as React.ChangeEvent<HTMLInputElement>)
+          }
+          onBlur={() =>
+            onBlur?.({
+              target: { value, name, id, type: "date" },
+              currentTarget: { value, name, id, type: "date" },
+            } as React.FocusEvent<HTMLInputElement>)
+          }
+        />
+      ) : (
+        <input
+          type={type}
+          id={id}
+          name={name}
+          placeholder={placeholder}
+          defaultValue={defaultValue}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          min={min}
+          max={max}
+          step={step}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          aria-label={ariaLabel}
+          className={inputClasses}
+        />
+      )}
 
       {/* Optional Hint Text */}
       {hint && (

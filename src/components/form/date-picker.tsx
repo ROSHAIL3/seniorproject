@@ -1,60 +1,52 @@
-import { useEffect } from 'react';
-import flatpickr from 'flatpickr';
-import 'flatpickr/dist/flatpickr.css';
-import Label from './Label';
-import { CalenderIcon } from '../../icons';
-import Hook = flatpickr.Options.Hook;
-import DateOption = flatpickr.Options.DateOption;
+"use client";
+
+import DatePickerControl from "./DatePickerControl";
+import Label from "./Label";
 
 type PropsType = {
   id: string;
   mode?: "single" | "multiple" | "range" | "time";
-  onChange?: Hook | Hook[];
-  defaultDate?: DateOption;
+  onChange?: (dates: Date[], currentDateString: string) => void;
+  defaultDate?: Date | string | number;
   label?: string;
   placeholder?: string;
 };
 
+function normalizeDefaultDate(value?: Date | string | number) {
+  if (value === undefined || value === "") return "";
+  const date =
+    value instanceof Date
+      ? value
+      : typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? new Date(`${value}T00:00:00Z`)
+        : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
 export default function DatePicker({
   id,
-  mode,
   onChange,
   label,
   defaultDate,
   placeholder,
 }: PropsType) {
-  useEffect(() => {
-    const flatPickr = flatpickr(`#${id}`, {
-      mode: mode || "single",
-      static: true,
-      monthSelectorType: "static",
-      dateFormat: "Y-m-d",
-      defaultDate,
-      onChange,
-    });
-
-    return () => {
-      if (!Array.isArray(flatPickr)) {
-        flatPickr.destroy();
-      }
-    };
-  }, [mode, onChange, id, defaultDate]);
-
   return (
     <div>
       {label && <Label htmlFor={id}>{label}</Label>}
-
-      <div className="relative">
-        <input
-          id={id}
-          placeholder={placeholder}
-          className="h-10 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-3.5 py-2 text-[13px] text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-        />
-
-        <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-          <CalenderIcon className="size-[18px]" />
-        </span>
-      </div>
+      <DatePickerControl
+        id={id}
+        defaultValue={normalizeDefaultDate(defaultDate)}
+        placeholder={placeholder}
+        ariaLabel={label ?? "Choose date"}
+        className="flex h-10 w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-gray-300 bg-transparent px-3.5 py-2 text-left text-[13px] text-gray-800 shadow-theme-xs transition placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+        onChange={(dateString) => {
+          const selectedDate = dateString
+            ? new Date(`${dateString}T00:00:00Z`)
+            : null;
+          onChange?.(selectedDate ? [selectedDate] : [], dateString);
+        }}
+      />
     </div>
   );
 }

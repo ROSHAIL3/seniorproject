@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button/Button";
+import DatePickerControl from "@/components/form/DatePickerControl";
 import { ChevronLeftIcon } from "@/icons";
 import { getTodayIso } from "@/config/business";
 import { formatDisplayDate } from "@/lib/formatters";
@@ -26,6 +27,7 @@ type StaffScheduleProps = {
   appointments: Appointment[];
   staffMembers: StaffMember[];
   businessHours: { startTime: string; endTime: string };
+  minDate?: string;
   onDateChange: (date: string) => void;
   onSelectSlot: (staffId: string, time: string) => void;
 };
@@ -47,6 +49,7 @@ export default function StaffSchedule({
   appointments,
   staffMembers,
   businessHours,
+  minDate,
   onDateChange,
   onSelectSlot,
 }: StaffScheduleProps) {
@@ -75,8 +78,9 @@ export default function StaffSchedule({
           <button
             type="button"
             onClick={() => onDateChange(moveDate(date, -1))}
+            disabled={!!minDate && moveDate(date, -1) < minDate}
             aria-label="Previous day"
-            className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+            className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             <ChevronLeftIcon className="size-5" />
           </button>
@@ -88,9 +92,15 @@ export default function StaffSchedule({
           >
             <ChevronLeftIcon className="size-5 rotate-180" />
           </button>
-          <p className="ml-2 text-sm font-medium text-gray-800 dark:text-white/90 sm:text-base">
-            {formatDisplayDate(date)}
-          </p>
+          <DatePickerControl
+            value={date}
+            min={minDate}
+            allowClear={false}
+            ariaLabel="Choose appointment date"
+            displayValue={formatDisplayDate}
+            onChange={onDateChange}
+            className="ml-1 flex h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 text-left text-sm font-medium text-gray-800 shadow-theme-xs transition hover:border-brand-300 hover:bg-brand-50 focus:outline-none focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:hover:border-brand-500/50 dark:hover:bg-brand-500/10 sm:ml-2 sm:min-w-56 sm:text-base"
+          />
         </div>
         <Button
           size="sm"

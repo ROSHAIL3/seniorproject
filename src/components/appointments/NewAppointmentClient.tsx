@@ -287,6 +287,7 @@ export default function NewAppointmentClient({
             appointments={appointments}
             staffMembers={scheduleStaffMembers}
             businessHours={BUSINESS_HOURS}
+            minDate={editingAppointment ? undefined : todayDate}
             onDateChange={(selectedDate) => {
               setAppointmentDate(selectedDate);
               setStartTime("");
