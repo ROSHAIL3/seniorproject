@@ -6,6 +6,7 @@ import { getBookableServices, getServiceById } from "@/services/services.service
 import { getPackageBookingOfferings, getPackageById, packageToBookingService } from "@/services/packages.service";
 import { getStaffMembers } from "@/services/staff.service";
 import { getAppointmentServiceFieldValues, getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { getAppointmentSettings } from "@/services/appointment-settings.service";
 
 type NewAppointmentPageProps = {
   searchParams: Promise<{ edit?: string; date?: string }>;
@@ -19,12 +20,13 @@ export default async function NewAppointmentPage({
   searchParams,
 }: NewAppointmentPageProps) {
   const { edit, date } = await searchParams;
-  const [appointments, customers, catalogServices, packageOfferings, staffMembers] = await Promise.all([
+  const [appointments, customers, catalogServices, packageOfferings, staffMembers, appointmentSettings] = await Promise.all([
     getAppointments(),
     getCustomers(),
     getBookableServices(),
     getPackageBookingOfferings(),
     getStaffMembers(),
+    getAppointmentSettings(),
   ]);
   const services = [...catalogServices, ...packageOfferings];
   const editingAppointment = appointments.find(
@@ -49,6 +51,7 @@ export default async function NewAppointmentPage({
       staffMembers={staffMembers}
       serviceFields={serviceFields}
       initialServiceFieldValues={initialServiceFieldValues}
+      appointmentSettings={appointmentSettings}
     />
   );
 }

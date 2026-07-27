@@ -3,6 +3,7 @@ import type {
   BookingFormData,
   BookingValidationError,
 } from "@/types/appointments";
+import type { AppointmentSettings, ScheduleDay } from "@/types/appointment-settings";
 import type { Service } from "@/types/services";
 import type { StaffMember } from "@/types/staff";
 
@@ -34,17 +35,21 @@ export type BookingValidationContext = {
   services: Service[];
   staffMembers: StaffMember[];
   businessHours: { startTime: string; endTime: string };
+  appointmentSettings?: AppointmentSettings;
   today: string;
   currentTime?: string;
+};
+
+type ValidationOptions = {
+  ignoreAppointmentId?: string;
 };
 
 export const validateBooking = (
   draft: BookingFormData,
   context: BookingValidationContext,
-  options: { ignoreAppointmentId?: string } = {},
+  options: ValidationOptions = {},
 ): BookingValidationError[] => {
   const errors: BookingValidationError[] = [];
-  const currentTime = context.currentTime ?? "09:00";
 
   if (!draft.customerId) {
     errors.push({
@@ -76,41 +81,94 @@ export const validateBooking = (
     });
   }
 
-  if (!service || !staff || !draft.appointmentDate || !draft.startTime) {
-    return errors;
+  if (service && staff && draft.appointmentDate && draft.startTime) {
+    errors.push(...validateStaffInterval(draft, context, options));
   }
 
+  return deduplicateErrors(errors);
+};
+
+export const validateStaffInterval = (
+  draft: BookingFormData,
+  context: BookingValidationContext,
+  options: ValidationOptions = {},
+): BookingValidationError[] => {
+  const service = context.services.find((item) => item.id === draft.serviceId);
+  const staff = context.staffMembers.find((item) => item.id === draft.staffId);
+  if (!service || !staff || !draft.appointmentDate || !draft.startTime) {
+    return [];
+  }
+
+  const errors: BookingValidationError[] = [];
   const endTime = addMinutes(draft.startTime, service.durationMinutes);
   const startMinutes = timeToMinutes(draft.startTime);
   const endMinutes = timeToMinutes(endTime);
+  const currentTime = context.currentTime ?? "09:00";
+  const dayOfWeek = new Date(
+    `${draft.appointmentDate}T00:00:00Z`,
+  ).getUTCDay();
+  const businessDay = context.appointmentSettings?.businessHours.find(
+    (day) => day.dayOfWeek === dayOfWeek,
+  );
+  const staffDay = resolveStaffDay(
+    staff.id,
+    dayOfWeek,
+    businessDay,
+    context.appointmentSettings,
+  );
 
   if (
     draft.appointmentDate < context.today ||
     (draft.appointmentDate === context.today &&
       startMinutes <= timeToMinutes(currentTime))
   ) {
-    errors.push({ code: "past", message: "Appointments cannot be booked in the past." });
-  }
-
-  if (
-    startMinutes < timeToMinutes(context.businessHours.startTime) ||
-    endMinutes > timeToMinutes(context.businessHours.endTime)
-  ) {
     errors.push({
-      code: "business-hours",
-      message: `The selected time is outside business hours (${context.businessHours.startTime}–${context.businessHours.endTime}).`,
+      code: "past",
+      message: "The selected start time is in the past.",
     });
   }
 
-  const dayOfWeek = new Date(`${draft.appointmentDate}T00:00:00Z`).getUTCDay();
-  if (!staff.workingDays.includes(dayOfWeek)) {
+  if (businessDay && !businessDay.isOpen) {
+    errors.push({
+      code: "business-hours",
+      message: "The business is closed on the selected day.",
+    });
+  } else {
+    const businessStart = businessDay?.startTime ?? context.businessHours.startTime;
+    const businessEnd = businessDay?.endTime ?? context.businessHours.endTime;
+    if (
+      startMinutes < timeToMinutes(businessStart) ||
+      endMinutes > timeToMinutes(businessEnd)
+    ) {
+      errors.push({
+        code: "business-hours",
+        message: `The full ${service.durationMinutes}-minute service must stay within business hours (${businessStart}–${businessEnd}).`,
+      });
+    }
+  }
+
+  const worksSelectedDay = staffDay
+    ? staffDay.isOpen
+    : staff.workingDays.includes(dayOfWeek);
+  if (!worksSelectedDay) {
     errors.push({
       code: "staff-day-off",
       message: `${staff.name} is not working on the selected day.`,
     });
+  } else if (staffDay) {
+    if (
+      startMinutes < timeToMinutes(staffDay.startTime) ||
+      endMinutes > timeToMinutes(staffDay.endTime)
+    ) {
+      errors.push({
+        code: "staff-hours",
+        message: `${staff.name} works from ${staffDay.startTime} to ${staffDay.endTime}; the service must finish before the staff leaving time.`,
+      });
+    }
   }
 
-  const overlappingBreak = staff.breaks.find((staffBreak) =>
+  const breaks = resolveStaffBreaks(staff, staffDay);
+  const overlappingBreak = breaks.find((staffBreak) =>
     intervalsOverlap(
       draft.startTime,
       endTime,
@@ -121,13 +179,14 @@ export const validateBooking = (
   if (overlappingBreak) {
     errors.push({
       code: "staff-break",
-      message: `${staff.name} is on break from ${overlappingBreak.startTime} to ${overlappingBreak.endTime}.`,
+      message: `${staff.name} is on break from ${overlappingBreak.startTime} to ${overlappingBreak.endTime}; the full service cannot overlap that break.`,
     });
   }
 
-  const supportsSelection = service.kind === "package"
-    ? service.staffIds.includes(staff.id)
-    : staff.serviceIds.includes(service.id);
+  const supportsSelection =
+    service.kind === "package"
+      ? service.staffIds.includes(staff.id)
+      : staff.serviceIds.includes(service.id);
   if (!supportsSelection) {
     errors.push({
       code: "staff-service",
@@ -162,69 +221,66 @@ export const validateBooking = (
   if (staffConflict) {
     errors.push({
       code: "staff-conflict",
-      message: `Staff member has a conflicting appointment at ${staffConflict.startTime}.`,
-    });
-    errors.push({
-      code: "overlap",
-      message: `The selected appointment overlaps booking ${staffConflict.bookingNumber}.`,
+      message: `${staff.name} already has booking ${staffConflict.bookingNumber} from ${staffConflict.startTime} to ${staffConflict.endTime}.`,
     });
   }
 
-  const customerConflict = relevantAppointments.find(
-    (appointment) =>
-      appointment.customerId === draft.customerId &&
-      intervalsOverlap(
-        draft.startTime,
-        endTime,
-        appointment.startTime,
-        appointment.endTime,
-      ),
-  );
+  const customerConflict = draft.customerId
+    ? relevantAppointments.find(
+        (appointment) =>
+          appointment.customerId === draft.customerId &&
+          intervalsOverlap(
+            draft.startTime,
+            endTime,
+            appointment.startTime,
+            appointment.endTime,
+          ),
+      )
+    : undefined;
   if (customerConflict) {
     errors.push({
       code: "customer-conflict",
-      message: `Customer has another appointment at ${customerConflict.startTime}.`,
+      message: `The selected customer already has booking ${customerConflict.bookingNumber} from ${customerConflict.startTime} to ${customerConflict.endTime}.`,
     });
   }
 
-  const nextBlockedTime = getNextBlockedTime(draft, service, staff, context);
-  if (nextBlockedTime && endMinutes > timeToMinutes(nextBlockedTime)) {
-    errors.push({
-      code: "service-duration",
-      message: `The ${service.durationMinutes}-minute service exceeds the available time before ${nextBlockedTime}.`,
-    });
-  }
+  return deduplicateErrors(errors);
+};
 
+function resolveStaffDay(
+  staffId: string,
+  dayOfWeek: number,
+  businessDay: ScheduleDay | undefined,
+  settings: AppointmentSettings | undefined,
+) {
+  const schedule = settings?.staffSchedules.find(
+    (item) => item.staffId === staffId,
+  );
+  if (!schedule) return undefined;
+  if (!schedule?.useCustomHours) return businessDay;
+  return schedule.days.find((day) => day.dayOfWeek === dayOfWeek);
+}
+
+function resolveStaffBreaks(
+  staff: StaffMember,
+  staffDay: ScheduleDay | undefined,
+) {
+  if (staffDay) {
+    return staffDay.breakStartTime && staffDay.breakEndTime
+      ? [
+          {
+            startTime: staffDay.breakStartTime,
+            endTime: staffDay.breakEndTime,
+          },
+        ]
+      : [];
+  }
+  return staff.breaks;
+}
+
+function deduplicateErrors(errors: BookingValidationError[]) {
   return errors.filter(
     (error, index, list) =>
       list.findIndex((candidate) => candidate.code === error.code) === index,
   );
-};
-
-const getNextBlockedTime = (
-  draft: BookingFormData,
-  service: Service,
-  staff: StaffMember,
-  context: BookingValidationContext,
-) => {
-  const possibleBoundaries = [
-    context.businessHours.endTime,
-    ...staff.breaks
-      .filter((staffBreak) => staffBreak.startTime >= draft.startTime)
-      .map((staffBreak) => staffBreak.startTime),
-    ...context.appointments
-      .filter(
-        (appointment) =>
-          appointment.appointmentDate === draft.appointmentDate &&
-          appointment.staffId === draft.staffId &&
-          appointment.status !== "Cancelled" &&
-          appointment.startTime >= draft.startTime,
-      )
-      .map((appointment) => appointment.startTime),
-  ].sort((first, second) => timeToMinutes(first) - timeToMinutes(second));
-
-  const candidate = possibleBoundaries[0];
-  return candidate && timeToMinutes(candidate) > timeToMinutes(draft.startTime)
-    ? candidate
-    : addMinutes(draft.startTime, service.durationMinutes);
-};
+}

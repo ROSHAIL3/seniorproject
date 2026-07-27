@@ -38,12 +38,12 @@ export default function ServiceSelector({
   ).length;
 
   return (
-    <div>
-      <div className="mb-3">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+    <div className="xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
+      <div className="mb-2">
+        <h2 className="text-base font-semibold text-gray-800 dark:text-white/90">
           Choose a service or package
         </h2>
-        <div className="mt-3 flex border-b border-gray-100 dark:border-gray-800">
+        <div className="mt-2 flex border-b border-gray-100 dark:border-gray-800">
           {(
             [
               ["service", `Services (${serviceCount})`],
@@ -71,7 +71,7 @@ export default function ServiceSelector({
         placeholder={`Search ${activeKind === "service" ? "services" : "packages"}`}
         ariaLabel={`Search ${activeKind === "service" ? "services" : "packages"}`}
       />
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+      <div className="custom-scrollbar mt-2 grid gap-2 sm:grid-cols-2 xl:min-h-0 xl:flex-1 xl:content-start xl:overflow-y-auto xl:pr-1">
         {visibleServices.map((service) => {
           const isSelected = selectedService?.id === service.id;
           return (
@@ -79,21 +79,21 @@ export default function ServiceSelector({
               type="button"
               key={service.id}
               onClick={() => onSelect(service)}
-              className={`rounded-xl border p-4 text-left transition ${
+              className={`rounded-lg border p-2.5 text-left transition ${
                 isSelected
                   ? "border-brand-500 bg-brand-50 ring-2 ring-brand-500/10 dark:bg-brand-500/10"
                   : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-white/[0.02]"
               }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                  <TimeIcon className="size-5" />
+              <div className="flex items-start justify-between gap-2">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <TimeIcon className="size-4" />
                 </span>
-                <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
+                <span className="text-xs font-semibold text-brand-700 dark:text-brand-400">
                   {formatBhd(service.priceBhd)}
                 </span>
               </div>
-              <p className="mt-4 text-sm font-medium text-gray-800 dark:text-white/90">
+              <p className="mt-2 truncate text-xs font-semibold text-gray-800 dark:text-white/90" title={service.name}>
                 {service.name}
               </p>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

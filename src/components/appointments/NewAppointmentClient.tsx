@@ -13,6 +13,8 @@ import {
   updateAppointmentBooking,
 } from "@/services/appointments.service";
 import type { Appointment } from "@/types/appointments";
+import type { BookingValidationError } from "@/types/appointments";
+import type { AppointmentSettings } from "@/types/appointment-settings";
 import type { Customer } from "@/types/customers";
 import type { Service } from "@/types/services";
 import type { ServiceBookingFieldDefinition, ServiceBookingFieldValueMap } from "@/types/services";
@@ -21,12 +23,17 @@ import BookingConflictAlert from "./BookingConflictAlert";
 import CustomerSearch from "./CustomerSearch";
 import ServiceSelector from "./ServiceSelector";
 import StaffSchedule from "./StaffSchedule";
-import { addMinutes, validateBooking } from "./validation";
+import {
+  addMinutes,
+  type BookingValidationContext,
+  validateBooking,
+} from "./validation";
 import ServiceBookingFieldsForm from "./ServiceBookingFieldsForm";
 import { getBookableServices, getServiceById } from "@/services/services.service";
 import { getPackageBookingOfferings, getPackageById, packageToBookingService } from "@/services/packages.service";
 import { getStaffMembers } from "@/services/staff.service";
 import { getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { getAppointmentSettings } from "@/services/appointment-settings.service";
 import { useReturnNavigation } from "@/hooks/useGoBack";
 
 type NewAppointmentClientProps = {
@@ -38,12 +45,20 @@ type NewAppointmentClientProps = {
   staffMembers: StaffMember[];
   serviceFields: ServiceBookingFieldDefinition[];
   initialServiceFieldValues?: ServiceBookingFieldValueMap;
+  appointmentSettings: AppointmentSettings;
 };
 
 const branchOptions = [
   { value: "branch-manama", label: "Manama branch" },
   { value: "branch-seef", label: "Seef branch" },
 ];
+
+const getCurrentTime = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, "0")}:${String(
+    now.getMinutes(),
+  ).padStart(2, "0")}`;
+};
 
 export default function NewAppointmentClient({
   editingAppointment,
@@ -54,6 +69,7 @@ export default function NewAppointmentClient({
   staffMembers,
   serviceFields,
   initialServiceFieldValues = {},
+  appointmentSettings,
 }: NewAppointmentClientProps) {
   const back = useReturnNavigation(
     editingAppointment
@@ -62,6 +78,7 @@ export default function NewAppointmentClient({
     editingAppointment ? "Appointment" : "Appointments",
   );
   const [todayDate, setTodayDate] = useState(() => getTodayIso());
+  const [currentTime, setCurrentTime] = useState(() => getCurrentTime());
   const [customer, setCustomer] = useState<Customer | null>(
     editingAppointment
       ? customers.find((item) => item.id === editingAppointment.customerId) ?? null
@@ -85,15 +102,23 @@ export default function NewAppointmentClient({
   const [saveState, setSaveState] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [selectionErrors, setSelectionErrors] = useState<
+    BookingValidationError[]
+  >([]);
   const [serviceFieldValues, setServiceFieldValues] = useState<ServiceBookingFieldValueMap>(initialServiceFieldValues);
   const [currentServices, setCurrentServices] = useState(services); const [currentStaffMembers, setCurrentStaffMembers] = useState(staffMembers); const [currentServiceFields, setCurrentServiceFields] = useState(serviceFields);
+  const [currentAppointmentSettings, setCurrentAppointmentSettings] =
+    useState(appointmentSettings);
   useEffect(() => {
-    const refreshToday = () => setTodayDate(getTodayIso());
-    const intervalId = window.setInterval(refreshToday, 60_000);
+    const refreshClock = () => {
+      setTodayDate(getTodayIso());
+      setCurrentTime(getCurrentTime());
+    };
+    const intervalId = window.setInterval(refreshClock, 60_000);
 
     return () => window.clearInterval(intervalId);
   }, []);
-  useEffect(() => { queueMicrotask(() => { Promise.all([getBookableServices(), getPackageBookingOfferings(), getStaffMembers()]).then(async ([catalogServices, packageOfferings, nextStaff]) => { const nextServices = [...catalogServices, ...packageOfferings]; if (editingAppointment && !nextServices.some((item) => item.id === editingAppointment.serviceId)) { const historical = await getServiceById(editingAppointment.serviceId); const historicalPackage = historical ? null : await getPackageById(editingAppointment.serviceId); if (historical) nextServices.push(historical); else if (historicalPackage) nextServices.push(await packageToBookingService(historicalPackage)); } setCurrentServices(nextServices); setCurrentStaffMembers(nextStaff); setCurrentServiceFields((await Promise.all(nextServices.map((item) => getServiceBookingFields(item.id)))).flat()); }); }); }, [editingAppointment]);
+  useEffect(() => { queueMicrotask(() => { Promise.all([getBookableServices(), getPackageBookingOfferings(), getStaffMembers(), getAppointmentSettings()]).then(async ([catalogServices, packageOfferings, nextStaff, nextAppointmentSettings]) => { const nextServices = [...catalogServices, ...packageOfferings]; if (editingAppointment && !nextServices.some((item) => item.id === editingAppointment.serviceId)) { const historical = await getServiceById(editingAppointment.serviceId); const historicalPackage = historical ? null : await getPackageById(editingAppointment.serviceId); if (historical) nextServices.push(historical); else if (historicalPackage) nextServices.push(await packageToBookingService(historicalPackage)); } setCurrentServices(nextServices); setCurrentStaffMembers(nextStaff); setCurrentAppointmentSettings(nextAppointmentSettings); setCurrentServiceFields((await Promise.all(nextServices.map((item) => getServiceBookingFields(item.id)))).flat()); }); }); }, [editingAppointment]);
   const selectedServiceFields = currentServiceFields.filter((field) => field.serviceId === service?.id);
   const serviceFieldErrors = Object.fromEntries(selectedServiceFields.flatMap((field) => { const value = serviceFieldValues[field.id]; const empty = value === undefined || value === "" || value === false; return field.required && empty ? [[`serviceFields.${field.id}`, `${field.label} is required.`]] : []; }));
 
@@ -108,30 +133,84 @@ export default function NewAppointmentClient({
     }),
     [appointmentDate, branchId, customer?.id, service?.id, staffId, startTime],
   );
+  const validationContext = useMemo<BookingValidationContext>(
+    () => ({
+      appointments,
+      services: currentServices,
+      staffMembers: currentStaffMembers,
+      businessHours: BUSINESS_HOURS,
+      appointmentSettings: currentAppointmentSettings,
+      today: todayDate,
+      currentTime,
+    }),
+    [
+      appointments,
+      currentAppointmentSettings,
+      currentServices,
+      currentStaffMembers,
+      currentTime,
+      todayDate,
+    ],
+  );
 
   const validationErrors = useMemo(
     () =>
       validateBooking(
         formData,
-        {
-          appointments,
-          services: currentServices,
-          staffMembers: currentStaffMembers,
-          businessHours: BUSINESS_HOURS,
-          today: todayDate,
-        },
+        validationContext,
         { ignoreAppointmentId: editingAppointment?.id },
       ),
-    [appointments, editingAppointment?.id, formData, currentServices, currentStaffMembers, todayDate],
+    [editingAppointment?.id, formData, validationContext],
   );
 
   const selectedStaff = currentStaffMembers.find((staff) => staff.id === staffId);
-  const scheduleStaffMembers = service ? currentStaffMembers.filter((staff) => service.staffIds.includes(staff.id)) : currentStaffMembers;
-  const isValid = validationErrors.length === 0 && Object.keys(serviceFieldErrors).length === 0;
-  const resetSaveState = () => setSaveState("idle");
+  const scheduleStaffMembers = service
+    ? currentStaffMembers.filter(
+        (staff) =>
+          service.staffIds.includes(staff.id) || staff.id === staffId,
+      )
+    : currentStaffMembers;
+  const isValid =
+    validationErrors.length === 0 &&
+    selectionErrors.length === 0 &&
+    Object.keys(serviceFieldErrors).length === 0;
+  const resetSaveState = () => {
+    setSaveState("idle");
+    setSelectionErrors([]);
+  };
+  const dayOfWeek = new Date(`${appointmentDate}T00:00:00Z`).getUTCDay();
+  const selectedBusinessDay = currentAppointmentSettings.businessHours.find(
+    (day) => day.dayOfWeek === dayOfWeek,
+  );
+  const scheduleBusinessHours =
+    selectedBusinessDay?.isOpen
+      ? {
+          startTime: selectedBusinessDay.startTime,
+          endTime: selectedBusinessDay.endTime,
+        }
+      : BUSINESS_HOURS;
+  const displayedValidationErrors =
+    selectionErrors.length > 0
+      ? selectionErrors
+      : startTime
+        ? validationErrors
+        : validationErrors.slice(0, 1);
 
   const saveAppointment = async () => {
-    if (!isValid || !service) return;
+    const latestValidationErrors = validateBooking(
+      formData,
+      validationContext,
+      { ignoreAppointmentId: editingAppointment?.id },
+    );
+    if (
+      latestValidationErrors.length > 0 ||
+      Object.keys(serviceFieldErrors).length > 0 ||
+      !service
+    ) {
+      setSelectionErrors(latestValidationErrors);
+      setSaveState("idle");
+      return;
+    }
     setSaveState("loading");
     const input = {
       ...formData,
@@ -153,8 +232,8 @@ export default function NewAppointmentClient({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4 xl:flex xl:h-[calc(100dvh-9.25rem)] xl:min-h-0 xl:flex-col xl:space-y-0 xl:overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:mb-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
             {editingAppointment ? "Edit Appointment" : "Book Appointment"}
@@ -188,9 +267,9 @@ export default function NewAppointmentClient({
         />
       )}
 
-      <div className="grid grid-cols-12 gap-6">
-        <aside className="col-span-12 space-y-6 xl:col-span-4 2xl:col-span-3">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="grid grid-cols-12 gap-6 xl:min-h-0 xl:flex-1 xl:grid-cols-[340px_minmax(0,1fr)] xl:gap-0 xl:overflow-hidden xl:rounded-2xl xl:border xl:border-gray-200 xl:bg-white dark:xl:border-gray-800 dark:xl:bg-white/[0.03]">
+        <aside className="col-span-12 space-y-4 xl:col-auto xl:grid xl:min-h-0 xl:grid-rows-[auto_minmax(0,1fr)_auto] xl:gap-3 xl:space-y-0 xl:overflow-hidden xl:border-r xl:border-gray-200 xl:p-3 dark:xl:border-gray-800">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] xl:rounded-xl xl:border-0 xl:bg-transparent xl:p-0 dark:xl:bg-transparent">
             <CustomerSearch
               selectedCustomer={customer}
               initialCustomers={customers}
@@ -199,7 +278,7 @@ export default function NewAppointmentClient({
                 resetSaveState();
               }}
             />
-            <div className="mt-5">
+            <div className="mt-3">
               <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Branch
               </label>
@@ -217,7 +296,7 @@ export default function NewAppointmentClient({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] xl:flex xl:min-h-0 xl:flex-col xl:overflow-hidden xl:rounded-none xl:border-x-0 xl:border-b-0 xl:border-t xl:bg-transparent xl:px-0 xl:pb-0 xl:pt-3 dark:xl:bg-transparent">
             <ServiceSelector
               selectedService={service}
               services={currentServices}
@@ -232,62 +311,57 @@ export default function NewAppointmentClient({
             <ServiceBookingFieldsForm fields={selectedServiceFields} values={serviceFieldValues} onChange={(values) => { setServiceFieldValues(values); resetSaveState(); }} errors={serviceFieldErrors} />
           </div>
 
-          {startTime && (
-            <div className="rounded-2xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-500/30 dark:bg-brand-500/10">
-              <p className="text-xs font-medium uppercase tracking-wide text-brand-500">
-                Selected booking
-              </p>
-              <p className="mt-2 font-semibold text-gray-800 dark:text-white/90">
-                {selectedStaff?.name}
-              </p>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                {appointmentDate} · {startTime}
-                {service
-                  ? `–${addMinutes(startTime, service.durationMinutes)}`
-                  : ""}
-              </p>
-              {service && (
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {service.name} · {formatBhd(service.priceBhd)}
+          <div className="space-y-2 xl:z-40 xl:min-w-0 xl:border-t xl:border-gray-200 xl:bg-white xl:pt-3 dark:xl:border-gray-800 dark:xl:bg-gray-900">
+            {startTime && (
+              <div className="rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 dark:border-brand-500/30 dark:bg-brand-500/10">
+                <p className="truncate text-xs font-semibold text-gray-800 dark:text-white/90">
+                  <span className="uppercase tracking-wide text-brand-700 dark:text-brand-400">
+                    Selected
+                  </span>
+                  {" · "}
+                  {selectedStaff?.name}
                 </p>
-              )}
-            </div>
-          )}
-
-          {startTime && validationErrors.length > 0 && (
-            <BookingConflictAlert errors={validationErrors} />
-          )}
-
-          <Button
-            onClick={saveAppointment}
-            disabled={!isValid || saveState === "loading"}
-            className="w-full"
-            startIcon={<CheckCircleIcon className="size-5" />}
-          >
-            {saveState === "loading"
-              ? "Saving..."
-              : editingAppointment
-                ? "Save Changes"
-                : "Save Appointment"}
-          </Button>
-          {!isValid && (
-            <p className="text-center text-xs text-gray-400">
-              Complete the booking and resolve every conflict to enable saving.
-            </p>
-          )}
+                <p className="mt-0.5 truncate text-xs text-gray-600 dark:text-gray-300">
+                  {appointmentDate} · {startTime}
+                  {service
+                    ? `–${addMinutes(startTime, service.durationMinutes)} · ${service.name} · ${formatBhd(service.priceBhd)}`
+                    : ""}
+                </p>
+              </div>
+            )}
+            {displayedValidationErrors.length > 0 && (
+              <BookingConflictAlert errors={displayedValidationErrors} />
+            )}
+            <Button
+              onClick={saveAppointment}
+              disabled={!isValid || saveState === "loading"}
+              className="w-full"
+              startIcon={<CheckCircleIcon className="size-5" />}
+            >
+              {saveState === "loading"
+                ? "Saving..."
+                : editingAppointment
+                  ? "Save Changes"
+                  : "Save Appointment"}
+            </Button>
+          </div>
         </aside>
 
-        <main className="col-span-12 min-w-0 xl:col-span-8 2xl:col-span-9">
+        <main className="col-span-12 min-w-0 xl:col-auto xl:min-h-0">
           {service && scheduleStaffMembers.length === 0 ? <div className="flex min-h-72 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-white/[0.02]">No active team members are assigned to {service.name}. Assign staff from the service details page before booking.</div> : <StaffSchedule
             date={appointmentDate}
             service={service}
             selectedStaffId={staffId}
             selectedTime={startTime}
+            selectedCustomerId={customer?.id ?? ""}
+            selectedCustomerName={customer?.name ?? ""}
             branchId={branchId}
             appointments={appointments}
             staffMembers={scheduleStaffMembers}
-            businessHours={BUSINESS_HOURS}
+            businessHours={scheduleBusinessHours}
+            validationContext={validationContext}
             minDate={editingAppointment ? undefined : todayDate}
+            ignoreAppointmentId={editingAppointment?.id}
             onDateChange={(selectedDate) => {
               setAppointmentDate(selectedDate);
               setStartTime("");
@@ -298,6 +372,7 @@ export default function NewAppointmentClient({
               setStartTime(selectedTime);
               resetSaveState();
             }}
+            onValidationErrors={setSelectionErrors}
           />}
         </main>
       </div>

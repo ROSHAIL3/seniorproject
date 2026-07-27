@@ -11,15 +11,26 @@ type UnavailableKind =
 type TimeSlotProps = {
   time: string;
   staff: StaffMember;
-  isSelected: boolean;
   isUnavailable?: boolean;
   unavailableLabel?: string;
   unavailableKind?: UnavailableKind;
   appointment?: Appointment;
   appointmentHeight?: number;
+  selectedPreview?: {
+    customerName: string;
+    serviceName: string;
+    staffName: string;
+    startTime: string;
+    endTime: string;
+  };
+  selectedPreviewHeight?: number;
+  isCoveredBySelection?: boolean;
   onSelect: () => void;
+  onUnavailableSelect?: () => void;
   onOpenAppointment: (appointment: Appointment) => void;
 };
+
+const BLOCK_INSET = 2;
 
 const appointmentStyles: Record<Appointment["status"], string> = {
   Booked:
@@ -59,23 +70,55 @@ const unavailableStyles: Record<UnavailableKind, string> = {
 export default function TimeSlot({
   time,
   staff,
-  isSelected,
   isUnavailable = false,
   unavailableLabel,
   unavailableKind = "occupied",
   appointment,
   appointmentHeight = 44,
+  selectedPreview,
+  selectedPreviewHeight = 44,
+  isCoveredBySelection = false,
   onSelect,
+  onUnavailableSelect,
   onOpenAppointment,
 }: TimeSlotProps) {
+  if (selectedPreview) {
+    const isCompact = selectedPreviewHeight < 84;
+
+    return (
+      <div
+        role="status"
+        aria-label={`Selected booking for ${selectedPreview.customerName} with ${selectedPreview.staffName}, ${selectedPreview.startTime} to ${selectedPreview.endTime}`}
+        style={{ height: selectedPreviewHeight, top: BLOCK_INSET }}
+        title={`${selectedPreview.startTime}–${selectedPreview.endTime} · ${selectedPreview.customerName} · ${selectedPreview.serviceName} · ${selectedPreview.staffName}`}
+        className="absolute inset-x-1 z-30 min-w-0 overflow-hidden rounded-lg border-2 border-dashed border-brand-600 bg-brand-50 p-2 text-left text-gray-950 shadow-theme-sm ring-2 ring-brand-500/15 dark:border-brand-400 dark:bg-brand-500/20 dark:text-white"
+      >
+        <span className="block truncate text-[10px] font-semibold leading-4 text-brand-700 dark:text-brand-300">
+          {selectedPreview.startTime}–{selectedPreview.endTime} · Pending
+        </span>
+        <span className="block truncate text-xs font-bold leading-4">
+          {selectedPreview.customerName}
+        </span>
+        <span className="block truncate text-[11px] leading-4 text-gray-700 dark:text-gray-200">
+          {selectedPreview.serviceName}
+        </span>
+        {!isCompact && (
+          <span className="block truncate text-[11px] leading-4 text-gray-600 dark:text-gray-300">
+            {selectedPreview.staffName}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   if (appointment) {
     return (
       <button
         type="button"
         onClick={() => onOpenAppointment(appointment)}
-        style={{ height: appointmentHeight }}
+        style={{ height: appointmentHeight, top: BLOCK_INSET }}
         title={`${appointment.startTime}–${appointment.endTime} · ${appointment.customerName} · ${appointment.serviceName} · ${appointment.status}`}
-        className={`absolute inset-x-1 top-0 z-20 min-w-0 overflow-hidden rounded-lg border-l-4 p-2 text-left shadow-theme-sm transition duration-150 hover:z-30 hover:-translate-y-0.5 hover:shadow-md focus-visible:z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-gray-900 ${appointmentStyles[appointment.status]}`}
+        className={`absolute inset-x-1 z-20 min-w-0 overflow-hidden rounded-lg border-l-4 p-2 text-left shadow-theme-sm transition duration-150 hover:z-30 hover:-translate-y-0.5 hover:shadow-md focus-visible:z-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-gray-900 ${appointmentStyles[appointment.status]}`}
       >
         <span className="block text-[10px] font-semibold leading-4 text-gray-600 dark:text-gray-300">
           {appointment.startTime}–{appointment.endTime}
@@ -95,14 +138,27 @@ export default function TimeSlot({
     );
   }
 
-  if (isUnavailable) {
+  if (isCoveredBySelection) {
     return (
       <div
+        aria-hidden="true"
+        className="h-full w-full bg-brand-50/60 dark:bg-brand-500/[0.08]"
+      />
+    );
+  }
+
+  if (isUnavailable) {
+    return (
+      <button
+        type="button"
+        aria-disabled="true"
+        onClick={onUnavailableSelect}
+        aria-label={`${unavailableLabel ?? "Unavailable"} for ${staff.name} at ${time}`}
         title={unavailableLabel}
-        className={`flex h-full min-w-0 items-center justify-center px-2 text-center text-[10px] font-medium leading-tight ${unavailableStyles[unavailableKind]}`}
+        className={`flex h-full w-full min-w-0 items-center justify-center px-2 text-center text-[10px] font-medium leading-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-error-400 ${unavailableStyles[unavailableKind]}`}
       >
         {unavailableLabel}
-      </div>
+      </button>
     );
   }
 
@@ -111,16 +167,10 @@ export default function TimeSlot({
       type="button"
       onClick={onSelect}
       aria-label={`Book ${staff.name} at ${time}`}
-      className={`group flex h-full w-full items-center justify-center bg-white transition dark:bg-gray-900 ${
-        isSelected
-          ? "bg-brand-50 ring-2 ring-inset ring-brand-500 dark:bg-brand-500/15"
-          : "hover:bg-gray-50 dark:hover:bg-white/[0.04]"
-      }`}
+      className="group flex h-full w-full items-center justify-center bg-white transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:bg-gray-900 dark:hover:bg-white/[0.04]"
     >
       <PlusIcon
-        className={`size-5 text-brand-500 transition ${
-          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        }`}
+        className="size-5 text-brand-600 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-brand-400"
       />
     </button>
   );

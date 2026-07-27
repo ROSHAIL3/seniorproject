@@ -8,11 +8,13 @@ import { getTodayIso } from "@/config/business";
 import { formatDisplayDate } from "@/lib/formatters";
 import TimeSlot from "./TimeSlot";
 import {
-  intervalsOverlap,
+  addMinutes,
+  type BookingValidationContext,
   minutesToTime,
   timeToMinutes,
+  validateStaffInterval,
 } from "./validation";
-import type { Appointment } from "@/types/appointments";
+import type { Appointment, BookingValidationError } from "@/types/appointments";
 import type { Service } from "@/types/services";
 import type { StaffMember } from "@/types/staff";
 import { useCurrentInternalPath } from "@/hooks/useGoBack";
@@ -23,13 +25,18 @@ type StaffScheduleProps = {
   service: Service | null;
   selectedStaffId: string;
   selectedTime: string;
+  selectedCustomerId: string;
+  selectedCustomerName: string;
   branchId: string;
   appointments: Appointment[];
   staffMembers: StaffMember[];
   businessHours: { startTime: string; endTime: string };
+  validationContext: BookingValidationContext;
   minDate?: string;
+  ignoreAppointmentId?: string;
   onDateChange: (date: string) => void;
   onSelectSlot: (staffId: string, time: string) => void;
+  onValidationErrors: (errors: BookingValidationError[]) => void;
 };
 
 const SLOT_HEIGHT = 44;
@@ -45,13 +52,18 @@ export default function StaffSchedule({
   service,
   selectedStaffId,
   selectedTime,
+  selectedCustomerId,
+  selectedCustomerName,
   branchId,
   appointments,
   staffMembers,
   businessHours,
+  validationContext,
   minDate,
+  ignoreAppointmentId,
   onDateChange,
   onSelectSlot,
+  onValidationErrors,
 }: StaffScheduleProps) {
   const origin = useCurrentInternalPath();
   const router = useRouter();
@@ -65,15 +77,20 @@ export default function StaffSchedule({
     (_, index) =>
       minutesToTime(timeToMinutes(businessHours.startTime) + index * 15),
   );
-  const dayOfWeek = new Date(`${date}T00:00:00Z`).getUTCDay();
   const dayAppointments = appointments.filter(
     (appointment) =>
-      appointment.appointmentDate === date && appointment.status !== "Cancelled",
+      appointment.id !== ignoreAppointmentId &&
+      appointment.appointmentDate === date &&
+      appointment.status !== "Cancelled",
   );
+  const selectedEndTime =
+    service && selectedTime
+      ? addMinutes(selectedTime, service.durationMinutes)
+      : "";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:h-full xl:rounded-none xl:border-0">
+      <div className="shrink-0 flex flex-col gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -111,7 +128,7 @@ export default function StaffSchedule({
         </Button>
       </div>
 
-      <div className="max-h-[calc(100dvh-13rem)] max-w-full overflow-auto overscroll-contain">
+      <div className="max-w-full overflow-x-auto overscroll-contain xl:min-h-0 xl:flex-1 xl:overflow-auto">
         <div
           className="w-full min-w-max"
           style={{
@@ -137,7 +154,6 @@ export default function StaffSchedule({
           ))}
 
           {timeSlots.flatMap((time) => {
-            const slotEnd = minutesToTime(timeToMinutes(time) + 15);
             const row = [
               <div
                 key={`time-${time}`}
@@ -160,41 +176,36 @@ export default function StaffSchedule({
                   timeToMinutes(time) > timeToMinutes(appointment.startTime) &&
                   timeToMinutes(time) < timeToMinutes(appointment.endTime),
               );
-              const isDayOff = !staff.workingDays.includes(dayOfWeek);
-              const isBreak = staff.breaks.some((staffBreak) =>
-                intervalsOverlap(
-                  time,
-                  slotEnd,
-                  staffBreak.startTime,
-                  staffBreak.endTime,
-                ),
-              );
-              const wrongBranch = staff.branchId !== branchId;
-              const unsupportedService =
-                !!service && (service.kind === "package"
-                  ? !service.staffIds.includes(staff.id)
-                  : !staff.serviceIds.includes(service.id));
-              const unavailableLabel = isDayOff
-                ? "Day off"
-                : isBreak
-                  ? "Break"
-                  : wrongBranch
-                    ? "Other branch"
-                    : unsupportedService
-                      ? "Not assigned"
-                      : coveringAppointment
-                        ? ""
-                        : undefined;
-              const unavailableKind = isDayOff
-                ? "day-off"
-                : isBreak
-                  ? "break"
-                  : wrongBranch
-                    ? "other-branch"
-                    : unsupportedService
-                      ? "not-assigned"
-                      : "occupied";
-
+              const slotErrors: BookingValidationError[] = service
+                ? validateStaffInterval(
+                    {
+                      customerId: selectedCustomerId,
+                      serviceId: service.id,
+                      staffId: staff.id,
+                      branchId,
+                      appointmentDate: date,
+                      startTime: time,
+                    },
+                    validationContext,
+                    { ignoreAppointmentId },
+                  )
+                : [
+                    {
+                      code: "missing-service",
+                      message:
+                        "Select a service or package before choosing a time.",
+                    },
+                  ];
+              const unavailable = getUnavailablePresentation(slotErrors);
+              const isSelectedStaff = selectedStaffId === staff.id;
+              const isSelectedPreviewStart =
+                isSelectedStaff && selectedTime === time && !!service;
+              const isCoveredBySelection =
+                isSelectedStaff &&
+                !!selectedTime &&
+                !!selectedEndTime &&
+                timeToMinutes(time) >= timeToMinutes(selectedTime) &&
+                timeToMinutes(time) < timeToMinutes(selectedEndTime);
               row.push(
                 <div
                   key={`${staff.id}-${time}`}
@@ -204,18 +215,13 @@ export default function StaffSchedule({
                   <TimeSlot
                     time={time}
                     staff={staff}
-                    isSelected={
-                      selectedStaffId === staff.id && selectedTime === time
+                    isUnavailable={slotErrors.length > 0 || !!coveringAppointment}
+                    unavailableLabel={
+                      coveringAppointment
+                        ? "Occupied"
+                        : unavailable.label
                     }
-                    isUnavailable={
-                      isDayOff ||
-                      isBreak ||
-                      wrongBranch ||
-                      unsupportedService ||
-                      !!coveringAppointment
-                    }
-                    unavailableLabel={unavailableLabel}
-                    unavailableKind={unavailableKind}
+                    unavailableKind={unavailable.kind}
                     appointment={startingAppointment}
                     appointmentHeight={
                       startingAppointment
@@ -226,7 +232,37 @@ export default function StaffSchedule({
                           4
                         : undefined
                     }
-                    onSelect={() => onSelectSlot(staff.id, time)}
+                    selectedPreview={
+                      isSelectedPreviewStart && service
+                        ? {
+                            customerName:
+                              selectedCustomerName || "Customer not selected",
+                            serviceName: service.name,
+                            staffName: staff.name,
+                            startTime: selectedTime,
+                            endTime: selectedEndTime,
+                          }
+                        : undefined
+                    }
+                    selectedPreviewHeight={
+                      service
+                        ? (service.durationMinutes / 15) * SLOT_HEIGHT - 4
+                        : undefined
+                    }
+                    isCoveredBySelection={
+                      isCoveredBySelection && !isSelectedPreviewStart
+                    }
+                    onSelect={() => {
+                      if (slotErrors.length > 0) {
+                        onValidationErrors(slotErrors);
+                        return;
+                      }
+                      onValidationErrors([]);
+                      onSelectSlot(staff.id, time);
+                    }}
+                    onUnavailableSelect={() =>
+                      onValidationErrors(slotErrors)
+                    }
                     onOpenAppointment={(appointment) =>
                       router.push(
                         withReturnTo(
@@ -246,4 +282,26 @@ export default function StaffSchedule({
       </div>
     </div>
   );
+}
+
+function getUnavailablePresentation(errors: BookingValidationError[]) {
+  const code = errors[0]?.code;
+  if (code === "past") return { label: "Past", kind: "occupied" as const };
+  if (code === "staff-break") return { label: "Break", kind: "break" as const };
+  if (code === "staff-day-off" || code === "staff-hours") {
+    return { label: code === "staff-hours" ? "Off shift" : "Day off", kind: "day-off" as const };
+  }
+  if (code === "branch-conflict") {
+    return { label: "Other branch", kind: "other-branch" as const };
+  }
+  if (code === "staff-service" || code === "missing-service") {
+    return { label: code === "missing-service" ? "Choose service" : "Not assigned", kind: "not-assigned" as const };
+  }
+  if (code === "business-hours") {
+    return { label: "Outside hours", kind: "occupied" as const };
+  }
+  return {
+    label: errors.length > 0 ? "Occupied" : undefined,
+    kind: "occupied" as const,
+  };
 }

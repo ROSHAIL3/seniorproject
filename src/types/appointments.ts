@@ -60,6 +60,7 @@ export type BookingValidationError = {
     | "business-hours"
     | "staff-break"
     | "staff-day-off"
+    | "staff-hours"
     | "service-duration"
     | "staff-service"
     | "branch-conflict"
