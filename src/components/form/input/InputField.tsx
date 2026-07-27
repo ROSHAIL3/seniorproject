@@ -17,6 +17,7 @@ export interface InputProps {
   max?: string;
   step?: number;
   disabled?: boolean;
+  readOnly?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
@@ -40,6 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input({
   max,
   step,
   disabled = false,
+  readOnly = false,
   success = false,
   error = false,
   hint,
@@ -115,6 +117,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input({
           max={max}
           step={step}
           disabled={disabled}
+          readOnly={readOnly}
           autoComplete={autoComplete}
           aria-label={ariaLabel}
           className={inputClasses}

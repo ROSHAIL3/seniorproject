@@ -1,6 +1,6 @@
 import { mockStaffMembers } from "@/data/mock/staff";
 import { createDefaultPermissions } from "@/lib/team-member-permissions";
-import type { TeamMember, TeamMemberFieldErrors, TeamMemberInput } from "@/types/team-members";
+import type { TeamMember, TeamMemberCreateInput, TeamMemberFieldErrors, TeamMemberInput } from "@/types/team-members";
 import { DEFAULT_ACTIVITY_ACTOR, logActivity } from "./activity-log.service";
 import { getServiceIdsForStaff, setStaffServices } from "./service-assignments.service";
 
@@ -20,7 +20,7 @@ const records: TeamMember[] = mockStaffMembers.map((staff, index) => ({
   role: seededDetails[index].role, status: "Active", branchId: staff.branchId, serviceIds: [...staff.serviceIds],
   photoUrl: "", permissions: createDefaultPermissions(index < 2), workingDays: [...staff.workingDays],
   breaks: staff.breaks.map((item) => ({ ...item })), createdAt: staff.createdAt,
-  lastActiveAt: index === 0 ? "2026-07-18T16:20:00.000Z" : "2026-07-17T10:00:00.000Z", invitationSentAt: null,
+  lastActiveAt: index === 0 ? "2026-07-18T16:20:00.000Z" : "2026-07-17T10:00:00.000Z",
 }));
 const listeners = new Set<() => void>();
 const clone = (member: TeamMember): TeamMember => ({ ...member, serviceIds: getServiceIdsForStaff(member.id), workingDays: [...member.workingDays], breaks: member.breaks.map((item) => ({ ...item })), permissions: structuredClone(member.permissions) });
@@ -44,12 +44,18 @@ export function validateTeamMember(input: TeamMemberInput, memberId?: string): T
   return errors;
 }
 
-export async function inviteTeamMember(input: TeamMemberInput) {
-  const errors = validateTeamMember(input); if (Object.keys(errors).length) throw new TeamMemberValidationError(errors);
+export async function createTeamMember(input: TeamMemberCreateInput) {
+  const errors = validateTeamMember(input);
+  if (input.password.length < 8) errors.password = "Password must be at least 8 characters.";
+  if (!input.confirmPassword) errors.confirmPassword = "Confirm the password.";
+  else if (input.password !== input.confirmPassword) errors.confirmPassword = "Passwords do not match.";
+  if (Object.keys(errors).length) throw new TeamMemberValidationError(errors);
   const now = new Date().toISOString();
-  const member: TeamMember = { ...normalize(input), id: `team-${crypto.randomUUID()}`, photoUrl: "", status: input.role === "Owner" ? "Active" : input.status, permissions: input.role === "Owner" ? createDefaultPermissions(true) : input.permissions ?? createDefaultPermissions(), workingDays: [1,2,3,4,5,6], breaks: [], createdAt: now, lastActiveAt: null, invitationSentAt: now };
+  const member: TeamMember = { ...normalize(input), id: `team-${crypto.randomUUID()}`, photoUrl: "", status: "Active", permissions: input.role === "Owner" ? createDefaultPermissions(true) : input.permissions ?? createDefaultPermissions(), workingDays: [1,2,3,4,5,6], breaks: [], createdAt: now, lastActiveAt: null };
   records.push({ ...member, serviceIds: [] }); setStaffServices(member.id, input.serviceIds); emit();
-  await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Team member invited", category: "Catalog & Team", targetType: "team member", targetId: member.id, description: `Invited ${member.fullName} as ${member.role}.`, metadata: { email: member.email, staff: member.fullName, branch: member.branchId }, newValues: { role: member.role, status: member.status, serviceIds: member.serviceIds }, source: "team-members" });
+  // Password persistence belongs to the future authenticated backend. This mock
+  // deliberately validates, then discards the plain-text password.
+  await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Team member created", category: "Catalog & Team", targetType: "team member", targetId: member.id, description: `Created ${member.fullName} as ${member.role}.`, metadata: { email: member.email, staff: member.fullName, branch: member.branchId }, newValues: { role: member.role, status: member.status, serviceIds: member.serviceIds }, source: "team-members" });
   return clone(member);
 }
 
@@ -73,6 +79,35 @@ export async function updateTeamMemberPhoto(id: string, photoUrl: string) {
   return clone(member);
 }
 
-function normalize(input: TeamMemberInput): TeamMemberInput {
-  return { ...input, fullName: input.fullName.trim(), email: input.email.trim().toLowerCase(), phone: input.phone.trim(), serviceIds: [...input.serviceIds] };
+export async function resetTeamMemberPassword(id: string, password: string) {
+  const member = records.find((item) => item.id === id);
+  if (!member) throw new Error("The team member could not be found.");
+  if (password.length < 8) throw new TeamMemberValidationError({ password: "Password must be at least 8 characters." });
+  // A production backend must authorize the business owner, hash this password,
+  // and revoke the previous credential atomically. Plain text is never retained.
+  await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Team member password reset", category: "Catalog & Team", targetType: "team member", targetId: id, description: `Reset the password for ${member.fullName}.`, metadata: { email: member.email, staff: member.fullName }, source: "team-members" });
+}
+
+export async function removeTeamMember(id: string) {
+  const index = records.findIndex((item) => item.id === id);
+  if (index < 0) throw new Error("The team member could not be found.");
+  const member = records[index];
+  if (member.role === "Owner") throw new Error("The business owner cannot be removed from the team.");
+  records.splice(index, 1);
+  setStaffServices(id, []);
+  emit();
+  await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Team member removed", category: "Catalog & Team", targetType: "team member", targetId: id, description: `Removed ${member.fullName} from the team.`, metadata: { email: member.email, staff: member.fullName }, source: "team-members" });
+}
+
+function normalize(input: TeamMemberInput | TeamMemberCreateInput): TeamMemberInput {
+  return {
+    fullName: input.fullName.trim(),
+    email: input.email.trim().toLowerCase(),
+    phone: input.phone.trim(),
+    role: input.role,
+    status: input.status,
+    branchId: input.branchId,
+    serviceIds: [...input.serviceIds],
+    permissions: input.permissions,
+  };
 }

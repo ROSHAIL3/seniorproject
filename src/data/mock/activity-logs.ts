@@ -8,11 +8,11 @@ export const mockActivityLogs: ActivityLog[] = [
     occurredAt: "2026-07-20T08:42:00.000Z",
   },
   {
-    id: "activity-log-002", action: "Team member invited", category: "Catalog & Team",
+    id: "activity-log-002", action: "Team member created", category: "Catalog & Team",
     actorId: "staff-sophia", actorName: "Sophia Bennett", actorEmail: "owner@seniorproject.test",
-    targetType: "team member", targetId: "staff-daniel", description: "Invited Daniel Lee as Receptionist.",
+    targetType: "team member", targetId: "staff-daniel", description: "Created Daniel Lee as Receptionist.",
     metadata: { email: "daniel@seniorproject.test", branch: "Lena Manama" }, source: "team-members",
-    newValues: { role: "Receptionist", status: "Invited" }, occurredAt: "2026-07-20T08:15:00.000Z",
+    newValues: { role: "Receptionist", status: "Active" }, occurredAt: "2026-07-20T08:15:00.000Z",
   },
   {
     id: "activity-log-003", action: "Appointment confirmed", category: "Customers & Appointments",
