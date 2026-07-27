@@ -29,15 +29,20 @@ export default function PageBreadcrumb({
 
   if (!breadcrumbItems.length) return null;
 
-  return (
-    <div
-      className={`mb-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between print:hidden ${className}`}
-    >
-      {showTitle && pageTitle && (
+  if (showTitle && pageTitle) {
+    return (
+      <div className={`mb-4 print:hidden ${className}`}>
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90">
           {pageTitle}
         </h2>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`mb-4 min-w-0 print:hidden ${className}`}
+    >
       <nav aria-label="Breadcrumb" className="min-w-0">
         <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
           {breadcrumbItems.map((item, index) => {

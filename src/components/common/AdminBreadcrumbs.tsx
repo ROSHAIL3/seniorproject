@@ -10,22 +10,6 @@ import { getServiceById } from "@/services/services.service";
 import { getTeamMemberById } from "@/services/team-members.service";
 import { resolveReturnTo } from "@/lib/navigation";
 
-const legacyBreadcrumbRoutes = new Set([
-  "/alerts",
-  "/avatars",
-  "/badge",
-  "/buttons",
-  "/images",
-  "/modals",
-  "/videos",
-  "/bar-chart",
-  "/line-chart",
-  "/form-elements",
-  "/basic-tables",
-  "/blank",
-  "/profile",
-]);
-
 const reportLabels: Record<string, string> = {
   revenue: "Revenue",
   "vat-return": "VAT Return",
@@ -114,8 +98,6 @@ export default function AdminBreadcrumbs() {
       active = false;
     };
   }, [editId, lookupKey, pathname]);
-
-  if (legacyBreadcrumbRoutes.has(pathname)) return null;
 
   const dynamicLabel =
     resolvedLabel?.key === lookupKey ? resolvedLabel.label : "";
