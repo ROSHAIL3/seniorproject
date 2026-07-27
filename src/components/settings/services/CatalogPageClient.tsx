@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/common/OriginAwareLink";
 import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/form/input/InputField";
-import Button from "@/components/ui/button/Button";
+import Button from "@/components/common/ContextAwareButton";
 import { ArrowRightIcon, BoxIcon, PencilIcon, PlusIcon, SearchIcon, ShootingStarIcon, TimeIcon, TrashBinIcon } from "@/icons";
 import { archiveOrDeleteServiceCategory, getServiceCategories, getServices, subscribeToServices } from "@/services/services.service";
 import type { QuickAddCategory, Service, ServiceCategory } from "@/types/services";

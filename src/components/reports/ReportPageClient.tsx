@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/common/OriginAwareLink";
 import { useCallback, useEffect, useState } from "react";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";

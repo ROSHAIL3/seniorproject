@@ -14,6 +14,8 @@ import { MoreDotIcon } from "@/icons";
 import AppointmentStatusBadge from "./AppointmentStatusBadge";
 import { formatDisplayDate } from "@/lib/formatters";
 import type { Appointment } from "@/types/appointments";
+import { useCurrentInternalPath } from "@/hooks/useGoBack";
+import { withReturnTo } from "@/lib/navigation";
 
 type AppointmentTableProps = {
   appointments: Appointment[];
@@ -41,6 +43,9 @@ export default function AppointmentTable({
   isLoading = false,
 }: AppointmentTableProps) {
   const router = useRouter();
+  const origin = useCurrentInternalPath();
+  const openAppointment = (bookingNumber: string) =>
+    router.push(withReturnTo(`/appointments/${bookingNumber}`, origin));
   const allSelected =
     appointments.length > 0 &&
     appointments.every((appointment) => selectedIds.includes(appointment.id));
@@ -113,7 +118,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="whitespace-nowrap px-4 py-4 text-sm font-medium text-brand-500 dark:text-brand-400"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   {appointment.bookingNumber}
@@ -121,7 +126,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   {formatDisplayDate(appointment.appointmentDate)}
@@ -129,7 +134,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 dark:text-gray-300"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   {appointment.startTime}–{appointment.endTime}
@@ -137,7 +142,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="px-4 py-4"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   <div className="flex items-center gap-3">
@@ -156,9 +161,7 @@ export default function AppointmentTable({
                       key={value}
                       className="whitespace-nowrap px-4 py-4 text-sm text-gray-500 dark:text-gray-400"
                       onClick={() =>
-                        router.push(
-                          `/appointments/${appointment.bookingNumber}`,
-                        )
+                        openAppointment(appointment.bookingNumber)
                       }
                     >
                       {value}
@@ -168,7 +171,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="px-4 py-4"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   <AppointmentStatusBadge status={appointment.status} />
@@ -176,7 +179,7 @@ export default function AppointmentTable({
                 <TableCell
                   className="whitespace-nowrap px-4 py-4 text-sm text-gray-500 dark:text-gray-400"
                   onClick={() =>
-                    router.push(`/appointments/${appointment.bookingNumber}`)
+                    openAppointment(appointment.bookingNumber)
                   }
                 >
                   {appointment.createdBy}
@@ -185,7 +188,7 @@ export default function AppointmentTable({
                   <button
                     type="button"
                     onClick={() =>
-                      router.push(`/appointments/${appointment.bookingNumber}`)
+                      openAppointment(appointment.bookingNumber)
                     }
                     aria-label={`Open ${appointment.bookingNumber}`}
                     className="flex size-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300"
@@ -205,7 +208,7 @@ export default function AppointmentTable({
             type="button"
             key={appointment.id}
             onClick={() =>
-              router.push(`/appointments/${appointment.bookingNumber}`)
+              openAppointment(appointment.bookingNumber)
             }
             className="block w-full px-4 py-4 text-left transition hover:bg-gray-50 dark:hover:bg-white/[0.02]"
           >

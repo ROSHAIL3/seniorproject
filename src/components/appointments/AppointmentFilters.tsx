@@ -3,6 +3,7 @@ import Select from "@/components/form/Select";
 import Button from "@/components/ui/button/Button";
 import { DownloadIcon, PlusIcon, SearchIcon } from "@/icons";
 import type { DateFilter } from "./types";
+import { useOriginHref } from "@/hooks/useGoBack";
 
 type AppointmentFiltersProps = {
   search: string;
@@ -27,6 +28,7 @@ export default function AppointmentFilters({
   onDateFilterChange,
   onExport,
 }: AppointmentFiltersProps) {
+  const newAppointmentHref = useOriginHref("/appointments/new");
   return (
     <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-end">
       <div className="w-full xl:w-[360px]">
@@ -59,7 +61,7 @@ export default function AppointmentFilters({
         </Button>
         <Button
           size="sm"
-          href="/appointments/new"
+          href={newAppointmentHref}
           startIcon={<PlusIcon />}
           className="w-full sm:w-auto"
         >

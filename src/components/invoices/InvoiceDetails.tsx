@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
 import AppointmentStatusBadge from "@/components/appointments/AppointmentStatusBadge";
@@ -13,15 +15,18 @@ import { formatBhd, formatDisplayDate } from "@/lib/formatters";
 import type { Invoice } from "@/types/invoices";
 import InvoiceActions from "./InvoiceActions";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
+import { useReturnNavigation } from "@/hooks/useGoBack";
+import OriginAwareLink from "@/components/common/OriginAwareLink";
 
 export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
+  const back = useReturnNavigation("/invoices", "Invoices");
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/invoices"
-            aria-label="Back to Invoices"
+            href={back.destination}
+            aria-label={`Back to ${back.label}`}
             className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 print:hidden"
           >
             <ChevronLeftIcon className="size-5" />
@@ -31,10 +36,10 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               Invoice Details
             </h1>
             <Link
-              href="/invoices"
+              href={back.destination}
               className="mt-1 inline-block text-sm text-brand-500 hover:text-brand-600 print:hidden"
             >
-              Back to Invoices
+              Back to {back.label}
             </Link>
           </div>
         </div>
@@ -108,12 +113,12 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm">
                       {appointment && (
-                        <Link
+                        <OriginAwareLink
                           href={`/appointments/${appointment.bookingNumber}`}
                           className="font-medium text-brand-500 hover:text-brand-600"
                         >
                           {appointment.bookingNumber}
-                        </Link>
+                        </OriginAwareLink>
                       )}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
@@ -186,12 +191,12 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               {invoice.appointments.map((appointment) => (
                 <TableRow key={appointment.id}>
                   <TableCell className="px-6 py-4 text-sm">
-                    <Link
+                    <OriginAwareLink
                       href={`/appointments/${appointment.bookingNumber}`}
                       className="font-medium text-brand-500 hover:text-brand-600"
                     >
                       {appointment.bookingNumber}
-                    </Link>
+                    </OriginAwareLink>
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                     {formatDisplayDate(appointment.appointmentDate)}

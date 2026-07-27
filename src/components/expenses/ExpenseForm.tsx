@@ -30,6 +30,7 @@ import type {
   VatTreatment,
 } from "@/types/expenses";
 import type { TaxVatSettings } from "@/types/appointment-settings";
+import { useReturnNavigation } from "@/hooks/useGoBack";
 
 const paymentOptions = ["Cash", "Card", "Bank Transfer", "Other"].map((value) => ({ value, label: value }));
 const vatTreatments: VatTreatment[] = ["VAT Included", "VAT Added Separately", "No VAT"];
@@ -46,6 +47,7 @@ export default function ExpenseForm({
   taxSettings: TaxVatSettings;
 }) {
   const router = useRouter();
+  const back = useReturnNavigation("/expenses", "Expenses");
   const { categories } = useExpenseData(initialExpenses, initialCategories);
   const [amount, setAmount] = useState(initialExpense?.amountBhd.toFixed(3) ?? "0.000");
   const [incurredOn, setIncurredOn] = useState(initialExpense?.incurredOn ?? REFERENCE_TODAY);
@@ -133,7 +135,7 @@ export default function ExpenseForm({
         if (!submissionId.current) submissionId.current = crypto.randomUUID();
         await createExpense({ ...input, submissionId: submissionId.current });
       }
-      router.push("/expenses");
+      router.push(back.destination);
     } catch (error) {
       if (error instanceof ExpenseValidationError) setFieldErrors(error.fieldErrors);
       else setFormError(error instanceof Error ? error.message : "The expense could not be saved.");
@@ -144,7 +146,7 @@ export default function ExpenseForm({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3"><Link href="/expenses" aria-label="Back to Expenses" className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"><ChevronLeftIcon className="size-5" /></Link><div><h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">{initialExpense ? "Edit Expense" : "Add Expense"}</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Amounts are recorded in BHD with three decimal places.</p></div></div>
+      <div className="flex items-center gap-3"><Link href={back.destination} aria-label={`Back to ${back.label}`} className="flex size-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"><ChevronLeftIcon className="size-5" /></Link><div><h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">{initialExpense ? "Edit Expense" : "Add Expense"}</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Amounts are recorded in BHD with three decimal places.</p></div></div>
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
         <div className="grid gap-5 md:grid-cols-2">
           <ExpenseField label="Amount (BHD)" required error={fieldErrors.amountBhd}><Input type="number" min="0" step={0.001} value={amount} onChange={(event) => setAmount(event.target.value)} onBlur={() => { normalizeMoney(amount, setAmount); applyConfiguredVat(amount); }} error={!!fieldErrors.amountBhd} /></ExpenseField>
@@ -160,7 +162,7 @@ export default function ExpenseForm({
         </div>
         {formError && <p className="mt-5 text-sm text-error-500">{formError}</p>}
       </div>
-      <div className="flex justify-end gap-3"><Button href="/expenses" size="sm" variant="outline">Cancel</Button><Button size="sm" onClick={save} disabled={isSaving} startIcon={<CheckCircleIcon />}>{isSaving ? "Saving..." : initialExpense ? "Save Changes" : "Add Expense"}</Button></div>
+      <div className="flex justify-end gap-3"><Button href={back.destination} size="sm" variant="outline">Cancel</Button><Button size="sm" onClick={save} disabled={isSaving} startIcon={<CheckCircleIcon />}>{isSaving ? "Saving..." : initialExpense ? "Save Changes" : "Add Expense"}</Button></div>
     </div>
   );
 }

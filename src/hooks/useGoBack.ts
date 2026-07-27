@@ -1,17 +1,50 @@
-import { useRouter } from "next/navigation";
+"use client";
 
-const useGoBack = () => {
+import { useCallback, useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  resolveReturnTo,
+  returnDestinationLabel,
+  withReturnTo,
+} from "@/lib/navigation";
+
+export function useReturnNavigation(
+  fallback = "/dashboard",
+  fallbackLabel?: string,
+) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const destination = resolveReturnTo(searchParams.get("returnTo"), fallback);
+  const label =
+    destination === fallback && fallbackLabel
+      ? fallbackLabel
+      : returnDestinationLabel(destination);
+  const goBack = useCallback(
+    () => router.push(destination),
+    [destination, router],
+  );
 
-  const goBack = () => {
-    if (window.history.length > 1) {
-      router.back(); // Navigate to the previous route
-    } else {
-      router.push("/dashboard"); // Redirect to dashboard if no history exists
-    }
-  };
+  return { destination, label, goBack };
+}
 
-  return goBack;
-};
+export function useCurrentInternalPath() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-export default useGoBack;
+  return useMemo(() => {
+    const query = searchParams.toString();
+    return `${pathname}${query ? `?${query}` : ""}`;
+  }, [pathname, searchParams]);
+}
+
+export function useOriginHref(destination: string) {
+  const origin = useCurrentInternalPath();
+  return useMemo(
+    () => withReturnTo(destination, origin),
+    [destination, origin],
+  );
+}
+
+export default function useGoBack(fallback = "/dashboard") {
+  return useReturnNavigation(fallback).goBack;
+}

@@ -32,6 +32,8 @@ import CustomerFormModal from "./CustomerFormModal";
 import CustomerStatusBadge from "./CustomerStatusBadge";
 import { useCustomerFields } from "@/hooks/useCustomerFields";
 import { formatCustomerFieldValue } from "@/services/customer-fields.service";
+import { useReturnNavigation } from "@/hooks/useGoBack";
+import OriginAwareLink from "@/components/common/OriginAwareLink";
 
 type CustomerDetailsClientProps = {
   customerId: string;
@@ -43,6 +45,7 @@ export default function CustomerDetailsClient({
   initialProfile,
 }: CustomerDetailsClientProps) {
   const router = useRouter();
+  const back = useReturnNavigation("/customers", "Customers");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState(initialProfile);
   const [isLoading, setIsLoading] = useState(!initialProfile);
@@ -154,11 +157,12 @@ export default function CustomerDetailsClient({
   return (
     <div className="space-y-6">
       <Link
-        href="/customers"
+        href={back.destination}
+        aria-label={`Back to ${back.label}`}
         className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-500 dark:text-gray-400"
       >
         <ChevronLeftIcon className="size-4" />
-        Back to Customers
+        Back to {back.label}
       </Link>
 
       {mutationState === "success" && message && (
@@ -260,9 +264,9 @@ export default function CustomerDetailsClient({
                 {profile.appointments.map((appointment) => (
                   <TableRow key={appointment.id}>
                     <TableCell className="px-6 py-4 text-sm">
-                      <Link href={`/appointments/${appointment.bookingNumber}`} className="font-medium text-brand-500 hover:text-brand-600">
+                      <OriginAwareLink href={`/appointments/${appointment.bookingNumber}`} className="font-medium text-brand-500 hover:text-brand-600">
                         {formatDisplayDate(appointment.appointmentDate)}
-                      </Link>
+                      </OriginAwareLink>
                     </TableCell>
                     <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {appointment.startTime}–{appointment.endTime}

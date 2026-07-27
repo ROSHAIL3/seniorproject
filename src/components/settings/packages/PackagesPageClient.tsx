@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/common/OriginAwareLink";
 import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/form/input/InputField";
-import Button from "@/components/ui/button/Button";
+import Button from "@/components/common/ContextAwareButton";
 import { BoxIcon, PencilIcon, PlusIcon, SearchIcon, TrashBinIcon } from "@/icons";
 import { archivePackage, getPackages, subscribeToPackages } from "@/services/packages.service";
 import type { ServicePackage } from "@/types/packages";

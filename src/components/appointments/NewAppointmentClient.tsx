@@ -27,6 +27,7 @@ import { getBookableServices, getServiceById } from "@/services/services.service
 import { getPackageBookingOfferings, getPackageById, packageToBookingService } from "@/services/packages.service";
 import { getStaffMembers } from "@/services/staff.service";
 import { getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { useReturnNavigation } from "@/hooks/useGoBack";
 
 type NewAppointmentClientProps = {
   editingAppointment?: Appointment;
@@ -54,6 +55,12 @@ export default function NewAppointmentClient({
   serviceFields,
   initialServiceFieldValues = {},
 }: NewAppointmentClientProps) {
+  const back = useReturnNavigation(
+    editingAppointment
+      ? `/appointments/${editingAppointment.bookingNumber}`
+      : "/appointments",
+    editingAppointment ? "Appointment" : "Appointments",
+  );
   const [todayDate, setTodayDate] = useState(() => getTodayIso());
   const [customer, setCustomer] = useState<Customer | null>(
     editingAppointment
@@ -157,11 +164,12 @@ export default function NewAppointmentClient({
           </p>
         </div>
         <Link
-          href="/appointments"
+          href={back.destination}
+          aria-label={`Back to ${back.label}`}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-500 dark:text-gray-400"
         >
           <ChevronLeftIcon className="size-4" />
-          Back to Appointments
+          Back to {back.label}
         </Link>
       </div>
 

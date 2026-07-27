@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import OriginAwareLink from "@/components/common/OriginAwareLink";
 import AvatarText from "@/components/ui/avatar/AvatarText";
 import {
   Table,
@@ -74,9 +74,9 @@ export default function InvoiceTable({
             {invoices.map((invoice) => (
               <TableRow key={invoice.id}>
                 <TableCell className="whitespace-nowrap px-5 py-4 text-sm font-medium text-brand-500 dark:text-brand-400">
-                  <Link href={`/invoices/${invoice.invoiceNumber}`}>
+                  <OriginAwareLink href={`/invoices/${invoice.invoiceNumber}`}>
                     {invoice.invoiceNumber}
-                  </Link>
+                  </OriginAwareLink>
                 </TableCell>
                 <TableCell className="px-5 py-4">
                   <div className="flex items-center gap-3">
@@ -114,13 +114,13 @@ export default function InvoiceTable({
                   {formatDisplayDate(invoice.issuedOn)}
                 </TableCell>
                 <TableCell className="px-5 py-4">
-                  <Link
+                  <OriginAwareLink
                     href={`/invoices/${invoice.invoiceNumber}`}
                     aria-label={`View ${invoice.invoiceNumber}`}
                     className="inline-flex size-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-brand-500 dark:text-gray-400 dark:hover:bg-gray-800"
                   >
                     <EyeIcon className="size-5" />
-                  </Link>
+                  </OriginAwareLink>
                 </TableCell>
               </TableRow>
             ))}
@@ -130,7 +130,7 @@ export default function InvoiceTable({
 
       <div className="divide-y divide-gray-100 dark:divide-gray-800 md:hidden">
         {invoices.map((invoice) => (
-          <Link
+          <OriginAwareLink
             key={invoice.id}
             href={`/invoices/${invoice.invoiceNumber}`}
             className="block p-4 transition hover:bg-gray-50 dark:hover:bg-white/[0.02]"
@@ -150,7 +150,7 @@ export default function InvoiceTable({
               <MobileValue label="Balance" value={formatBhd(invoice.remainingBalanceBhd)} />
               <MobileValue label="Date" value={formatDisplayDate(invoice.issuedOn)} />
             </div>
-          </Link>
+          </OriginAwareLink>
         ))}
       </div>
     </>

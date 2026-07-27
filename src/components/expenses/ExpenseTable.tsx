@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import OriginAwareLink from "@/components/common/OriginAwareLink";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
@@ -71,7 +71,7 @@ export default function ExpenseTable({
                   <TableCell className="whitespace-nowrap px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{formatBhd(expense.inputVatBhd)}</TableCell>
                   <TableCell className="whitespace-nowrap px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{expense.paymentMethod}</TableCell>
                   <TableCell className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{expense.referenceNumber || "—"}</TableCell>
-                  <TableCell className="px-5 py-4"><div className="flex items-center gap-2"><Link href={`/expenses/new?edit=${expense.id}`} aria-label="Edit expense" title="Edit" className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-brand-500/30 dark:hover:bg-brand-500/10"><PencilIcon className="block size-5 shrink-0" /></Link><button type="button" aria-label="Delete expense" title="Delete" onClick={() => setDeleteTarget(expense)} className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-error-200 hover:bg-error-50 hover:text-error-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-error-500/30 dark:hover:bg-error-500/10"><TrashBinIcon className="block size-5 shrink-0" /></button></div></TableCell>
+                  <TableCell className="px-5 py-4"><div className="flex items-center gap-2"><OriginAwareLink href={`/expenses/new?edit=${expense.id}`} aria-label="Edit expense" title="Edit" className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-brand-500/30 dark:hover:bg-brand-500/10"><PencilIcon className="block size-5 shrink-0" /></OriginAwareLink><button type="button" aria-label="Delete expense" title="Delete" onClick={() => setDeleteTarget(expense)} className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-error-200 hover:bg-error-50 hover:text-error-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-error-500/30 dark:hover:bg-error-500/10"><TrashBinIcon className="block size-5 shrink-0" /></button></div></TableCell>
                 </TableRow>
               );
             })}

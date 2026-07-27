@@ -10,6 +10,7 @@ import ExpenseCategoryChart from "./ExpenseCategoryChart";
 import ExpenseFilters, { type PaymentMethodFilter } from "./ExpenseFilters";
 import ExpenseSummary from "./ExpenseSummary";
 import ExpenseTable from "./ExpenseTable";
+import { useOriginHref } from "@/hooks/useGoBack";
 
 const PAGE_SIZE = 8;
 
@@ -20,6 +21,7 @@ export default function ExpensesPageClient({
   initialExpenses: Expense[];
   initialCategories: ExpenseCategory[];
 }) {
+  const newExpenseHref = useOriginHref("/expenses/new");
   const { expenses, categories } = useExpenseData(initialExpenses, initialCategories);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
@@ -97,7 +99,7 @@ export default function ExpensesPageClient({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div><h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">Expenses</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Track business expenses and recoverable input VAT.</p></div>
-        <div className="flex flex-col gap-3 sm:flex-row"><Button size="sm" variant="outline" onClick={exportCsv} startIcon={<DownloadIcon />}>Export CSV</Button><Button size="sm" href="/expenses/new" startIcon={<PlusIcon />}>Add Expense</Button></div>
+        <div className="flex flex-col gap-3 sm:flex-row"><Button size="sm" variant="outline" onClick={exportCsv} startIcon={<DownloadIcon />}>Export CSV</Button><Button size="sm" href={newExpenseHref} startIcon={<PlusIcon />}>Add Expense</Button></div>
       </div>
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 xl:col-span-7"><ExpenseSummary totalExpensesBhd={totalExpensesBhd} totalInputVatBhd={totalInputVatBhd} recordCount={expenses.length} /></div>

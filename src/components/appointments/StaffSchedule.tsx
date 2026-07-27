@@ -14,6 +14,8 @@ import {
 import type { Appointment } from "@/types/appointments";
 import type { Service } from "@/types/services";
 import type { StaffMember } from "@/types/staff";
+import { useCurrentInternalPath } from "@/hooks/useGoBack";
+import { withReturnTo } from "@/lib/navigation";
 
 type StaffScheduleProps = {
   date: string;
@@ -48,6 +50,7 @@ export default function StaffSchedule({
   onDateChange,
   onSelectSlot,
 }: StaffScheduleProps) {
+  const origin = useCurrentInternalPath();
   const router = useRouter();
   const timeSlots = Array.from(
     {
@@ -216,7 +219,10 @@ export default function StaffSchedule({
                     onSelect={() => onSelectSlot(staff.id, time)}
                     onOpenAppointment={(appointment) =>
                       router.push(
-                        `/appointments/${appointment.bookingNumber}`,
+                        withReturnTo(
+                          `/appointments/${appointment.bookingNumber}`,
+                          origin,
+                        ),
                       )
                     }
                   />

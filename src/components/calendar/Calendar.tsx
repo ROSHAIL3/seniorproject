@@ -24,6 +24,8 @@ import type { StaffMember } from "@/types/staff";
 import { useSidebar } from "@/context/SidebarContext";
 import DayTimeline from "./DayTimeline";
 import MoreAppointmentsModal from "./MoreAppointmentsModal";
+import { useCurrentInternalPath } from "@/hooks/useGoBack";
+import { withReturnTo } from "@/lib/navigation";
 
 type CalendarProps = {
   initialAppointments: Appointment[];
@@ -50,6 +52,7 @@ export default function Calendar({
   staffMembers,
 }: CalendarProps) {
   const router = useRouter();
+  const origin = useCurrentInternalPath();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const appointments = useAppointments(initialAppointments);
   const [todayDate, setTodayDate] = useState(() => toIsoDate(new Date()));
@@ -187,7 +190,12 @@ export default function Calendar({
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
-    router.push(`/appointments/${clickInfo.event.extendedProps.bookingNumber}`);
+    router.push(
+      withReturnTo(
+        `/appointments/${clickInfo.event.extendedProps.bookingNumber}`,
+        origin,
+      ),
+    );
   };
 
   const handleMoreClick = (moreInfo: MoreLinkArg) => {
@@ -388,7 +396,13 @@ export default function Calendar({
             customButtons={{
               addAppointmentButton: {
                 text: "New Appointment +",
-                click: () => router.push(`/appointments/new?date=${selectedDate}`),
+                click: () =>
+                  router.push(
+                    withReturnTo(
+                      `/appointments/new?date=${selectedDate}`,
+                      origin,
+                    ),
+                  ),
               },
             }}
           />
@@ -398,7 +412,12 @@ export default function Calendar({
               staffMembers={staffMembers}
               selectedStaffId={selectedStaffId}
               onAppointmentClick={(appointment) =>
-                router.push(`/appointments/${appointment.bookingNumber}`)
+                router.push(
+                  withReturnTo(
+                    `/appointments/${appointment.bookingNumber}`,
+                    origin,
+                  ),
+                )
               }
             />
           )}
@@ -411,7 +430,12 @@ export default function Calendar({
           appointments={moreAppointments}
           onClose={() => setMoreAppointmentsDate(null)}
           onAppointmentClick={(appointment) =>
-            router.push(`/appointments/${appointment.bookingNumber}`)
+            router.push(
+              withReturnTo(
+                `/appointments/${appointment.bookingNumber}`,
+                origin,
+              ),
+            )
           }
         />
       )}

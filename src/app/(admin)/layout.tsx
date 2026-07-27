@@ -4,7 +4,8 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
+import AdminBreadcrumbs from "@/components/common/AdminBreadcrumbs";
+import React, { Suspense } from "react";
 
 export default function AdminLayout({
   children,
@@ -32,7 +33,12 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">{children}</div>
+        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">
+          <Suspense fallback={null}>
+            <AdminBreadcrumbs />
+          </Suspense>
+          {children}
+        </div>
       </div>
     </div>
   );

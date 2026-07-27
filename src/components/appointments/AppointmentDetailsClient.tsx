@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import Input from "@/components/form/input/InputField";
@@ -31,6 +30,10 @@ import type {
 import type { StaffMember } from "@/types/staff";
 import type { AppointmentServiceFieldDetail } from "@/types/services";
 import { getAppointmentServiceFieldDetails } from "@/services/service-booking-fields.service";
+import {
+  useOriginHref,
+  useReturnNavigation,
+} from "@/hooks/useGoBack";
 import AppointmentDetailsCard from "./AppointmentDetailsCard";
 import AppointmentStatusBadge from "./AppointmentStatusBadge";
 import NotesActivityPanel from "./NotesActivityPanel";
@@ -56,7 +59,10 @@ export default function AppointmentDetailsClient({
   activity,
   serviceFieldDetails,
 }: AppointmentDetailsClientProps) {
-  const router = useRouter();
+  const back = useReturnNavigation("/appointments", "Appointments");
+  const editHref = useOriginHref(
+    `/appointments/new?edit=${appointment.bookingNumber}`,
+  );
   const [current, setCurrent] = useState(appointment);
   const [staffId, setStaffId] = useState(appointment.staffId);
   const [advanceInput, setAdvanceInput] = useState(
@@ -110,9 +116,9 @@ export default function AppointmentDetailsClient({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <Link
-            href="/appointments"
+            href={back.destination}
             className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
-            aria-label="Back to Appointments"
+            aria-label={`Back to ${back.label}`}
           >
             <ChevronLeftIcon className="size-5" />
           </Link>
@@ -125,8 +131,8 @@ export default function AppointmentDetailsClient({
                 Booking {current.bookingNumber}
               </span>
             </div>
-            <Link href="/appointments" className="mt-1 inline-block text-sm text-brand-500 hover:text-brand-600">
-              Back to Appointments
+            <Link href={back.destination} className="mt-1 inline-block text-sm text-brand-500 hover:text-brand-600">
+              Back to {back.label}
             </Link>
           </div>
         </div>
@@ -151,7 +157,7 @@ export default function AppointmentDetailsClient({
       </div>
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-        <Button size="sm" onClick={() => router.push(`/appointments/new?edit=${current.bookingNumber}`)} startIcon={<PencilIcon className="size-4" />}>
+        <Button size="sm" href={editHref} startIcon={<PencilIcon className="size-4" />}>
           Edit
         </Button>
         <Button size="sm" variant="outline" onClick={() => setActiveModal("reassign")} startIcon={<UserIcon className="size-4" />}>

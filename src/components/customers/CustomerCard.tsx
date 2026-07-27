@@ -1,4 +1,4 @@
-import Link from "next/link";
+import OriginAwareLink from "@/components/common/OriginAwareLink";
 import { ChevronLeftIcon } from "@/icons";
 import { formatDisplayDate } from "@/lib/formatters";
 import type { CustomerProfile } from "@/types/customers";
@@ -8,7 +8,7 @@ import CustomerStatusBadge from "./CustomerStatusBadge";
 export default function CustomerCard({ profile }: { profile: CustomerProfile }) {
   const { customer } = profile;
   return (
-    <Link
+    <OriginAwareLink
       href={`/customers/${customer.id}`}
       className="group overflow-hidden rounded-2xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] dark:hover:border-brand-500/40"
     >
@@ -38,7 +38,7 @@ export default function CustomerCard({ profile }: { profile: CustomerProfile }) 
           <ChevronLeftIcon className="ml-1 size-4 rotate-180 transition group-hover:translate-x-0.5" />
         </div>
       </div>
-    </Link>
+    </OriginAwareLink>
   );
 }
 

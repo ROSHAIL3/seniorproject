@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/common/OriginAwareLink";
 import { useEffect, useMemo, useState } from "react";
 import Input from "@/components/form/input/InputField";
 import Pagination from "@/components/tables/Pagination";

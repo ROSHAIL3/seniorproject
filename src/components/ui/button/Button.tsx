@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-interface ButtonProps {
+export interface ButtonProps {
   children: ReactNode;
   size?: "sm" | "md";
   variant?: "primary" | "outline";
