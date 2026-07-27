@@ -28,12 +28,12 @@ export default function AdminLayout({
       <Backdrop />
       {/* Main Content Area */}
       <div
-        className={`min-w-0 flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
+        className={`admin-main-content min-w-0 flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
       >
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">
+        <div className="admin-page-content mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">
           <Suspense fallback={null}>
             <AdminBreadcrumbs />
           </Suspense>

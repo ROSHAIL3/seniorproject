@@ -41,7 +41,7 @@ export default function ExpenseFilters({
     ...["Cash", "Card", "Bank Transfer", "Other"].map((method) => ({ value: method, label: method })),
   ];
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
       <Input startIcon={<SearchIcon />} value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search expenses" ariaLabel="Search expenses" />
       <Select key={`category-${categoryId}`} options={categoryOptions} defaultValue={categoryId} onChange={onCategoryChange} placeholder="Filter by category" />
       <Select key={`payment-${paymentMethod}`} options={paymentOptions} defaultValue={paymentMethod} onChange={(value) => onPaymentMethodChange(value as PaymentMethodFilter)} placeholder="Filter by payment method" />

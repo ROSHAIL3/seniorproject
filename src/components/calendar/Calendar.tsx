@@ -80,17 +80,30 @@ export default function Calendar({
     const updateCalendarSize = () => {
       window.cancelAnimationFrame(resizeFrame);
       resizeFrame = window.requestAnimationFrame(() => {
+        if (window.matchMedia("(min-width: 768px)").matches) {
+          const containerTop = container.getBoundingClientRect().top;
+          const availableHeight = Math.floor(
+            window.innerHeight - containerTop - 20,
+          );
+          container.style.height = `${Math.max(1, availableHeight)}px`;
+        } else {
+          container.style.removeProperty("height");
+        }
         calendarRef.current?.getApi().updateSize();
       });
     };
     const resizeObserver = new ResizeObserver(updateCalendarSize);
     resizeObserver.observe(container);
+    window.addEventListener("resize", updateCalendarSize);
+    window.visualViewport?.addEventListener("resize", updateCalendarSize);
     updateCalendarSize();
     const transitionTimer = window.setTimeout(updateCalendarSize, 320);
 
     return () => {
       window.clearTimeout(transitionTimer);
       window.cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", updateCalendarSize);
+      window.visualViewport?.removeEventListener("resize", updateCalendarSize);
       resizeObserver.disconnect();
     };
   }, [isExpanded, isHovered, isMobileOpen]);
@@ -330,7 +343,7 @@ export default function Calendar({
 
       <div
         ref={calendarContainerRef}
-        className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:-mx-2 md:h-[calc(100dvh-180px)] md:min-h-[560px]"
+        className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] sm:-mx-2"
       >
         <div
           className={`custom-calendar h-full min-w-0 ${

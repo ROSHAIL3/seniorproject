@@ -31,7 +31,7 @@ export default function PageBreadcrumb({
 
   return (
     <div
-      className={`mb-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between ${className}`}
+      className={`mb-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between print:hidden ${className}`}
     >
       {showTitle && pageTitle && (
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90">

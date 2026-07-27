@@ -15,7 +15,7 @@ export default function ExpenseSummary({
     { label: "Expense records", value: String(recordCount) },
   ];
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-3 xl:gap-6">
       {cards.map((card) => (
         <div key={card.label} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
           <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>

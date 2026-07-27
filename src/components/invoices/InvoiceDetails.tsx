@@ -17,12 +17,13 @@ import InvoiceActions from "./InvoiceActions";
 import InvoiceStatusBadge from "./InvoiceStatusBadge";
 import { useReturnNavigation } from "@/hooks/useGoBack";
 import OriginAwareLink from "@/components/common/OriginAwareLink";
+import BrandLogo from "@/components/common/BrandLogo";
 
 export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
   const back = useReturnNavigation("/invoices", "Invoices");
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="invoice-page space-y-6">
+      <div className="invoice-screen-heading flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
             href={back.destination}
@@ -49,11 +50,31 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
         />
       </div>
 
-      <ComponentCard
-        title={invoice.invoiceNumber}
-        action={<InvoiceStatusBadge status={invoice.status} />}
+      <article
+        className="invoice-print-document space-y-6"
+        aria-label={`Invoice ${invoice.invoiceNumber}`}
       >
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="invoice-print-brand hidden items-start justify-between border-b border-gray-200 pb-4">
+          <BrandLogo size="lg" className="text-gray-900" />
+          <div className="text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+              Invoice
+            </p>
+            <p className="mt-1 text-lg font-semibold text-gray-900">
+              {invoice.invoiceNumber}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Issued {formatDisplayDate(invoice.issuedOn)}
+            </p>
+          </div>
+        </div>
+
+        <ComponentCard
+          title={invoice.invoiceNumber}
+          action={<InvoiceStatusBadge status={invoice.status} />}
+          className="invoice-print-section invoice-summary"
+        >
+          <div className="invoice-summary-grid grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <Information label="Customer" value={invoice.customerName} />
           <Information label="Phone" value={invoice.customerPhone} />
           <Information
@@ -76,12 +97,16 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
             label="Payment status"
             value={<InvoiceStatusBadge status={invoice.status} />}
           />
-        </div>
-      </ComponentCard>
+          </div>
+        </ComponentCard>
 
-      <ComponentCard title="Invoice Items" bodyClassName="p-0">
-        <div className="max-w-full overflow-x-auto">
-          <Table className="min-w-[720px]">
+        <ComponentCard
+          title="Invoice Items"
+          bodyClassName="p-0"
+          className="invoice-print-section invoice-items-section"
+        >
+          <div className="invoice-print-table-wrap max-w-full overflow-x-auto">
+            <Table className="invoice-print-table min-w-[720px]">
             <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
               <TableRow>
                 {[
@@ -135,10 +160,10 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               })}
             </TableBody>
           </Table>
-        </div>
+          </div>
 
-        <div className="flex justify-end px-4 pb-5 sm:px-6">
-          <dl className="w-full max-w-sm space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+          <div className="invoice-totals-wrap flex justify-end px-4 pb-5 sm:px-6">
+            <dl className="invoice-print-totals w-full max-w-sm space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
             <TotalRow label="Subtotal" value={formatBhd(invoice.subtotalBhd)} />
             <TotalRow
               label={`VAT (${(invoice.vatRate * 100).toFixed(0)}%)`}
@@ -160,13 +185,17 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               strong
               valueClassName="text-brand-600 dark:text-brand-400"
             />
-          </dl>
-        </div>
-      </ComponentCard>
+            </dl>
+          </div>
+        </ComponentCard>
 
-      <ComponentCard title="Linked Appointments" bodyClassName="p-0">
-        <div className="max-w-full overflow-x-auto">
-          <Table className="min-w-[760px]">
+        <ComponentCard
+          title="Linked Appointments"
+          bodyClassName="p-0"
+          className="invoice-print-section invoice-linked-section"
+        >
+          <div className="invoice-print-table-wrap max-w-full overflow-x-auto">
+            <Table className="invoice-print-table min-w-[760px]">
             <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
               <TableRow>
                 {[
@@ -217,8 +246,9 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               ))}
             </TableBody>
           </Table>
-        </div>
-      </ComponentCard>
+          </div>
+        </ComponentCard>
+      </article>
     </div>
   );
 }

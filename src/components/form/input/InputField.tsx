@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import React, { forwardRef, ReactNode } from "react";
 import { MailIcon } from "@/icons";
 import PhoneInput from "@/components/form/group-input/PhoneInput";
 import DatePickerControl from "@/components/form/DatePickerControl";
@@ -26,7 +26,7 @@ export interface InputProps {
   startIconDivider?: boolean;
 }
 
-const Input: FC<InputProps> = ({
+const Input = forwardRef<HTMLInputElement, InputProps>(function Input({
   type = "text",
   id,
   name,
@@ -47,13 +47,13 @@ const Input: FC<InputProps> = ({
   ariaLabel,
   startIcon,
   startIconDivider = false,
-}) => {
+}, ref) {
   if (type === "tel") {
     return <div><PhoneInput id={id} name={name} value={value === undefined ? undefined : String(value)} defaultValue={defaultValue === undefined ? undefined : String(defaultValue)} placeholder={placeholder} disabled={disabled} error={error} autoComplete={autoComplete} ariaLabel={ariaLabel} className={className} onChange={(phone) => onChange?.({ target: { value: phone } } as React.ChangeEvent<HTMLInputElement>)} onBlur={() => onBlur?.({} as React.FocusEvent<HTMLInputElement>)} />{hint && <p className={`mt-1.5 text-xs ${error ? "text-error-500" : success ? "text-success-500" : "text-gray-500"}`}>{hint}</p>}</div>;
   }
   const fieldIcon = startIcon ?? (type === "email" ? <MailIcon /> : undefined);
   // Determine input styles based on state (disabled, success, error)
-  let inputClasses = `h-10 w-full rounded-lg border appearance-none ${fieldIcon ? startIconDivider ? "pl-12 pr-3.5" : "pl-10 pr-3.5" : "px-3.5"} py-2 text-[13px] shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
+  let inputClasses = `h-10 w-full appearance-none rounded-lg border ${fieldIcon ? startIconDivider ? "pl-12 pr-3.5" : "pl-10 pr-3.5" : "px-3.5"} py-2 text-[13px] shadow-theme-xs outline-none transition-colors placeholder:text-gray-400 focus:outline-none focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
   // Add styles for the different states
   if (disabled) {
@@ -63,7 +63,7 @@ const Input: FC<InputProps> = ({
   } else if (success) {
     inputClasses += ` text-success-500 border-success-400 focus:ring-success-500/10 focus:border-success-300  dark:text-success-400 dark:border-success-500`;
   } else {
-    inputClasses += ` bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
+    inputClasses += ` border-gray-300 bg-white text-gray-800 hover:border-gray-400 focus:border-brand-400 focus:ring-brand-500/15 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:hover:border-gray-600 dark:focus:border-brand-700`;
   }
 
   return (
@@ -102,6 +102,7 @@ const Input: FC<InputProps> = ({
         />
       ) : (
         <input
+          ref={ref}
           type={type}
           id={id}
           name={name}
@@ -136,6 +137,6 @@ const Input: FC<InputProps> = ({
       )}
     </div>
   );
-};
+});
 
 export default Input;

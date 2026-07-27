@@ -96,16 +96,16 @@ export default function ExpensesPageClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 xl:space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div><h1 className="text-2xl font-semibold text-gray-800 dark:text-white/90">Expenses</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Track business expenses and recoverable input VAT.</p></div>
         <div className="flex flex-col gap-3 sm:flex-row"><Button size="sm" variant="outline" onClick={exportCsv} startIcon={<DownloadIcon />}>Export CSV</Button><Button size="sm" href={newExpenseHref} startIcon={<PlusIcon />}>Add Expense</Button></div>
       </div>
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <div className="col-span-12 xl:col-span-7"><ExpenseSummary totalExpensesBhd={totalExpensesBhd} totalInputVatBhd={totalInputVatBhd} recordCount={expenses.length} /></div>
-        <div className="col-span-12 xl:col-span-5"><ExpenseCategoryChart expenses={expenses} categories={categories} /></div>
-      </div>
-      <ExpenseFilters
+      <ExpenseSummary totalExpensesBhd={totalExpensesBhd} totalInputVatBhd={totalInputVatBhd} recordCount={expenses.length} />
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(280px,35fr)_minmax(0,65fr)] xl:gap-6">
+        <ExpenseCategoryChart expenses={expenses} categories={categories} />
+        <div className="min-w-0 space-y-4">
+          <ExpenseFilters
         search={search} categoryId={categoryId} paymentMethod={paymentMethod} fromDate={fromDate} toDate={toDate} categories={categories}
         onSearchChange={(value) => updateFilter(() => setSearch(value))}
         onCategoryChange={(value) => updateFilter(() => setCategoryId(value))}
@@ -122,12 +122,14 @@ export default function ExpensesPageClient({
             if (value && fromDate && value < fromDate) setFromDate(value);
           })
         }
-      />
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-        <ExpenseTable expenses={visibleExpenses} categories={categories} isLoading={isLoading} />
-        <div className="flex flex-col gap-4 border-t border-gray-100 px-4 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          />
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <ExpenseTable expenses={visibleExpenses} categories={categories} isLoading={isLoading} />
+            <div className="flex flex-col gap-4 border-t border-gray-100 px-4 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-sm text-gray-500 dark:text-gray-400">Showing {filteredExpenses.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredExpenses.length)} of {filteredExpenses.length}</p>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

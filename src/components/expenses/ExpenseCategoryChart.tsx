@@ -42,13 +42,13 @@ export default function ExpenseCategoryChart({
   };
 
   return (
-    <ComponentCard title="Expense totals by category" className="h-full">
+    <ComponentCard title="Expense totals by category">
       {totals.length > 0 ? (
-        <div className="mx-auto max-w-md">
-          <ReactApexChart options={options} series={totals.map((item) => item.total)} type="donut" height={260} />
+        <div className="mx-auto max-w-sm">
+          <ReactApexChart options={options} series={totals.map((item) => item.total)} type="donut" height={220} />
         </div>
       ) : (
-        <div className="flex min-h-56 items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-center py-16 text-sm text-gray-500 dark:text-gray-400">
           No expense data to chart.
         </div>
       )}

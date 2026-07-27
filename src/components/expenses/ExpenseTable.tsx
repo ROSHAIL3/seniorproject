@@ -27,7 +27,7 @@ export default function ExpenseTable({
   if (isLoading) return <ExpenseTableLoading />;
   if (expenses.length === 0) {
     return (
-      <div className="flex min-h-72 flex-col items-center justify-center px-6 text-center">
+      <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
         <h3 className="font-medium text-gray-800 dark:text-white/90">No expenses found</h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try different filters or add a new expense.</p>
       </div>
