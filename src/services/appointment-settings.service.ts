@@ -71,8 +71,17 @@ export async function updateGeneralAppointmentSettings(input: GeneralAppointment
     errors.cancellationNoticeValue = "Cancellation notice must be zero or greater.";
   }
   if (Object.keys(errors).length) throw new AppointmentSettingsValidationError(errors);
+  const response = await fetch("/api/settings/appointment-settings", {
+    body: JSON.stringify({ general: input }),
+    headers: { "Content-Type": "application/json" },
+    method: "PATCH",
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.error ?? "General appointment settings could not be saved.");
+  }
   const previous = { ...settings.general };
-  settings.general = { ...input };
+  settings.general = { ...(body.general as GeneralAppointmentSettings) };
   stamp();
   await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Appointment settings changed", category: "Settings", targetType: "appointment settings", targetId: settings.id, description: "Updated general appointment settings.", metadata: {}, oldValues: previous, newValues: settings.general, source: "appointment-settings" });
   return { ...settings.general };

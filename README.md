@@ -21,7 +21,11 @@ immutable invoice snapshots, payments, refunds, and payment allocations.
 Phase 7 stores expense categories and expenses with real branch links,
 three-decimal BHD amounts, input VAT, soft deletion, and persistent activity
 history. Finance reports now consume persisted invoice and expense sources.
-Email/password authentication remains available alongside Google OAuth. Follow
+Phase 8 adds one public `/book/<organization-slug>` page per enabled
+organization, live database availability, secure customer creation,
+transaction-safe appointment requests, opaque confirmation links,
+idempotency, and database-backed abuse controls. Email/password authentication
+remains available alongside Google OAuth. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -170,12 +174,18 @@ Stable IDs connect shared records across the application:
 
 The Team Member model is the canonical source for member identity, role, status, permissions, branch, and assigned services. The legacy staff service acts only as a compatibility adapter for appointment and calendar components.
 
-## Planned Supabase Integration
+## Public Booking
 
-The recommended Phase 8 adds a public booking portal with database-backed
-availability, rate limiting, abuse protection, and an owner approval workflow.
-Email and SMS reminders should remain deferred until their provider costs are
-reviewed.
+Each organization controls its unique booking slug and enabled state under
+Organization Profile. The resulting public link shows only active branches,
+services, assigned staff, required service questions, and currently available
+times. Customers do not need an account. New requests use the saved
+auto-confirm setting and appear in the normal appointment and calendar views.
+
+The browser cannot write appointments directly. The server hashes request
+fingerprints, calls the server-only transaction RPC, and returns only an opaque
+confirmation reference. Email and SMS reminders remain deferred until provider
+costs are reviewed.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 

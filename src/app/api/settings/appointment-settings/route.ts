@@ -3,8 +3,13 @@ import {
   getAppointmentSettingsFromDatabase,
   updateBusinessHoursInDatabase,
   updateFinanceSettingsInDatabase,
+  updateGeneralAppointmentSettingsInDatabase,
 } from "@/server/appointment-settings.repository";
-import type { ScheduleDay, TaxVatSettings } from "@/types/appointment-settings";
+import type {
+  GeneralAppointmentSettings,
+  ScheduleDay,
+  TaxVatSettings,
+} from "@/types/appointment-settings";
 
 export async function GET() {
   try {
@@ -32,6 +37,13 @@ export async function PUT(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
+    if (body.general) {
+      return NextResponse.json({
+        general: await updateGeneralAppointmentSettingsInDatabase(
+          body.general as GeneralAppointmentSettings,
+        ),
+      });
+    }
     return NextResponse.json({
       tax: await updateFinanceSettingsInDatabase(body.tax as TaxVatSettings),
     });

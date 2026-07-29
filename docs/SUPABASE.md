@@ -63,9 +63,12 @@ The local seed owner is `owner@slotova.local` with password
    `supabase/seed.sql` against the hosted project.
 5. Add the hosted project URL, publishable key, and
    `NEXT_PUBLIC_APP_URL=https://<your-domain>` to the deployment environment.
-   Add `SUPABASE_SECRET_KEY` only to the server environment for invitation and
-   recovery-link generation. Never expose a secret or service-role key through
-   a `NEXT_PUBLIC_` variable.
+   Add `SUPABASE_SECRET_KEY` only to the server environment for invitation,
+   recovery-link, private-logo signing, and public-booking transaction
+   generation. Add a long random `PUBLIC_BOOKING_RATE_LIMIT_SECRET` for request
+   fingerprint hashing, or the server will safely reuse `SUPABASE_SECRET_KEY`.
+   Never expose either secret or a service-role key through a `NEXT_PUBLIC_`
+   variable.
 6. In Auth URL Configuration, set the production Site URL and allow
    `https://<your-domain>/auth/confirm` and
    `https://<your-domain>/set-password`.
@@ -242,6 +245,36 @@ For Phase 7, also verify:
 - Email/password signup and sign-in still work, Google OAuth completes through
   `/auth/confirm`, and Twitter/X buttons and providers are disabled.
 
+For Phase 8, also verify:
+
+- Every enabled organization has a unique `/book/<slug>` URL, while disabled,
+  suspended, deleted, and unknown organizations return no public catalog.
+- The public response contains only active branches, categories, services,
+  assigned staff display names, required service questions, and safe
+  organization branding.
+- Anonymous visitors cannot query customers, appointments, activity logs,
+  rate-limit rows, or execute the booking-write RPC directly.
+- Availability honors business hours, business breaks, staff custom hours,
+  staff breaks, approved time off, service-to-branch assignments,
+  service-to-staff assignments, existing appointments, same-day settings, and
+  the 90-day booking window.
+- The final write rechecks availability under transaction-level locks, creates
+  or reuses a tenant-scoped customer, validates service answers in PostgreSQL,
+  and records the correct branch, service, staff, duration, price, source, and
+  pending/confirmed status.
+- Repeating the same browser submission ID returns the existing booking instead
+  of creating a duplicate. Concurrent attempts for the same staff slot cannot
+  both succeed.
+- Request fingerprints are HMAC hashed on the server. The short-lived database
+  counters allow at most 10 attempts per fingerprint per 15 minutes and five
+  per normalized phone per organization per hour.
+- The opaque confirmation token returns only the booking summary and cannot be
+  reused with another organization slug.
+- Organization booking settings now persist instead of using in-memory general
+  settings.
+- Public booking sends no email or SMS, uses no paid CAPTCHA, creates no Storage
+  objects, and enables no paid Supabase feature.
+
 ## Free usage monitoring
 
 Check the Supabase Dashboard usage page before and after each hosted migration.
@@ -249,13 +282,16 @@ Pay particular attention to database size, Storage size, egress, cached egress,
 and monthly active users. If a feature would require a paid capability, stop
 and review it before enabling anything.
 
-## Recommended Phase 8
+## Recommended Phase 9
 
-Build the public booking portal next. Reuse the Phase 5 availability rules in a
-carefully limited public RPC, add database rate limits and abuse protection,
-and let owners approve or reject requests. Keep automated email, SMS, CAPTCHA
-providers with usage charges, and scheduled jobs disabled until their Free-plan
-and third-party costs are reviewed.
+Add free-plan-safe customer self-service and appointment-request operations:
+let customers reopen an opaque booking link to view status, cancel within the
+saved notice period, or request a reschedule; add clear pending-request counts
+and approve/reject actions for owners; and persist every public status change
+in appointment history and the activity log. Keep communication manual with
+copyable message templates first. Do not enable automated email, SMS, scheduled
+jobs, or paid CAPTCHA until their current Supabase and provider costs are
+reviewed.
 
 Receipt uploads should remain deferred. If they are later requested, review the
 current Free storage and egress quotas before creating a private bucket. Do not

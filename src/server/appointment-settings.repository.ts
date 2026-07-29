@@ -3,7 +3,11 @@ import "server-only";
 import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/types/database";
-import type { AppointmentSettings, ScheduleDay } from "@/types/appointment-settings";
+import type {
+  AppointmentSettings,
+  GeneralAppointmentSettings,
+  ScheduleDay,
+} from "@/types/appointment-settings";
 import type { TaxVatSettings } from "@/types/appointment-settings";
 
 export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentSettings> {
@@ -13,12 +17,19 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
     { data: schedules },
     { data: memberships },
     { data: financeSettings },
+    { data: organization },
   ] =
     await Promise.all([
       supabase.from("organization_business_hours").select("*").order("day_of_week"),
       supabase.from("staff_schedules").select("*"),
       supabase.from("organization_members").select("id,staff_key"),
       supabase.from("organization_finance_settings").select("*").maybeSingle(),
+      supabase
+        .from("organizations")
+        .select(
+          "booking_allow_same_day,booking_auto_confirm,booking_cancellation_notice_value,booking_cancellation_notice_unit",
+        )
+        .maybeSingle(),
     ]);
   if (error) throw new Error("Appointment settings could not be loaded.");
   const staffKeyByMembership = new Map(
@@ -26,6 +37,20 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
   );
   return {
     ...mockAppointmentSettings,
+    general: organization
+      ? {
+          allowSameDayBookings: organization.booking_allow_same_day,
+          autoConfirmAppointments: organization.booking_auto_confirm,
+          cancellationNoticeUnit:
+            organization.booking_cancellation_notice_unit === "minutes"
+              ? "Minutes"
+              : organization.booking_cancellation_notice_unit === "days"
+                ? "Days"
+                : "Hours",
+          cancellationNoticeValue:
+            organization.booking_cancellation_notice_value,
+        }
+      : { ...mockAppointmentSettings.general },
     businessHours: (hours ?? []).map(toScheduleDay),
     staffSchedules: (schedules ?? []).map((schedule) => ({
       days: Array.isArray(schedule.days)
@@ -48,6 +73,39 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
         mockAppointmentSettings.updatedAt,
       ),
   };
+}
+
+export async function updateGeneralAppointmentSettingsInDatabase(
+  input: GeneralAppointmentSettings,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc(
+    "update_general_appointment_settings",
+    {
+      target_allow_same_day: input.allowSameDayBookings,
+      target_auto_confirm: input.autoConfirmAppointments,
+      target_cancellation_notice_unit: input.cancellationNoticeUnit.toLowerCase(),
+      target_cancellation_notice_value: input.cancellationNoticeValue,
+    },
+  );
+  if (error || !data) {
+    throw new Error(
+      error?.message.includes("SETTINGS_FORBIDDEN")
+        ? "You do not have permission to update appointment settings."
+        : "General appointment settings are invalid.",
+    );
+  }
+  return {
+    allowSameDayBookings: data.booking_allow_same_day,
+    autoConfirmAppointments: data.booking_auto_confirm,
+    cancellationNoticeUnit:
+      data.booking_cancellation_notice_unit === "minutes"
+        ? "Minutes"
+        : data.booking_cancellation_notice_unit === "days"
+          ? "Days"
+          : "Hours",
+    cancellationNoticeValue: data.booking_cancellation_notice_value,
+  } satisfies GeneralAppointmentSettings;
 }
 
 export async function updateFinanceSettingsInDatabase(input: TaxVatSettings) {

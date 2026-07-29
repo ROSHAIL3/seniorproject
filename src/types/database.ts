@@ -117,6 +117,10 @@ export type Database = {
           logo_object_path: string | null;
           logo_size_bytes: number | null;
           name: string;
+          booking_allow_same_day: boolean;
+          booking_auto_confirm: boolean;
+          booking_cancellation_notice_unit: string;
+          booking_cancellation_notice_value: number;
           public_booking_enabled: boolean;
           slug: string;
           status: Database["public"]["Enums"]["organization_status"];
@@ -138,6 +142,10 @@ export type Database = {
           logo_object_path?: string | null;
           logo_size_bytes?: number | null;
           name: string;
+          booking_allow_same_day?: boolean;
+          booking_auto_confirm?: boolean;
+          booking_cancellation_notice_unit?: string;
+          booking_cancellation_notice_value?: number;
           public_booking_enabled?: boolean;
           slug: string;
           status?: Database["public"]["Enums"]["organization_status"];
@@ -156,6 +164,10 @@ export type Database = {
           logo_object_path?: string | null;
           logo_size_bytes?: number | null;
           name?: string;
+          booking_allow_same_day?: boolean;
+          booking_auto_confirm?: boolean;
+          booking_cancellation_notice_unit?: string;
+          booking_cancellation_notice_value?: number;
           public_booking_enabled?: boolean;
           slug?: string;
           status?: Database["public"]["Enums"]["organization_status"];
@@ -338,7 +350,7 @@ export type Database = {
         Relationships: [];
       };
       appointments: {
-        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; created_at: string; updated_at: string };
+        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; created_at: string; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -351,6 +363,12 @@ export type Database = {
       };
       appointment_status_history: {
         Row: { id: string; organization_id: string; appointment_id: string; old_status: Database["public"]["Enums"]["appointment_status"] | null; new_status: Database["public"]["Enums"]["appointment_status"]; changed_by: string | null; changed_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      public_booking_attempts: {
+        Row: { id: string; organization_id: string; request_fingerprint: string; normalized_phone: string; attempted_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -430,6 +448,49 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      get_public_booking_page: {
+        Args: { booking_slug: string };
+        Returns: Json;
+      };
+      get_public_booking_availability: {
+        Args: {
+          booking_slug: string;
+          target_branch_id: string;
+          target_service_id: string;
+          target_date: string;
+        };
+        Returns: Json;
+      };
+      create_public_booking: {
+        Args: {
+          booking_slug: string;
+          target_branch_id: string;
+          target_service_id: string;
+          target_staff_key: string;
+          target_start_at: string;
+          customer_name: string;
+          customer_phone: string;
+          customer_email: string;
+          customer_notes: string;
+          target_service_field_values: Json;
+          submission_id: string;
+          request_fingerprint: string;
+        };
+        Returns: Json;
+      };
+      get_public_booking_confirmation: {
+        Args: { booking_slug: string; reference_token: string };
+        Returns: Json;
+      };
+      update_general_appointment_settings: {
+        Args: {
+          target_allow_same_day: boolean;
+          target_auto_confirm: boolean;
+          target_cancellation_notice_value: number;
+          target_cancellation_notice_unit: string;
+        };
+        Returns: Database["public"]["Tables"]["organizations"]["Row"];
+      };
       ensure_owner_onboarding: {
         Args: {
           branch_name?: string | null;
