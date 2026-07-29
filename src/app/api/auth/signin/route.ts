@@ -1,22 +1,64 @@
 import { NextResponse } from "next/server";
-import {
-  AUTH_COOKIE_NAME,
-  AUTH_COOKIE_OPTIONS,
-  AUTH_COOKIE_VALUE,
-  authenticate,
-} from "@/services/auth.service";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { ensureOwnerOnboarding } from "@/services/onboarding.service";
+
+const noStoreHeaders = {
+  "Cache-Control": "private, no-store",
+  Expires: "0",
+  Pragma: "no-cache",
+};
 
 export async function POST(request: Request) {
-  const { email = "", password = "" } = await request.json();
-
-  if (!authenticate(String(email), String(password))) {
+  if (!isSupabaseConfigured()) {
     return NextResponse.json(
-      { error: "Invalid email or password." },
-      { status: 401 },
+      { error: "Supabase is not configured." },
+      { headers: noStoreHeaders, status: 503 },
     );
   }
 
-  const response = NextResponse.json({ success: true });
-  response.cookies.set(AUTH_COOKIE_NAME, AUTH_COOKIE_VALUE, AUTH_COOKIE_OPTIONS);
-  return response;
+  const body = await request.json().catch(() => ({}));
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const password = String(body.password ?? "");
+
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: "Email and password are required." },
+      { headers: noStoreHeaders, status: 400 },
+    );
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.user) {
+    return NextResponse.json(
+      { error: "Invalid email or password." },
+      { headers: noStoreHeaders, status: 401 },
+    );
+  }
+
+  const metadata = data.user.user_metadata;
+  const ownerFullName =
+    String(metadata.full_name ?? "").trim() ||
+    [metadata.first_name, metadata.last_name].filter(Boolean).join(" ").trim() ||
+    email.split("@")[0];
+
+  try {
+    await ensureOwnerOnboarding(supabase, { ownerFullName });
+  } catch {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      { error: "Your business account could not be initialized." },
+      { headers: noStoreHeaders, status: 500 },
+    );
+  }
+
+  return NextResponse.json(
+    { redirectTo: "/dashboard", success: true },
+    { headers: noStoreHeaders },
+  );
 }

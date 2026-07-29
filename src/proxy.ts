@@ -1,22 +1,50 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import {
-  AUTH_COOKIE_NAME,
-  TEMPORARY_AUTH_BYPASS,
-  isAuthenticatedSession,
-} from "@/services/auth.service";
+import { getSupabaseEnvironment, isSupabaseConfigured } from "@/lib/supabase/env";
+import type { Database } from "@/types/database";
 
-export function proxy(request: NextRequest) {
-  if (TEMPORARY_AUTH_BYPASS) {
-    return NextResponse.next();
+export async function proxy(request: NextRequest) {
+  if (!isSupabaseConfigured()) {
+    const signInUrl = new URL("/signin", request.url);
+    signInUrl.searchParams.set("error", "supabase-not-configured");
+    return NextResponse.redirect(signInUrl);
   }
 
-  const session = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  let response = NextResponse.next({ request });
+  const { publishableKey, url } = getSupabaseEnvironment();
+  const supabase = createServerClient<Database>(url, publishableKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
 
-  if (!isAuthenticatedSession(session)) {
-    return NextResponse.redirect(new URL("/signin", request.url));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, options, value }) => {
+          response.cookies.set(name, value, options);
+        });
+        Object.entries(headers).forEach(([name, value]) => {
+          response.headers.set(name, value);
+        });
+      },
+    },
+  });
+
+  const { data, error } = await supabase.auth.getClaims();
+
+  if (error || !data?.claims?.sub) {
+    const signInUrl = new URL("/signin", request.url);
+    signInUrl.searchParams.set(
+      "next",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
+    return NextResponse.redirect(signInUrl);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

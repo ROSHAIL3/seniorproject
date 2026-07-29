@@ -36,7 +36,7 @@ export default function SignInForm() {
         return;
       }
 
-      router.replace("/dashboard");
+      router.replace(result.redirectTo ?? "/dashboard");
       router.refresh();
     } catch {
       setError("Unable to sign in. Please try again.");

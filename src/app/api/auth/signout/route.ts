@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME } from "@/services/auth.service";
+import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export async function POST() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.set(AUTH_COOKIE_NAME, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
-  return response;
+  if (isSupabaseConfigured()) {
+    const supabase = await createClient();
+    await supabase.auth.signOut({ scope: "local" });
+  }
+
+  return NextResponse.json(
+    { success: true },
+    {
+      headers: {
+        "Cache-Control": "private, no-store",
+        Expires: "0",
+        Pragma: "no-cache",
+      },
+    },
+  );
 }

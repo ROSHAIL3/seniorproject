@@ -17,19 +17,31 @@ export default function SignUpForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+    setNotice("");
+    if (!isChecked) {
+      setError("You must accept the terms and privacy policy.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password }),
+        body: JSON.stringify({
+          acceptedTerms: isChecked,
+          email,
+          firstName,
+          lastName,
+          password,
+        }),
       });
       const result = await response.json();
 
@@ -38,7 +50,12 @@ export default function SignUpForm() {
         return;
       }
 
-      router.replace("/dashboard");
+      if (result.requiresEmailConfirmation) {
+        setNotice(result.message ?? "Check your email to confirm your account.");
+        return;
+      }
+
+      router.replace(result.redirectTo ?? "/dashboard");
       router.refresh();
     } catch {
       setError("Unable to sign up. Please try again.");
@@ -216,6 +233,11 @@ export default function SignUpForm() {
                 {error && (
                   <p className="text-sm text-error-500" role="alert">
                     {error}
+                  </p>
+                )}
+                {notice && (
+                  <p className="text-sm text-success-600" role="status">
+                    {notice}
                   </p>
                 )}
                 {/* <!-- Button --> */}

@@ -6,7 +6,14 @@ The idea is intentionally broader than one business or one type of establishment
 
 ## Senior Project Scope
 
-This is an academic senior project and a functional software prototype. It demonstrates requirements analysis, user-interface design, reusable component development, business-rule validation, shared data modeling, and preparation for a production backend. It is not currently a commercial production system.
+This is an academic senior project and a functional software prototype. It demonstrates requirements analysis, user-interface design, reusable component development, business-rule validation, shared data modeling, and a Supabase authentication and tenant foundation. It is not currently a commercial production system.
+
+## Backend setup
+
+Supabase Auth, SSR sessions, organization membership, branches, and RLS are
+configured in Phase 1. Business modules still use mock services. Follow
+[docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
+and configure a hosted project.
 
 ## Project Goals
 
@@ -17,7 +24,7 @@ The application is designed to support the daily operation of beauty and wellnes
 - Manage team members, roles, permissions, schedules, branches, and services
 - Track invoices, expenses, tax settings, and business reports
 - Review appointments through list, schedule, and calendar views
-- Keep the application architecture ready for Supabase authentication and persistence
+- Migrate business-module persistence onto the Supabase tenant foundation
 
 ## Current Features
 
