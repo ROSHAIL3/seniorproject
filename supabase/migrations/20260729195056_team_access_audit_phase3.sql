@@ -160,8 +160,8 @@ begin
 
   perform pg_advisory_xact_lock(hashtextextended(current_user_id::text, 0));
 
-  select membership, organization.status
-    into membership_record, organization_status
+  select membership.*
+    into membership_record
   from public.organization_members membership
   join public.organizations organization
     on organization.id = membership.organization_id
@@ -170,6 +170,11 @@ begin
   limit 1;
 
   if membership_record.id is not null then
+    select organization.status
+      into organization_status
+    from public.organizations organization
+    where organization.id = membership_record.organization_id;
+
     if organization_status = 'deleted' then
       raise exception 'ORGANIZATION_DELETED';
     end if;
