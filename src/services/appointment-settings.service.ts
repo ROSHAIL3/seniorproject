@@ -51,7 +51,17 @@ export function subscribeToAppointmentSettings(listener: () => void) {
 }
 
 export async function getAppointmentSettings() {
-  return cloneSettings(settings);
+  const response = await fetch("/api/settings/appointment-settings", { cache: "no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Appointment settings could not be loaded.");
+  const loaded = cloneSettings(body.settings as AppointmentSettings);
+  settings.businessHours = cloneDays(loaded.businessHours);
+  settings.staffSchedules = loaded.staffSchedules.map((schedule) => ({
+    ...schedule,
+    days: cloneDays(schedule.days),
+  }));
+  settings.updatedAt = loaded.updatedAt;
+  return loaded;
 }
 
 export async function updateGeneralAppointmentSettings(input: GeneralAppointmentSettings) {
@@ -98,8 +108,15 @@ export function validateScheduleDays(days: ScheduleDay[]) {
 export async function updateBusinessHours(days: ScheduleDay[]) {
   const errors = validateScheduleDays(days);
   if (Object.keys(errors).length) throw new AppointmentSettingsValidationError(errors);
+  const response = await fetch("/api/settings/appointment-settings", {
+    body: JSON.stringify({ businessHours: days }),
+    headers: { "Content-Type": "application/json" },
+    method: "PUT",
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Business hours could not be saved.");
   const previous = cloneDays(settings.businessHours);
-  settings.businessHours = cloneDays(days);
+  settings.businessHours = cloneDays(body.businessHours as ScheduleDay[]);
   stamp();
   await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Business hours changed", category: "Settings", targetType: "business hours", targetId: settings.id, description: "Updated weekly business hours.", metadata: { daysChanged: days.length }, oldValues: { days: previous }, newValues: { days: settings.businessHours }, source: "appointment-settings" });
   return cloneDays(settings.businessHours);

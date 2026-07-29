@@ -4,8 +4,9 @@ Phase 1 connects Supabase Auth and creates the tenant foundation. Phase 2 stores
 organization settings, private organization logos, and branches. Phase 3 stores
 team memberships, roles, permissions, staff schedules, time off, and persistent
 activity logs. Phase 4 stores service categories, services, packages, prices,
-durations, branch availability, and staff assignments. Appointments, customers,
-invoices, and expenses still use their existing mock services.
+durations, branch availability, and staff assignments. Phase 5 stores
+customers, weekly business hours, appointments, notes, status history, and
+booking-field answers. Invoices and expenses remain mocked.
 
 ## Free Plan guardrails
 
@@ -155,7 +156,24 @@ For Phase 4, also verify:
 - Service-to-branch and service-to-staff assignments cannot cross organizations.
 - Empty branch selection defaults a service to every active branch.
 - Catalog mutations honor trusted `Services` module permissions.
-- Existing appointments remain mocked and are not modified by catalog archival.
+- Historical appointment snapshots remain readable if a catalog item is later archived.
+
+For Phase 5, also verify:
+
+- Customer phone numbers and non-empty emails are unique inside an organization.
+- Customer custom-field answers are tenant-scoped and capped at 32 KB per customer.
+- Business-hour changes persist and are used by database booking validation.
+- Appointment duration exactly matches the selected service or package duration.
+- The staff member, customer, branch, service/package, and all assignments belong
+  to the active organization.
+- Bookings cannot overlap business breaks, staff breaks, staff time off, staff
+  hours, another staff booking, or another booking for the same customer.
+- Concurrent requests for the same staff member or customer are serialized with
+  transaction-level advisory locks acquired in consistent order.
+- Cancelling an appointment releases its slot; deleting requires the trusted
+  Appointments `delete` permission.
+- Appointment notes and status history are persistent and tenant-isolated.
+- Customer photos remain disabled to avoid consuming Free storage.
 
 ## Free usage monitoring
 
@@ -164,10 +182,12 @@ Pay particular attention to database size, Storage size, egress, cached egress,
 and monthly active users. If a feature would require a paid capability, stop
 and review it before enabling anything.
 
-## Recommended Phase 5
+## Recommended Phase 6
 
-Migrate customers and appointments next. Persist customers first, then booking
-records, notes, status history, and service-field answers. Availability must be
-validated transactionally against persisted services, branch availability,
-staff assignments, schedules, time off, breaks, and overlapping appointments.
-Invoices should migrate only after appointment persistence is stable.
+Migrate finance next: invoices, immutable invoice-item snapshots, appointment
+payment allocation, VAT snapshots, payment history, and safe invoice numbering.
+Persist customer custom-field definitions and service booking-field definitions
+before permanently linking those definitions to finance records. Keep receipts
+database-only at first; file uploads, online payment providers, automatic email,
+and scheduled reminders can add storage, egress, or third-party cost and must be
+reviewed before enabling them.

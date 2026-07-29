@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AppointmentsListClient from "@/components/appointments/AppointmentsListClient";
 import { REFERENCE_TODAY } from "@/config/business";
-import { getAppointments } from "@/services/appointments.service";
+import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
 
 export const metadata: Metadata = {
   title: "Appointments | Senior Project",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AppointmentsPage() {
-  const appointments = await getAppointments();
+  const appointments = await getAppointmentsFromDatabase();
   return (
     <AppointmentsListClient
       initialAppointments={appointments}

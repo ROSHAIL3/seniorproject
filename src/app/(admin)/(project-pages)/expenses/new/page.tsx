@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import ExpenseForm from "@/components/expenses/ExpenseForm";
 import { getExpenseById, getExpenseCategories, getExpenses } from "@/services/expenses.service";
-import { getAppointmentSettings } from "@/services/appointment-settings.service";
+import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
 
 export const metadata: Metadata = { title: "Add Expense | Senior Project" };
 
@@ -11,7 +11,7 @@ export default async function AddExpensePage({ searchParams }: { searchParams: P
     getExpenses(),
     getExpenseCategories(),
     edit ? getExpenseById(edit) : Promise.resolve(null),
-    getAppointmentSettings(),
+    Promise.resolve(mockAppointmentSettings),
   ]);
   return <ExpenseForm initialExpense={editingExpense ?? undefined} initialExpenses={expenses} initialCategories={categories} taxSettings={appointmentSettings.tax} />;
 }

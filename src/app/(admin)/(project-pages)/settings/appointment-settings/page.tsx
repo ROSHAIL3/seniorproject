@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AppointmentSettingsClient from "@/components/settings/appointment-settings/AppointmentSettingsClient";
-import { getAppointmentSettings } from "@/services/appointment-settings.service";
+import { getAppointmentSettingsFromDatabase } from "@/server/appointment-settings.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 
 export const metadata: Metadata = {
@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [settings, staffMembers] = await Promise.all([getAppointmentSettings(), getStaffMembersFromDatabase()]);
+  const [settings, staffMembers] = await Promise.all([getAppointmentSettingsFromDatabase(), getStaffMembersFromDatabase()]);
   return <AppointmentSettingsClient initialSettings={settings} staffMembers={staffMembers} />;
 }

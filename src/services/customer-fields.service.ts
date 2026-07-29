@@ -15,7 +15,18 @@ function emitChange() { listeners.forEach((listener) => listener()); }
 export function subscribeToCustomerFields(listener: () => void) { listeners.add(listener); return () => listeners.delete(listener); }
 
 export async function getCustomerFieldDefinitions() { return definitions.filter((field) => field.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map(cloneDefinition); }
-export async function getCustomerFieldValueRecords(customerId: string): Promise<CustomerFieldValueRecord[]> { return valueRecords.filter((record) => record.customerId === customerId).map((record) => ({ ...record })); }
+export async function getCustomerFieldValueRecords(customerId: string): Promise<CustomerFieldValueRecord[]> {
+  const response = await fetch(`/api/customers/${encodeURIComponent(customerId)}`, { cache: "no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Customer fields could not be loaded.");
+  const updatedAt = body.customer?.updatedAt ?? new Date().toISOString();
+  return Object.entries(body.customFieldValues ?? {}).map(([fieldId, value]) => ({
+    customerId,
+    fieldId,
+    updatedAt,
+    value: value as string | boolean,
+  }));
+}
 export async function getCustomerFieldValues(customerId: string): Promise<CustomerFieldValueMap> { return Object.fromEntries((await getCustomerFieldValueRecords(customerId)).map((record) => [record.fieldId, record.value])); }
 export async function customerFieldHasData(fieldId: string) { return valueRecords.some((record) => record.fieldId === fieldId && record.value !== "" && record.value !== false); }
 

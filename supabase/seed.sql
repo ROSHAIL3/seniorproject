@@ -200,5 +200,57 @@ begin
   where membership.organization_id = demo_organization_id
     and membership.user_id = demo_user_id
   on conflict do nothing;
+
+  insert into public.customers (
+    id, organization_id, name, phone, normalized_phone, email, notes, created_by
+  )
+  values (
+    '50000000-0000-0000-0000-000000000001',
+    demo_organization_id,
+    'Demo Customer',
+    '+973 3900 0000',
+    '+97339000000',
+    'customer@slotova.local',
+    'Local development seed customer.',
+    demo_user_id
+  )
+  on conflict (id) do nothing;
+
+  insert into public.appointments (
+    id, organization_id, booking_number, customer_id, membership_id, branch_id,
+    offering_type, service_id, starts_at, ends_at, customer_name,
+    customer_phone, customer_email, staff_name, offering_name, price_bhd,
+    status, notes, created_by, created_by_name
+  )
+  select
+    '60000000-0000-0000-0000-000000000001',
+    demo_organization_id,
+    'BK-000001',
+    '50000000-0000-0000-0000-000000000001',
+    membership.id,
+    '30000000-0000-0000-0000-000000000001',
+    'service',
+    'service-haircut',
+    '2026-08-03 09:45:00+03',
+    '2026-08-03 10:30:00+03',
+    'Demo Customer',
+    '+973 3900 0000',
+    'customer@slotova.local',
+    'Demo Owner',
+    'Women''s Haircut',
+    18.000,
+    'booked',
+    'Local development seed appointment.',
+    demo_user_id,
+    'Demo Owner'
+  from public.organization_members membership
+  where membership.organization_id = demo_organization_id
+    and membership.user_id = demo_user_id
+  on conflict (id) do nothing;
+
+  insert into public.organization_booking_counters (organization_id, next_number)
+  values (demo_organization_id, 2)
+  on conflict (organization_id) do update
+    set next_number = greatest(public.organization_booking_counters.next_number, 2);
 end;
 $$;

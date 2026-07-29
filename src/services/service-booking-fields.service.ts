@@ -32,5 +32,10 @@ export async function saveAppointmentServiceFieldValues(appointmentId: string, s
   for (let index = valueRecords.length - 1; index >= 0; index--) if (valueRecords[index].appointmentId === appointmentId && activeIds.has(valueRecords[index].fieldId)) valueRecords.splice(index, 1);
   Object.entries(values).forEach(([fieldId, value]) => { if (activeIds.has(fieldId) && value !== "" && value !== false) valueRecords.push({ appointmentId, fieldId, value, updatedAt: now }); }); return getAppointmentServiceFieldValues(appointmentId);
 }
-export async function getAppointmentServiceFieldValues(appointmentId: string): Promise<ServiceBookingFieldValueMap> { return Object.fromEntries(valueRecords.filter((record) => record.appointmentId === appointmentId).map((record) => [record.fieldId, record.value])); }
+export async function getAppointmentServiceFieldValues(appointmentId: string): Promise<ServiceBookingFieldValueMap> {
+  const response = await fetch(`/api/appointments/${encodeURIComponent(appointmentId)}`, { cache: "no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Appointment fields could not be loaded.");
+  return body.serviceFieldValues ?? {};
+}
 export async function getAppointmentServiceFieldDetails(appointmentId: string, serviceId: string) { const values = await getAppointmentServiceFieldValues(appointmentId); const fields = (await getServiceBookingFields(serviceId, true)).filter((field) => values[field.id] !== undefined); return fields.map((field) => ({ field, value: values[field.id] })); }

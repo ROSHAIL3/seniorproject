@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import CustomersListClient from "@/components/customers/CustomersListClient";
-import { getCustomerProfiles } from "@/services/customer-profiles.service";
+import { getCustomerProfilesFromDatabase } from "@/server/customer-profiles.repository";
 
 export const metadata: Metadata = {
   title: "Customers | Senior Project",
@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function CustomersPage() {
-  const profiles = await getCustomerProfiles();
+  const profiles = await getCustomerProfilesFromDatabase();
   return <CustomersListClient initialProfiles={profiles} />;
 }

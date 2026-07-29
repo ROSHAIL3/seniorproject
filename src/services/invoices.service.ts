@@ -5,10 +5,11 @@ import type {
   InvoiceRecord,
   InvoiceStatus,
 } from "@/types/invoices";
-import { getAppointments } from "./appointments.service";
-import { getCustomerById } from "./customers.service";
-import { calculateTax, getAppointmentSettings } from "./appointment-settings.service";
-import { getServices } from "./services.service";
+import { mockAppointments } from "@/data/mock/appointments";
+import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
+import { mockCustomers } from "@/data/mock/customers";
+import { mockServices } from "@/data/mock/services";
+import { calculateTax } from "./appointment-settings.service";
 import type { Service } from "@/types/services";
 
 const invoiceRecords = mockInvoiceRecords.map((invoice) => ({
@@ -40,12 +41,10 @@ export function calculateInvoiceStatus(
 }
 
 async function resolveInvoice(record: InvoiceRecord, providedServices?: Service[]): Promise<Invoice> {
-  const [allAppointments, customer, appointmentSettings, services] = await Promise.all([
-    getAppointments(),
-    getCustomerById(record.customerId),
-    getAppointmentSettings(),
-    providedServices ?? getServices(),
-  ]);
+  const allAppointments = mockAppointments;
+  const customer = mockCustomers.find((item) => item.id === record.customerId) ?? null;
+  const appointmentSettings = mockAppointmentSettings;
+  const services = providedServices ?? mockServices;
   const appointments = record.appointmentIds
     .map((appointmentId) =>
       allAppointments.find((appointment) => appointment.id === appointmentId),

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import NewAppointmentClient from "@/components/appointments/NewAppointmentClient";
-import { getAppointments } from "@/services/appointments.service";
-import { getCustomers } from "@/services/customers.service";
+import {
+  getAppointmentsFromDatabase,
+  getAppointmentServiceValuesFromDatabase,
+} from "@/server/appointments.repository";
+import { getCustomersFromDatabase } from "@/server/customers.repository";
 import { packageToBookingService } from "@/services/packages.service";
 import { getCatalogFromDatabase } from "@/server/catalog.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
-import { getAppointmentServiceFieldValues, getServiceBookingFields } from "@/services/service-booking-fields.service";
-import { getAppointmentSettings } from "@/services/appointment-settings.service";
+import { getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { getAppointmentSettingsFromDatabase } from "@/server/appointment-settings.repository";
 
 type NewAppointmentPageProps = {
   searchParams: Promise<{ edit?: string; date?: string }>;
@@ -21,11 +24,11 @@ export default async function NewAppointmentPage({
 }: NewAppointmentPageProps) {
   const { edit, date } = await searchParams;
   const [appointments, customers, catalog, staffMembers, appointmentSettings] = await Promise.all([
-    getAppointments(),
-    getCustomers(),
+    getAppointmentsFromDatabase(),
+    getCustomersFromDatabase(),
     getCatalogFromDatabase(),
     getStaffMembersFromDatabase(),
-    getAppointmentSettings(),
+    getAppointmentSettingsFromDatabase(),
   ]);
   const catalogServices = catalog.services.filter((service) => service.isActive);
   const packageOfferings = await Promise.all(
@@ -45,7 +48,9 @@ export default async function NewAppointmentPage({
     else if (historicalPackage) services.push(await packageToBookingService(historicalPackage, catalog.services));
   }
   const serviceFields = (await Promise.all(services.map((service) => getServiceBookingFields(service.id)))).flat();
-  const initialServiceFieldValues = editingAppointment ? await getAppointmentServiceFieldValues(editingAppointment.id) : {};
+  const initialServiceFieldValues = editingAppointment
+    ? await getAppointmentServiceValuesFromDatabase(editingAppointment.id)
+    : {};
 
   return (
     <NewAppointmentClient

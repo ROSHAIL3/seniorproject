@@ -14,7 +14,9 @@ Supabase Auth, SSR sessions, organization settings, private organization logos,
 branches, team memberships, roles, permissions, staff schedules, time off,
 persistent activity logs, service categories, services, packages, branch
 availability, staff assignments, and RLS are configured through Phase 4.
-Appointments, customers, invoices, and expenses still use mock services. Follow
+Phase 5 stores customers, business hours, appointments, appointment notes,
+status history, and booking-field answers with transaction-safe availability
+checks. Invoices and expenses still use mock services. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -150,9 +152,10 @@ Page components are kept focused on rendering and interaction. Validation, owner
 ## Data and Architecture
 
 Authentication, organization settings, logos, branches, team access, staff
-schedules, time off, activity logs, and the service catalog use Supabase. The
-remaining business modules use typed mock data and in-memory service stores, so
-those records can reset after a refresh or development-server restart.
+schedules, time off, activity logs, the service catalog, customers, business
+hours, and appointments use Supabase. Finance modules and configurable customer
+and service booking-field definitions still use typed mock data and in-memory
+service stores.
 
 Stable IDs connect shared records across the application:
 
@@ -165,10 +168,10 @@ The Team Member model is the canonical source for member identity, role, status,
 
 ## Planned Supabase Integration
 
-The recommended Phase 5 migrates customers and appointments, including
-transaction-safe conflict checks using persisted services, schedules, time off,
-branch availability, staff assignments, breaks, and overlapping bookings.
-Invoices should migrate after appointments.
+The recommended Phase 6 migrates invoices, appointment payments, VAT snapshots,
+and payment history. Customer custom-field definitions and service booking-field
+definitions should be persisted in the same phase before their finance links
+become permanent.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 

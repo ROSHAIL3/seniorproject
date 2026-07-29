@@ -319,6 +319,42 @@ export type Database = {
         Update: { quantity?: number; sort_order?: number };
         Relationships: [];
       };
+      organization_business_hours: {
+        Row: { organization_id: string; day_of_week: number; is_open: boolean; start_time: string; end_time: string; break_start_time: string | null; break_end_time: string | null; created_at: string; updated_at: string };
+        Insert: { organization_id: string; day_of_week: number; is_open?: boolean; start_time?: string; end_time?: string; break_start_time?: string | null; break_end_time?: string | null; created_at?: string; updated_at?: string };
+        Update: { is_open?: boolean; start_time?: string; end_time?: string; break_start_time?: string | null; break_end_time?: string | null };
+        Relationships: [];
+      };
+      customers: {
+        Row: { id: string; organization_id: string; name: string; phone: string; normalized_phone: string; email: string; notes: string; status: Database["public"]["Enums"]["customer_status"]; custom_values: Json; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; organization_id: string; name: string; phone: string; normalized_phone: string; email?: string; notes?: string; status?: Database["public"]["Enums"]["customer_status"]; custom_values?: Json; created_by?: string | null; created_at?: string; updated_at?: string };
+        Update: { name?: string; phone?: string; normalized_phone?: string; email?: string; notes?: string; status?: Database["public"]["Enums"]["customer_status"]; custom_values?: Json };
+        Relationships: [];
+      };
+      organization_booking_counters: {
+        Row: { organization_id: string; next_number: number };
+        Insert: { organization_id: string; next_number?: number };
+        Update: { next_number?: number };
+        Relationships: [];
+      };
+      appointments: {
+        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      appointment_notes: {
+        Row: { id: string; organization_id: string; appointment_id: string; note: string; created_by: string | null; created_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      appointment_status_history: {
+        Row: { id: string; organization_id: string; appointment_id: string; old_status: Database["public"]["Enums"]["appointment_status"] | null; new_status: Database["public"]["Enums"]["appointment_status"]; changed_by: string | null; changed_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -410,6 +446,38 @@ export type Database = {
         Args: { target_package_id: string | null; package_name: string; package_description: string; package_kind: Database["public"]["Enums"]["package_type"]; package_selling_price_bhd: number; package_is_active: boolean; package_allow_price_above_original: boolean; package_items: Json };
         Returns: Database["public"]["Tables"]["service_packages"]["Row"];
       };
+      upsert_customer: {
+        Args: { target_customer_id: string | null; customer_name: string; customer_phone: string; customer_email: string; customer_notes: string; customer_status: Database["public"]["Enums"]["customer_status"]; customer_custom_values: Json };
+        Returns: Database["public"]["Tables"]["customers"]["Row"];
+      };
+      update_business_hours: {
+        Args: { schedule_days: Json };
+        Returns: Database["public"]["Tables"]["organization_business_hours"]["Row"][];
+      };
+      delete_customer: {
+        Args: { target_customer_id: string };
+        Returns: string;
+      };
+      upsert_appointment: {
+        Args: { target_appointment_id: string | null; target_customer_id: string; target_staff_key: string; target_branch_id: string; target_offering_id: string; target_starts_at: string; target_ends_at: string; target_status: Database["public"]["Enums"]["appointment_status"]; target_notes: string; target_service_field_values: Json; target_created_by_name: string };
+        Returns: Database["public"]["Tables"]["appointments"]["Row"];
+      };
+      update_appointment_status: {
+        Args: { target_appointment_id: string; target_status: Database["public"]["Enums"]["appointment_status"] };
+        Returns: Database["public"]["Tables"]["appointments"]["Row"];
+      };
+      update_appointment_payment: {
+        Args: { target_appointment_id: string; target_amount_bhd: number };
+        Returns: Database["public"]["Tables"]["appointments"]["Row"];
+      };
+      add_appointment_note: {
+        Args: { target_appointment_id: string; target_note: string };
+        Returns: Database["public"]["Tables"]["appointment_notes"]["Row"];
+      };
+      delete_appointment: {
+        Args: { target_appointment_id: string };
+        Returns: undefined;
+      };
       delete_branch: {
         Args: {
           target_branch_id: string;
@@ -439,6 +507,9 @@ export type Database = {
     };
     Enums: {
       branch_status: "active" | "inactive" | "archived";
+      customer_status: "active" | "inactive";
+      appointment_status: "booked" | "confirmed" | "completed" | "cancelled" | "no_show";
+      appointment_offering_type: "service" | "package";
       catalog_status: "active" | "archived";
       membership_status: "active" | "invited" | "disabled";
       organization_role: "owner" | "admin" | "manager" | "staff" | "accountant";

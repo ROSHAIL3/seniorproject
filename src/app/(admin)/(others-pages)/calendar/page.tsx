@@ -1,7 +1,7 @@
 import Calendar from "@/components/calendar/Calendar";
 import { Metadata } from "next";
 import React from "react";
-import { getAppointments } from "@/services/appointments.service";
+import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 export default async function CalendarPage() {
   const [appointments, staffMembers] = await Promise.all([
-    getAppointments(),
+    getAppointmentsFromDatabase(),
     getStaffMembersFromDatabase(),
   ]);
   return (
