@@ -9,7 +9,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 
-export default function SignInForm() {
+export default function SignInForm({
+  organizationDeleted = false,
+  accessDisabled = false,
+}: {
+  organizationDeleted?: boolean;
+  accessDisabled?: boolean;
+}) {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
@@ -17,6 +23,11 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const routeError = organizationDeleted
+    ? "The organization has been deleted and access is disabled."
+    : accessDisabled
+      ? "Your team access is disabled. Contact the organization owner."
+      : "";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -172,9 +183,9 @@ export default function SignInForm() {
                     Forgot password?
                   </Link>
                 </div>
-                {error && (
+                {(error || routeError) && (
                   <p className="text-sm text-error-500" role="alert">
-                    {error}
+                    {error || routeError}
                   </p>
                 )}
                 <div>

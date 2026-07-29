@@ -2,8 +2,8 @@ import { REFERENCE_TODAY } from "@/config/business";
 import { getAppointments } from "./appointments.service";
 import { getExpenseCategories, getExpenses } from "./expenses.service";
 import { getInvoices } from "./invoices.service";
-import { getServices } from "./services.service";
-import { getStaffMembers } from "./staff.service";
+import { getServicesFromDatabase } from "@/server/catalog.repository";
+import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import type { DashboardAppointment, DashboardData } from "@/types/dashboard";
 
 const toDashboardAppointment = (appointment: Awaited<ReturnType<typeof getAppointments>>[number]): DashboardAppointment => ({
@@ -19,12 +19,13 @@ const toDashboardAppointment = (appointment: Awaited<ReturnType<typeof getAppoin
 });
 
 export async function getDashboardData(): Promise<DashboardData> {
+  const catalogServices = await getServicesFromDatabase();
   const [appointments, services, staff, invoices, expenses, categories] =
     await Promise.all([
       getAppointments(),
-      getServices(),
-      getStaffMembers(),
-      getInvoices(),
+      Promise.resolve(catalogServices),
+      getStaffMembersFromDatabase(),
+      getInvoices(catalogServices),
       getExpenses(),
       getExpenseCategories(),
     ]);

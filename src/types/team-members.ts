@@ -1,6 +1,6 @@
-export const teamMemberRoles = ["Owner", "Admin", "Manager", "Staff", "Receptionist"] as const;
+export const teamMemberRoles = ["Owner", "Admin", "Manager", "Staff", "Accountant"] as const;
 export type TeamMemberRole = (typeof teamMemberRoles)[number];
-export type TeamMemberStatus = "Active" | "Inactive";
+export type TeamMemberStatus = "Active" | "Inactive" | "Invited";
 
 export const permissionModules = [
   "Dashboard", "Appointments", "Calendar", "Customers", "Invoices", "Expenses",
@@ -30,7 +30,11 @@ export type TeamMember = {
 
 export type TeamMemberInput = Pick<TeamMember, "fullName" | "email" | "phone" | "role" | "status" | "branchId" | "serviceIds"> & { permissions?: PermissionSet };
 export type TeamMemberCreateInput = TeamMemberInput & {
-  password: string;
-  confirmPassword: string;
+  status: "Invited";
 };
-export type TeamMemberFieldErrors = Partial<Record<keyof TeamMemberInput | "password" | "confirmPassword" | "form", string>>;
+export type TeamMemberFieldErrors = Partial<Record<keyof TeamMemberInput | "form", string>>;
+
+export type TeamMemberInvitationResult = {
+  inviteLink: string;
+  member: TeamMember;
+};

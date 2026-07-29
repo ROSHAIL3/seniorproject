@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { ensureOwnerOnboarding } from "@/services/onboarding.service";
+import {
+  DeletedOrganizationError,
+  DisabledMembershipError,
+  ensureOwnerOnboarding,
+} from "@/services/onboarding.service";
 
 const noStoreHeaders = {
   "Cache-Control": "private, no-store",
@@ -49,8 +53,17 @@ export async function POST(request: Request) {
 
   try {
     await ensureOwnerOnboarding(supabase, { ownerFullName });
-  } catch {
+  } catch (onboardingError) {
     await supabase.auth.signOut();
+    if (
+      onboardingError instanceof DeletedOrganizationError ||
+      onboardingError instanceof DisabledMembershipError
+    ) {
+      return NextResponse.json(
+        { error: onboardingError.message },
+        { headers: noStoreHeaders, status: 403 },
+      );
+    }
     return NextResponse.json(
       { error: "Your business account could not be initialized." },
       { headers: noStoreHeaders, status: 500 },

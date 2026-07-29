@@ -44,6 +44,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
+  const { data: canAccess, error: accessError } = await supabase.rpc(
+    "can_access_application",
+  );
+  if (accessError || !canAccess) {
+    await supabase.auth.signOut({ scope: "local" });
+    const signInUrl = new URL("/signin", request.url);
+    signInUrl.searchParams.set("error", "access-disabled");
+    return NextResponse.redirect(signInUrl);
+  }
+
   return response;
 }
 

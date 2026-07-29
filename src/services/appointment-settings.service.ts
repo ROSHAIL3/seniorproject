@@ -1,5 +1,4 @@
 import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
-import { getStaffMemberById } from "@/services/staff.service";
 import type {
   AppointmentSettings,
   GeneralAppointmentSettings,
@@ -107,27 +106,21 @@ export async function updateBusinessHours(days: ScheduleDay[]) {
 }
 
 export async function getStaffSchedule(staffId: string): Promise<StaffScheduleSettings> {
-  const staff = await getStaffMemberById(staffId);
-  if (!staff) throw new Error("The selected staff member could not be found.");
-  const existing = settings.staffSchedules.find((schedule) => schedule.staffId === staffId);
-  if (existing) return { ...existing, days: cloneDays(existing.days) };
-  return { staffId, useCustomHours: false, days: cloneDays(settings.businessHours) };
+  const response = await fetch(`/api/settings/team-members/${encodeURIComponent(staffId)}/schedule`, { cache: "no-store" });
+  if (!response.ok) throw new Error("The staff schedule could not be loaded.");
+  const body = await response.json();
+  if (!body.schedule) return { staffId, useCustomHours: false, days: cloneDays(settings.businessHours) };
+  return { ...body.schedule, days: cloneDays(body.schedule.days) };
 }
 
 export async function updateStaffSchedule(input: StaffScheduleSettings) {
-  const staff = await getStaffMemberById(input.staffId);
-  if (!staff) throw new Error("The selected staff member could not be found.");
   const days = input.useCustomHours ? input.days : settings.businessHours;
   const errors = validateScheduleDays(days);
   if (Object.keys(errors).length) throw new AppointmentSettingsValidationError(errors);
-  const next = { ...input, days: cloneDays(days) };
-  const index = settings.staffSchedules.findIndex((schedule) => schedule.staffId === input.staffId);
-  const previous = index >= 0 ? { ...settings.staffSchedules[index], days: cloneDays(settings.staffSchedules[index].days) } : undefined;
-  if (index >= 0) settings.staffSchedules[index] = next;
-  else settings.staffSchedules.push(next);
-  stamp();
-  await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Staff schedule changed", category: "Catalog & Team", targetType: "staff schedule", targetId: input.staffId, description: `Updated the staff schedule for ${staff.name}.`, metadata: { staff: staff.name }, oldValues: previous ? { useCustomHours: previous.useCustomHours, days: previous.days } : undefined, newValues: { useCustomHours: next.useCustomHours, days: next.days }, source: "appointment-settings" });
-  return { ...next, days: cloneDays(next.days) };
+  const response = await fetch(`/api/settings/team-members/${encodeURIComponent(input.staffId)}/schedule`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...input, days }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "The staff schedule could not be saved.");
+  return { ...body.schedule, days: cloneDays(body.schedule.days) };
 }
 
 export async function updateTaxVatSettings(input: TaxVatSettings) {

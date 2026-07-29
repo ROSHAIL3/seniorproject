@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import NewAppointmentClient from "@/components/appointments/NewAppointmentClient";
 import { getAppointments } from "@/services/appointments.service";
 import { getCustomers } from "@/services/customers.service";
-import { getBookableServices, getServiceById, getServiceCategories } from "@/services/services.service";
-import { getPackageBookingOfferings, getPackageById, packageToBookingService } from "@/services/packages.service";
-import { getStaffMembers } from "@/services/staff.service";
+import { packageToBookingService } from "@/services/packages.service";
+import { getCatalogFromDatabase } from "@/server/catalog.repository";
+import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import { getAppointmentServiceFieldValues, getServiceBookingFields } from "@/services/service-booking-fields.service";
 import { getAppointmentSettings } from "@/services/appointment-settings.service";
 
@@ -20,24 +20,29 @@ export default async function NewAppointmentPage({
   searchParams,
 }: NewAppointmentPageProps) {
   const { edit, date } = await searchParams;
-  const [appointments, customers, catalogServices, packageOfferings, serviceCategories, staffMembers, appointmentSettings] = await Promise.all([
+  const [appointments, customers, catalog, staffMembers, appointmentSettings] = await Promise.all([
     getAppointments(),
     getCustomers(),
-    getBookableServices(),
-    getPackageBookingOfferings(),
-    getServiceCategories(),
-    getStaffMembers(),
+    getCatalogFromDatabase(),
+    getStaffMembersFromDatabase(),
     getAppointmentSettings(),
   ]);
+  const catalogServices = catalog.services.filter((service) => service.isActive);
+  const packageOfferings = await Promise.all(
+    catalog.packages
+      .filter((item) => item.isActive)
+      .map((item) => packageToBookingService(item, catalog.services)),
+  );
+  const serviceCategories = catalog.categories.filter((category) => category.status === "Active");
   const services = [...catalogServices, ...packageOfferings];
   const editingAppointment = appointments.find(
     (appointment) => appointment.bookingNumber === edit,
   );
   if (editingAppointment && !services.some((service) => service.id === editingAppointment.serviceId)) {
-    const historicalService = await getServiceById(editingAppointment.serviceId);
-    const historicalPackage = historicalService ? null : await getPackageById(editingAppointment.serviceId);
+    const historicalService = catalog.services.find((service) => service.id === editingAppointment.serviceId);
+    const historicalPackage = historicalService ? null : catalog.packages.find((item) => item.id === editingAppointment.serviceId);
     if (historicalService) services.push(historicalService);
-    else if (historicalPackage) services.push(await packageToBookingService(historicalPackage));
+    else if (historicalPackage) services.push(await packageToBookingService(historicalPackage, catalog.services));
   }
   const serviceFields = (await Promise.all(services.map((service) => getServiceBookingFields(service.id)))).flat();
   const initialServiceFieldValues = editingAppointment ? await getAppointmentServiceFieldValues(editingAppointment.id) : {};

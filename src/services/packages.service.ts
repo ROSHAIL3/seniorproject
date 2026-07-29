@@ -1,28 +1,132 @@
-import { mockPackages } from "@/data/mock/packages";
-import type { PackageFieldErrors, PackageInput, PackageUsage, ServicePackage } from "@/types/packages";
+import type {
+  PackageFieldErrors,
+  PackageInput,
+  PackageUsage,
+  ServicePackage,
+} from "@/types/packages";
 import type { Service } from "@/types/services";
-import { DEFAULT_ACTIVITY_ACTOR, logActivity } from "./activity-log.service";
 import { getServices } from "./services.service";
 
-export class PackageValidationError extends Error { constructor(public fieldErrors: PackageFieldErrors) { super("Please correct the highlighted package fields."); } }
-const clonePackage = (item: ServicePackage): ServicePackage => ({ ...item, items: item.items.map((row) => ({ ...row })) });
-const packageRecords: ServicePackage[] = mockPackages.map(clonePackage); const usageRecords: PackageUsage[] = []; const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((listener) => listener());
-export function subscribeToPackages(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; }
-export async function getPackages() { return packageRecords.map(clonePackage); }
-export async function getBookablePackages() { return packageRecords.filter((item) => item.isActive).map(clonePackage); }
-export async function getPackageById(id: string) { const item = packageRecords.find((record) => record.id === id); return item ? clonePackage(item) : null; }
-
-export async function calculatePackageOriginalTotal(input: Pick<PackageInput, "items">) { const services = await getServices(); return input.items.reduce((total, item) => total + (services.find((service) => service.id === item.serviceId)?.priceBhd ?? 0) * item.quantity, 0); }
-export async function validatePackage(input: PackageInput, packageId?: string): Promise<PackageFieldErrors> { const errors: PackageFieldErrors = {}; const name = input.name.trim(); if (!name) errors.name = "Package name is required."; else if (packageRecords.some((item) => item.id !== packageId && item.name.toLowerCase() === name.toLowerCase())) errors.name = "A package with this name already exists."; if (!Number.isFinite(input.sellingPriceBhd) || input.sellingPriceBhd < 0) errors.sellingPriceBhd = "Selling price cannot be negative."; const validItems = input.items.filter((item) => item.serviceId && item.quantity > 0); if (!validItems.length) errors.items = "Add at least one service."; if (new Set(validItems.map((item) => item.serviceId)).size !== validItems.length) errors.items = "Duplicate services must be combined into one row."; const originalTotal = await calculatePackageOriginalTotal(input); if (!input.allowPriceAboveOriginal && input.sellingPriceBhd > originalTotal) errors.sellingPriceBhd = "Selling price cannot exceed the original total unless explicitly allowed."; return errors; }
-
-export async function createPackage(input: PackageInput) { const errors = await validatePackage(input); if (Object.keys(errors).length) throw new PackageValidationError(errors); const now = new Date().toISOString(); const id = `package-${crypto.randomUUID()}`; const item: ServicePackage = { ...normalize(input), id, items: input.items.map((row, index) => ({ ...row, id: row.id || `package-item-${crypto.randomUUID()}`, packageId: id, sortOrder: index })), createdAt: now, updatedAt: now }; packageRecords.push(item); emit(); await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "Package created", category: "Catalog & Team", targetType: "package", targetId: id, description: `Created package ${item.name}.`, metadata: { package: item.name, type: item.type, serviceCount: item.items.length }, newValues: { sellingPriceBhd: item.sellingPriceBhd, isActive: item.isActive }, source: "packages" }); return clonePackage(item); }
-export async function updatePackage(id: string, input: PackageInput) { const index = packageRecords.findIndex((item) => item.id === id); if (index < 0) throw new Error("The package could not be found."); const errors = await validatePackage(input, id); if (Object.keys(errors).length) throw new PackageValidationError(errors); const previous = clonePackage(packageRecords[index]); packageRecords[index] = { ...packageRecords[index], ...normalize(input), items: input.items.map((row, itemIndex) => ({ ...row, id: row.id || `package-item-${crypto.randomUUID()}`, packageId: id, sortOrder: itemIndex })), updatedAt: new Date().toISOString() }; emit(); const updated = packageRecords[index]; const action = previous.isActive !== updated.isActive ? `Package ${updated.isActive ? "activated" : "deactivated"}` : "Package updated"; await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action, category: "Catalog & Team", targetType: "package", targetId: id, description: `${action}: ${updated.name}.`, metadata: { package: updated.name, type: updated.type, serviceCount: updated.items.length }, oldValues: { name: previous.name, sellingPriceBhd: previous.sellingPriceBhd, isActive: previous.isActive, items: previous.items }, newValues: { name: updated.name, sellingPriceBhd: updated.sellingPriceBhd, isActive: updated.isActive, items: updated.items }, source: "packages" }); return clonePackage(updated); }
-export async function archivePackage(id: string) { const item = await getPackageById(id); if (!item) throw new Error("The package could not be found."); return item.isActive ? updatePackage(id, { ...item, isActive: false }) : item; }
-export async function packageToBookingService(item: ServicePackage): Promise<Service> { const services = await getServices(); const included = item.items.map((row) => services.find((service) => service.id === row.serviceId)).filter((service): service is Service => Boolean(service)); const staffIds = [...new Set(included.flatMap((service) => service.staffIds))]; return { id: item.id, name: item.name, kind: "package", categoryId: "packages", description: item.description, durationMinutes: item.type === "Combo" ? item.items.reduce((total, row) => total + (services.find((service) => service.id === row.serviceId)?.durationMinutes ?? 0) * row.quantity, 0) : Math.max(...included.map((service) => service.durationMinutes), 0), priceBhd: item.sellingPriceBhd, imageUrl: item.imageUrl, staffIds, isActive: item.isActive, vatApplicable: true, createdAt: item.createdAt, updatedAt: item.updatedAt };
+export class PackageValidationError extends Error {
+  constructor(public fieldErrors: PackageFieldErrors) {
+    super("Please correct the highlighted package fields.");
+  }
 }
-export async function getPackageBookingOfferings() { return Promise.all((await getBookablePackages()).map(packageToBookingService)); }
-export async function recordPackageUsage(packageId: string, customerId: string, appointmentId: string) { const item = await getPackageById(packageId); if (!item) return; const usedQuantities = Object.fromEntries(item.items.map((row) => [row.serviceId, item.type === "Combo" ? row.quantity : 0])); usageRecords.push({ id: `package-usage-${crypto.randomUUID()}`, packageId, customerId, appointmentId, usedQuantities, createdAt: new Date().toISOString() }); }
-export async function getCustomerPackageUsage(customerId: string) { return usageRecords.filter((item) => item.customerId === customerId).map((item) => ({ ...item, usedQuantities: { ...item.usedQuantities } })); }
-export async function getAppointmentPackageUsage(appointmentId: string) { const item = usageRecords.find((record) => record.appointmentId === appointmentId); return item ? { ...item, usedQuantities: { ...item.usedQuantities } } : null; }
-function normalize(input: PackageInput): PackageInput { return { ...input, name: input.name.trim(), description: input.description.trim(), sellingPriceBhd: Math.round(input.sellingPriceBhd * 1000) / 1000, items: input.items.map((row) => ({ ...row, quantity: Math.max(1, Math.round(row.quantity)) })) }; }
+const usageRecords: PackageUsage[] = [];
+
+export function subscribeToPackages(onChange?: () => void) {
+  void onChange;
+  return () => undefined;
+}
+async function getCatalog() {
+  const response = await fetch("/api/settings/catalog", { cache: "no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Packages could not be loaded.");
+  return body as { packages: ServicePackage[] };
+}
+export async function getPackages() {
+  return (await getCatalog()).packages;
+}
+export async function getBookablePackages() {
+  return (await getPackages()).filter((item) => item.isActive);
+}
+export async function getPackageById(id: string) {
+  return (await getPackages()).find((item) => item.id === id) ?? null;
+}
+export async function calculatePackageOriginalTotal(input: Pick<PackageInput, "items">) {
+  const services = await getServices();
+  return input.items.reduce(
+    (total, item) => total + (services.find((service) => service.id === item.serviceId)?.priceBhd ?? 0) * item.quantity,
+    0,
+  );
+}
+export async function validatePackage(input: PackageInput): Promise<PackageFieldErrors> {
+  const errors: PackageFieldErrors = {};
+  if (!input?.name?.trim()) errors.name = "Package name is required.";
+  if (!Number.isFinite(input?.sellingPriceBhd) || input.sellingPriceBhd < 0) errors.sellingPriceBhd = "Selling price cannot be negative.";
+  const valid = input?.items?.filter((item) => item.serviceId && item.quantity > 0) ?? [];
+  if (!valid.length) errors.items = "Add at least one service.";
+  if (valid.length > 100) errors.items = "A package can contain at most 100 services.";
+  if (new Set(valid.map((item) => item.serviceId)).size !== valid.length) errors.items = "Duplicate services must be combined into one row.";
+  const original = await calculatePackageOriginalTotal(input);
+  if (!input.allowPriceAboveOriginal && input.sellingPriceBhd > original) errors.sellingPriceBhd = "Selling price cannot exceed the original total unless explicitly allowed.";
+  return errors;
+}
+export async function createPackage(input: PackageInput) {
+  return savePackage(null, input);
+}
+export async function updatePackage(id: string, input: PackageInput) {
+  return savePackage(id, input);
+}
+async function savePackage(id: string | null, input: PackageInput) {
+  const normalized = normalize(input);
+  const errors = await validatePackage(normalized);
+  if (Object.keys(errors).length) throw new PackageValidationError(errors);
+  const response = await fetch("/api/settings/catalog/packages", {
+    method: id ? "PATCH" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, input: normalized }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "The package could not be saved.");
+  return body.package as ServicePackage;
+}
+export async function archivePackage(id: string) {
+  const item = await getPackageById(id);
+  if (!item) throw new Error("The package could not be found.");
+  return item.isActive ? updatePackage(id, { ...item, isActive: false }) : item;
+}
+export async function packageToBookingService(item: ServicePackage, providedServices?: Service[]): Promise<Service> {
+  const services = providedServices ?? await getServices();
+  const included = item.items.map((row) => services.find((service) => service.id === row.serviceId)).filter((service): service is Service => Boolean(service));
+  return {
+    branchIds: [...new Set(included.flatMap((service) => service.branchIds))],
+    categoryId: "packages",
+    createdAt: item.createdAt,
+    description: item.description,
+    durationMinutes: item.type === "Combo"
+      ? item.items.reduce((total, row) => total + (services.find((service) => service.id === row.serviceId)?.durationMinutes ?? 0) * row.quantity, 0)
+      : Math.max(...included.map((service) => service.durationMinutes), 0),
+    id: item.id,
+    imageUrl: item.imageUrl,
+    isActive: item.isActive,
+    kind: "package",
+    name: item.name,
+    priceBhd: item.sellingPriceBhd,
+    staffIds: [...new Set(included.flatMap((service) => service.staffIds))],
+    updatedAt: item.updatedAt,
+    vatApplicable: true,
+  };
+}
+export async function getPackageBookingOfferings() {
+  return Promise.all((await getBookablePackages()).map((item) => packageToBookingService(item)));
+}
+export async function recordPackageUsage(packageId: string, customerId: string, appointmentId: string) {
+  const item = await getPackageById(packageId);
+  if (!item) return;
+  usageRecords.push({
+    appointmentId,
+    createdAt: new Date().toISOString(),
+    customerId,
+    id: `package-usage-${crypto.randomUUID()}`,
+    packageId,
+    usedQuantities: Object.fromEntries(item.items.map((row) => [row.serviceId, item.type === "Combo" ? row.quantity : 0])),
+  });
+}
+export async function getCustomerPackageUsage(customerId: string) {
+  return usageRecords.filter((item) => item.customerId === customerId).map((item) => ({ ...item, usedQuantities: { ...item.usedQuantities } }));
+}
+export async function getAppointmentPackageUsage(appointmentId: string) {
+  const item = usageRecords.find((record) => record.appointmentId === appointmentId);
+  return item ? { ...item, usedQuantities: { ...item.usedQuantities } } : null;
+}
+function normalize(input: PackageInput): PackageInput {
+  return {
+    ...input,
+    description: input.description.trim(),
+    imageUrl: input.imageUrl.startsWith("data:") ? "" : input.imageUrl,
+    items: input.items.map((row, index) => ({ ...row, quantity: Math.max(1, Math.round(row.quantity)), sortOrder: index })),
+    name: input.name.trim(),
+    sellingPriceBhd: Math.round(input.sellingPriceBhd * 1000) / 1000,
+  };
+}

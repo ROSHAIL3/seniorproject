@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import BranchesPageClient from "@/components/settings/branches/BranchesPageClient";
-import { getBranchFormOptions, getBranches } from "@/services/branches.service";
+import { getBranchesFromDatabase } from "@/server/branches.repository";
+import { getBranchFormOptions } from "@/services/branches.service";
 
 export const metadata: Metadata = {
   title: "Branches | Senior Project",
 };
 
 export default async function Page() {
-  const [branches, options] = await Promise.all([getBranches(), getBranchFormOptions()]);
+  const [branches, options] = await Promise.all([
+    getBranchesFromDatabase(),
+    getBranchFormOptions(),
+  ]);
   return <BranchesPageClient initialBranches={branches} options={options} />;
 }

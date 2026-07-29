@@ -9,7 +9,6 @@ import MultiSelect from "@/components/form/MultiSelect";
 import Select from "@/components/form/Select";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
-import { EyeCloseIcon, EyeIcon } from "@/icons";
 import { createTeamMember, TeamMemberValidationError } from "@/services/team-members.service";
 import {
   teamMemberRoles,
@@ -38,8 +37,7 @@ export default function TeamMemberFormModal({
   const [form, setForm] = useState<TeamMemberCreateInput>(initial);
   const [errors, setErrors] = useState<TeamMemberFieldErrors>({});
   const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
 
   const set = <K extends keyof TeamMemberCreateInput>(
     key: K,
@@ -52,17 +50,16 @@ export default function TeamMemberFormModal({
   const close = () => {
     setForm(createInitial(branches));
     setErrors({});
-    setShowPassword(false);
-    setShowConfirmation(false);
+    setInviteLink("");
     onClose();
   };
 
   const submit = async () => {
     setSaving(true);
     try {
-      const member = await createTeamMember(form);
-      onCreated(`${member.fullName} can sign in immediately using the credentials you created.`);
-      close();
+      const result = await createTeamMember(form);
+      setInviteLink(result.inviteLink);
+      onCreated(`${result.member.fullName} was invited. Copy and share the secure invitation link.`);
     } catch (error) {
       if (error instanceof TeamMemberValidationError) {
         setErrors(error.fieldErrors);
@@ -82,10 +79,20 @@ export default function TeamMemberFormModal({
         Add Team Member
       </h2>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Create an active account and give the login credentials to the team member directly.
+        Generate a secure Supabase invitation link to share with the team member.
       </p>
 
       {errors.form && <Feedback>{errors.form}</Feedback>}
+      {inviteLink && (
+        <div className="mt-5 rounded-xl border border-success-200 bg-success-50 p-4 dark:border-success-500/25 dark:bg-success-500/10">
+          <p className="text-sm font-medium text-success-700 dark:text-success-400">Invitation created</p>
+          <p className="mt-1 text-xs text-success-600 dark:text-success-400/80">Copy this one-time link and share it securely. No paid email service was used.</p>
+          <div className="mt-3 flex gap-2">
+            <Input value={inviteLink} readOnly ariaLabel="Invitation link" />
+            <Button size="sm" variant="outline" onClick={() => void navigator.clipboard.writeText(inviteLink)}>Copy</Button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Field label="Full Name" required error={errors.fullName}>
@@ -132,10 +139,10 @@ export default function TeamMemberFormModal({
             placeholder="Select branch"
           />
         </Field>
-        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 dark:border-success-500/25 dark:bg-success-500/10">
-          <p className="text-sm font-medium text-success-700 dark:text-success-400">Active immediately</p>
-          <p className="mt-1 text-xs text-success-600 dark:text-success-400/80">
-            The account can sign in as soon as it is created.
+        <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-500/25 dark:bg-brand-500/10">
+          <p className="text-sm font-medium text-brand-700 dark:text-brand-400">Invitation required</p>
+          <p className="mt-1 text-xs text-brand-600 dark:text-brand-400/80">
+            Access becomes active after the team member accepts the secure link.
           </p>
         </div>
         <div className="sm:col-span-2">
@@ -155,36 +162,9 @@ export default function TeamMemberFormModal({
         </div>
       </div>
 
-      <div className="mt-6 border-t border-gray-100 pt-5 dark:border-gray-800">
-        <h3 className="font-semibold text-gray-800 dark:text-white/90">Login credentials</h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Passwords require at least 8 characters and are never displayed again after creation.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <PasswordField
-            label="Password"
-            value={form.password}
-            visible={showPassword}
-            error={errors.password}
-            onToggle={() => setShowPassword((current) => !current)}
-            onChange={(value) => set("password", value)}
-          />
-          <PasswordField
-            label="Confirm Password"
-            value={form.confirmPassword}
-            visible={showConfirmation}
-            error={errors.confirmPassword}
-            onToggle={() => setShowConfirmation((current) => !current)}
-            onChange={(value) => set("confirmPassword", value)}
-          />
-        </div>
-      </div>
-
       <div className="mt-6 flex justify-end gap-3">
-        <Button variant="outline" size="sm" onClick={close}>Cancel</Button>
-        <Button size="sm" onClick={submit} disabled={saving}>
-          {saving ? "Creating..." : "Create Account"}
-        </Button>
+        <Button variant="outline" size="sm" onClick={close}>{inviteLink ? "Done" : "Cancel"}</Button>
+        {!inviteLink && <Button size="sm" onClick={submit} disabled={saving}>{saving ? "Creating..." : "Generate Invitation"}</Button>}
       </div>
     </Modal>
   );
@@ -198,49 +178,8 @@ function createInitial(branches: Branch[]): TeamMemberCreateInput {
     role: "Staff",
     branchId: branches.find((item) => item.status === "Active")?.id ?? "",
     serviceIds: [],
-    status: "Active",
-    password: "",
-    confirmPassword: "",
+    status: "Invited",
   };
-}
-
-function PasswordField({
-  label,
-  value,
-  visible,
-  error,
-  onToggle,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  visible: boolean;
-  error?: string;
-  onToggle: () => void;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <Field label={label} required error={error}>
-      <div className="relative">
-        <Input
-          type={visible ? "text" : "password"}
-          value={value}
-          error={!!error}
-          onChange={(event) => onChange(event.target.value)}
-          autoComplete="new-password"
-          className="pr-11"
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={visible ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
-          className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-brand-500 dark:hover:bg-gray-800"
-        >
-          {visible ? <EyeCloseIcon className="size-5" /> : <EyeIcon className="size-5" />}
-        </button>
-      </div>
-    </Field>
-  );
 }
 
 function Field({

@@ -127,7 +127,7 @@ export default function TeamMembersPageClient({
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Badge tone="brand">{member.role}</Badge>
-                    <Badge tone={member.status === "Active" ? "success" : "error"}>{member.status}</Badge>
+                    <Badge tone={member.status === "Active" ? "success" : member.status === "Invited" ? "brand" : "error"}>{member.status}</Badge>
                   </div>
                   <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
                     Branch: {branchNames.get(member.branchId) ?? "Unassigned"}
@@ -154,6 +154,9 @@ export default function TeamMembersPageClient({
         onCreated={(message) => {
           setNotice(message);
           setError("");
+          getTeamMembers()
+            .then(setMembers)
+            .catch(() => setError("The invitation was created, but the team list could not be refreshed."));
         }}
       />
     </div>

@@ -5,7 +5,7 @@ import {
   getAppointmentActivity,
   getAppointmentByBookingNumber,
 } from "@/services/appointments.service";
-import { getStaffMembers } from "@/services/staff.service";
+import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import { getAppointmentServiceFieldDetails } from "@/services/service-booking-fields.service";
 
 type AppointmentDetailsPageProps = {
@@ -27,7 +27,7 @@ export default async function AppointmentDetailsPage({
   if (!appointment) notFound();
 
   const [staffMembers, activity, serviceFieldDetails] = await Promise.all([
-    getStaffMembers(),
+    getStaffMembersFromDatabase(),
     getAppointmentActivity(appointment.id),
     getAppointmentServiceFieldDetails(appointment.id, appointment.serviceId),
   ]);

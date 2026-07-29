@@ -19,13 +19,14 @@ export type Service = {
   priceBhd: number;
   imageUrl: string;
   staffIds: string[];
+  branchIds: string[];
   isActive: boolean;
   vatApplicable: boolean;
   createdAt: string;
   updatedAt: string;
 };
 
-export type ServiceInput = Pick<Service, "name" | "kind" | "categoryId" | "description" | "durationMinutes" | "priceBhd" | "imageUrl" | "staffIds" | "isActive" | "vatApplicable">;
+export type ServiceInput = Pick<Service, "name" | "kind" | "categoryId" | "description" | "durationMinutes" | "priceBhd" | "imageUrl" | "staffIds" | "branchIds" | "isActive" | "vatApplicable">;
 export type ServiceFieldErrors = Partial<Record<keyof ServiceInput | "form", string>>;
 export type ServiceCategoryInput = Pick<ServiceCategory, "name" | "status">;
 

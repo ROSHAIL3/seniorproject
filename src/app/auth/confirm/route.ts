@@ -9,6 +9,11 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+  const requestedNext = requestUrl.searchParams.get("next");
+  const next =
+    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/dashboard";
 
   if (!isSupabaseConfigured() || (!code && (!tokenHash || !type))) {
     return NextResponse.redirect(
@@ -46,5 +51,5 @@ export async function GET(request: Request) {
     );
   }
 
-  return NextResponse.redirect(new URL("/dashboard", requestUrl.origin));
+  return NextResponse.redirect(new URL(next, requestUrl.origin));
 }

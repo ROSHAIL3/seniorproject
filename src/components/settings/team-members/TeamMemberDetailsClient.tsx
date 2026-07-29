@@ -22,8 +22,6 @@ import {
   ChevronLeftIcon,
   CopyIcon,
   DollarLineIcon,
-  EyeCloseIcon,
-  EyeIcon,
   GroupIcon,
   LockIcon,
   PieChartIcon,
@@ -39,7 +37,6 @@ import {
   subscribeToTeamMembers,
   TeamMemberValidationError,
   updateTeamMember,
-  updateTeamMemberPhoto,
 } from "@/services/team-members.service";
 import {
   permissionActions,
@@ -184,27 +181,6 @@ export default function TeamMemberDetailsClient({
     }
   };
 
-  const uploadPhoto = (file?: File) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/") || file.size > 3 * 1024 * 1024) {
-      showToast("error", "Photo not uploaded", "Choose a PNG, JPG, or WebP image up to 3 MB.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result !== "string") return;
-      updateTeamMemberPhoto(memberId, reader.result)
-        .then((updated) => {
-          setMember(updated);
-          showToast("success", "Profile photo updated", "The new photo is now shown on this team member's profile.");
-        })
-        .catch((error) =>
-          showToast("error", "Photo not uploaded", error instanceof Error ? error.message : "Try again."),
-        );
-    };
-    reader.readAsDataURL(file);
-  };
-
   const remove = async () => {
     setRemoving(true);
     try {
@@ -251,16 +227,9 @@ export default function TeamMemberDetailsClient({
           <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div className="border-b border-gray-100 bg-brand-50/70 px-5 py-6 text-center dark:border-gray-800 dark:bg-brand-500/10">
               <TeamMemberAvatar name={form.fullName || member.fullName} photoUrl={member.photoUrl} className="size-20 text-xl" />
-              <label className="mt-3 inline-flex cursor-pointer items-center rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm font-medium text-brand-600 shadow-theme-xs transition hover:bg-brand-50 dark:border-brand-500/30 dark:bg-gray-900 dark:text-brand-400 dark:hover:bg-brand-500/10">
-                Upload photo
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
-                  onChange={(event) => uploadPhoto(event.target.files?.[0])}
-                />
-              </label>
-              <p className="mt-2 text-xs text-gray-400">PNG, JPG, WebP. Max 3 MB.</p>
+              <p className="mt-3 text-xs text-gray-400">
+                Team photos are deferred to protect the Supabase Free storage quota.
+              </p>
               <h1 className="mt-3 text-xl font-semibold text-gray-800 dark:text-white/90">{form.fullName || member.fullName}</h1>
               <p className="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">{form.email}</p>
             </div>
@@ -273,7 +242,8 @@ export default function TeamMemberDetailsClient({
                 <PhoneInput value={form.phone} error={!!errors.phone} onChange={(phone) => set("phone", phone)} />
               </Field>
               <Field label="Email Address" required error={errors.email}>
-                <EmailInput value={form.email} error={!!errors.email} onChange={(event) => set("email", event.target.value)} />
+                <EmailInput value={form.email} disabled />
+                <p className="mt-1 text-xs text-gray-400">Auth email changes require a separate verified-email flow.</p>
               </Field>
               <Field label="Role" error={errors.role}>
                 <Select
@@ -298,15 +268,17 @@ export default function TeamMemberDetailsClient({
               </Field>
               <div className={`rounded-xl border border-gray-200 p-4 dark:border-gray-700 ${isOwner ? "bg-gray-50 dark:bg-gray-800/50" : ""}`}>
                 <Switch
-                  label={form.status === "Active" ? "Active" : "Inactive"}
+                  label={form.status}
                   checked={form.status === "Active"}
-                  disabled={isOwner}
+                  disabled={isOwner || form.status === "Invited"}
                   onChange={(checked) => set("status", checked ? "Active" : "Inactive")}
                 />
                 <p className="mt-1 pl-14 text-xs text-gray-500 dark:text-gray-400">
                   {isOwner
                     ? "Owners cannot be deactivated."
-                    : form.status === "Active"
+                    : form.status === "Invited"
+                      ? "Waiting for the team member to accept the invitation."
+                      : form.status === "Active"
                       ? "Can sign in and receive appointments."
                       : "Cannot sign in or receive appointments."}
                 </p>
@@ -346,7 +318,7 @@ export default function TeamMemberDetailsClient({
               startIcon={<LockIcon className="size-4" />}
               onClick={() => setResetOpen(true)}
             >
-              Reset Password
+              Generate Recovery Link
             </Button>
           </section>
 
@@ -445,11 +417,11 @@ export default function TeamMemberDetailsClient({
         onSuccess={() =>
           showToast(
             "success",
-            "Password updated",
-            "The team member can now sign in using the new password.",
+            "Recovery link generated",
+            "Copy and share the secure link with the team member.",
           )
         }
-        onError={(message) => showToast("error", "Password not updated", message)}
+        onError={(message) => showToast("error", "Recovery link not generated", message)}
       />
 
       <Modal isOpen={removeOpen} onClose={() => setRemoveOpen(false)} className="m-4 max-w-lg p-6 sm:p-8">
@@ -540,56 +512,29 @@ function ResetPasswordModal({
   onSuccess: () => void;
   onError: (message: string) => void;
 }) {
-  const [mode, setMode] = useState<"generate" | "specific">("generate");
-  const [password, setPassword] = useState("");
-  const [confirmation, setConfirmation] = useState("");
   const [generatedPassword, setGeneratedPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const close = () => {
-    setMode("generate");
-    setPassword("");
-    setConfirmation("");
     setGeneratedPassword("");
-    setShowPassword(false);
-    setShowConfirmation(false);
     setError("");
     setCopied(false);
     onClose();
   };
 
   const submit = async () => {
-    let nextPassword = password;
-    if (mode === "generate") nextPassword = generateStrongPassword();
-    if (nextPassword.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (mode === "specific" && nextPassword !== confirmation) {
-      setError("Passwords do not match.");
-      return;
-    }
-
     setSaving(true);
     setError("");
     try {
-      await resetTeamMemberPassword(memberId, nextPassword);
+      const recoveryLink = await resetTeamMemberPassword(memberId);
       onSuccess();
-      if (mode === "generate") {
-        setGeneratedPassword(nextPassword);
-      } else {
-        close();
-      }
+      setGeneratedPassword(recoveryLink);
     } catch (resetError) {
-      const message = resetError instanceof TeamMemberValidationError
-        ? resetError.fieldErrors.password ?? "The password could not be updated."
-        : resetError instanceof Error
-          ? resetError.message
-          : "The password could not be updated.";
+      const message = resetError instanceof Error
+        ? resetError.message
+        : "The recovery link could not be generated.";
       setError(message);
       onError(message);
     } finally {
@@ -602,18 +547,18 @@ function ResetPasswordModal({
       await navigator.clipboard.writeText(generatedPassword);
       setCopied(true);
     } catch {
-      setError("The password could not be copied. Select and copy it manually.");
+      setError("The recovery link could not be copied. Select and copy it manually.");
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={close} className="m-4 max-w-xl p-6 sm:p-8">
       <h2 className="pr-12 text-xl font-semibold text-gray-800 dark:text-white/90">
-        {generatedPassword ? "New password generated" : "Reset password"}
+        {generatedPassword ? "Recovery link ready" : "Generate recovery link"}
       </h2>
       {!generatedPassword && (
         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          The current password for {memberName} will stop working immediately.
+          Create a secure Supabase link for {memberName} to choose a new password. No email service will be used.
         </p>
       )}
 
@@ -628,30 +573,20 @@ function ResetPasswordModal({
           </div>
 
           <div>
-            <Label>New password for {memberName}</Label>
+            <Label>Recovery link for {memberName}</Label>
             <div className="flex gap-2">
               <div className="min-w-0 flex-1">
                 <Input
-                  type={showPassword ? "text" : "password"}
                   value={generatedPassword}
                   readOnly
-                  ariaLabel={`New password for ${memberName}`}
-                  className="font-mono tracking-wider"
+                  ariaLabel={`Recovery link for ${memberName}`}
                 />
               </div>
               <button
                 type="button"
-                onClick={() => setShowPassword((current) => !current)}
-                aria-label={showPassword ? "Hide generated password" : "Show generated password"}
-                className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-theme-xs transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:border-brand-500/50 dark:hover:bg-brand-500/10 dark:hover:text-brand-400"
-              >
-                {showPassword ? <EyeCloseIcon className="size-5" /> : <EyeIcon className="size-5" />}
-              </button>
-              <button
-                type="button"
                 onClick={copy}
-                aria-label="Copy generated password"
-                title={copied ? "Copied" : "Copy password"}
+                aria-label="Copy recovery link"
+                title={copied ? "Copied" : "Copy link"}
                 className={`flex size-10 shrink-0 items-center justify-center rounded-lg border bg-white shadow-theme-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:bg-gray-900 ${
                   copied
                     ? "border-success-300 text-success-600 dark:border-success-500/40 dark:text-success-400"
@@ -661,11 +596,11 @@ function ResetPasswordModal({
                 {copied ? <CheckCircleIcon className="size-5" /> : <CopyIcon className="size-5" />}
               </button>
             </div>
-            {copied && <p role="status" className="mt-2 text-xs font-medium text-success-600 dark:text-success-400">Password copied.</p>}
+            {copied && <p role="status" className="mt-2 text-xs font-medium text-success-600 dark:text-success-400">Link copied.</p>}
           </div>
 
           <p className="text-sm leading-6 text-gray-500 dark:text-gray-400">
-            Their old password stopped working when you clicked reset. Ask them to sign in with this new password and change it from Settings after their first login.
+            The link lets the team member set their own password through Supabase Auth.
           </p>
 
           <div className="flex justify-end">
@@ -674,118 +609,17 @@ function ResetPasswordModal({
         </div>
       ) : (
         <>
-          <div className="mt-6 space-y-3">
-            <PasswordOption
-              checked={mode === "generate"}
-              title="Generate a strong password"
-              description="Create a secure password and show it to you once."
-              onClick={() => { setMode("generate"); setError(""); }}
-            />
-            <PasswordOption
-              checked={mode === "specific"}
-              title="Set a specific password"
-              description="Type a password to give to the team member directly."
-              onClick={() => { setMode("specific"); setError(""); }}
-            />
-          </div>
-
-          {mode === "specific" && (
-            <div className="mt-4 space-y-3">
-              <PasswordInput
-                placeholder="New password (minimum 8 characters)"
-                value={password}
-                visible={showPassword}
-                onToggle={() => setShowPassword((current) => !current)}
-                onChange={(value) => { setPassword(value); setError(""); }}
-              />
-              <PasswordInput
-                placeholder="Confirm password"
-                value={confirmation}
-                visible={showConfirmation}
-                onToggle={() => setShowConfirmation((current) => !current)}
-                onChange={(value) => { setConfirmation(value); setError(""); }}
-              />
-            </div>
-          )}
-
           {error && <p role="alert" className="mt-3 text-sm text-error-500">{error}</p>}
 
           <div className="mt-6 flex justify-end gap-3">
             <Button size="sm" variant="outline" onClick={close}>Cancel</Button>
             <Button size="sm" onClick={submit} disabled={saving}>
-              {saving ? "Updating..." : mode === "generate" ? "Generate Password" : "Set Password"}
+              {saving ? "Generating..." : "Generate Recovery Link"}
             </Button>
           </div>
         </>
       )}
     </Modal>
-  );
-}
-
-function PasswordOption({
-  checked,
-  title,
-  description,
-  onClick,
-}: {
-  checked: boolean;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-        checked
-          ? "border-brand-400 bg-brand-50/70 dark:border-brand-500/60 dark:bg-brand-500/10"
-          : "border-gray-200 hover:border-brand-300 dark:border-gray-700"
-      }`}
-    >
-      <span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border ${checked ? "border-brand-500" : "border-gray-300 dark:border-gray-600"}`}>
-        {checked && <span className="size-2.5 rounded-full bg-brand-500" />}
-      </span>
-      <span>
-        <span className="block text-sm font-medium text-gray-800 dark:text-white/90">{title}</span>
-        <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">{description}</span>
-      </span>
-    </button>
-  );
-}
-
-function PasswordInput({
-  placeholder,
-  value,
-  visible,
-  onToggle,
-  onChange,
-}: {
-  placeholder: string;
-  value: string;
-  visible: boolean;
-  onToggle: () => void;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="relative">
-      <Input
-        type={visible ? "text" : "password"}
-        value={value}
-        placeholder={placeholder}
-        autoComplete="new-password"
-        onChange={(event) => onChange(event.target.value)}
-        className="pr-11"
-      />
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={visible ? "Hide password" : "Show password"}
-        className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-brand-500 dark:hover:bg-gray-800"
-      >
-        {visible ? <EyeCloseIcon className="size-5" /> : <EyeIcon className="size-5" />}
-      </button>
-    </div>
   );
 }
 
@@ -840,29 +674,6 @@ function countPermissions(permissions: PermissionSet) {
 
 function presetForRole(role?: TeamMemberRole): Preset {
   return role === "Staff" || role === "Manager" || role === "Admin" ? role : "Custom";
-}
-
-function generateStrongPassword() {
-  const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lowercase = "abcdefghijkmnopqrstuvwxyz";
-  const numbers = "23456789";
-  const symbols = "!@#$%&*?";
-  const all = uppercase + lowercase + numbers + symbols;
-  const values = new Uint32Array(16);
-  crypto.getRandomValues(values);
-  const required = [
-    uppercase[values[0] % uppercase.length],
-    lowercase[values[1] % lowercase.length],
-    numbers[values[2] % numbers.length],
-    symbols[values[3] % symbols.length],
-  ];
-  const rest = Array.from(values.slice(4), (value) => all[value % all.length]);
-  const characters = [...required, ...rest];
-  for (let index = characters.length - 1; index > 0; index -= 1) {
-    const swapIndex = values[characters.length - index] % (index + 1);
-    [characters[index], characters[swapIndex]] = [characters[swapIndex], characters[index]];
-  }
-  return characters.join("");
 }
 
 function firstError(errors: TeamMemberFieldErrors) {

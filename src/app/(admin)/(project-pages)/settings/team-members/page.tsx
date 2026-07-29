@@ -1,7 +1,7 @@
 import TeamMembersPageClient from "@/components/settings/team-members/TeamMembersPageClient";
-import { getBranches } from "@/services/branches.service";
-import { getServices } from "@/services/services.service";
-import { getTeamMembers } from "@/services/team-members.service";
+import { getBranchesFromDatabase } from "@/server/branches.repository";
+import { getServicesFromDatabase } from "@/server/catalog.repository";
+import { getTeamMembersFromDatabase } from "@/server/team-members.repository";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [initialMembers, branches, services] = await Promise.all([getTeamMembers(), getBranches(), getServices()]);
+  const [initialMembers, branches, services] = await Promise.all([getTeamMembersFromDatabase(), getBranchesFromDatabase(), getServicesFromDatabase()]);
   return <TeamMembersPageClient initialMembers={initialMembers} branches={branches} services={services} />;
 }

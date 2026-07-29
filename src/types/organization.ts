@@ -2,7 +2,8 @@ export type OrganizationLogo = {
   fileName: string;
   mimeType: string;
   sizeBytes: number;
-  dataUrl: string;
+  objectPath: string;
+  url: string;
 };
 
 export type OrganizationDetails = {

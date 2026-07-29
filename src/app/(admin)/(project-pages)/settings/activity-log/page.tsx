@@ -1,5 +1,5 @@
 import ActivityLogPageClient from "@/components/settings/activity-log/ActivityLogPageClient";
-import { getActivityLogs } from "@/services/activity-log.service";
+import { getActivityLogsFromDatabase } from "@/server/activity-log.repository";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  return <ActivityLogPageClient initialLogs={await getActivityLogs()} />;
+  return (
+    <div className="space-y-4">
+      <ActivityLogPageClient initialLogs={await getActivityLogsFromDatabase()} />
+    </div>
+  );
 }

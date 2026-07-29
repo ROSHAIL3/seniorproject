@@ -2,7 +2,7 @@ import Calendar from "@/components/calendar/Calendar";
 import { Metadata } from "next";
 import React from "react";
 import { getAppointments } from "@/services/appointments.service";
-import { getStaffMembers } from "@/services/staff.service";
+import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 
 export const metadata: Metadata = {
   title: "Appointments Calendar | Senior Project",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function CalendarPage() {
   const [appointments, staffMembers] = await Promise.all([
     getAppointments(),
-    getStaffMembers(),
+    getStaffMembersFromDatabase(),
   ]);
   return (
     <div>

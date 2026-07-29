@@ -1,21 +1,4 @@
-import type { Branch, BranchFormOptions } from "@/types/branches";
-
-export const mockBranches: Branch[] = [
-  {
-    id: "branch-manama",
-    name: "Lena Manama",
-    code: "LEN-001",
-    phone: "+973 3876 4976",
-    email: "manama@lenabahrain.com",
-    address: "Manama, Kingdom of Bahrain",
-    googleMapsUrl: "https://maps.google.com/?q=Manama+Bahrain",
-    timeZone: "Asia/Bahrain",
-    status: "Active",
-    isMain: true,
-    createdAt: "2026-05-01T08:00:00.000Z",
-    updatedAt: "2026-07-18T08:00:00.000Z",
-  },
-];
+import type { BranchFormOptions } from "@/types/branches";
 
 export const mockBranchFormOptions: BranchFormOptions = {
   timeZones: [

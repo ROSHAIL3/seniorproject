@@ -9,23 +9,25 @@ import { getAppointments } from "./appointments.service";
 import { getCustomerById } from "./customers.service";
 import { calculateTax, getAppointmentSettings } from "./appointment-settings.service";
 import { getServices } from "./services.service";
+import type { Service } from "@/types/services";
 
 const invoiceRecords = mockInvoiceRecords.map((invoice) => ({
   ...invoice,
   appointmentIds: [...invoice.appointmentIds],
 }));
 
-export async function getInvoices(): Promise<Invoice[]> {
-  return Promise.all(invoiceRecords.map(resolveInvoice));
+export async function getInvoices(services?: Service[]): Promise<Invoice[]> {
+  return Promise.all(invoiceRecords.map((record) => resolveInvoice(record, services)));
 }
 
 export async function getInvoiceByNumber(
   invoiceNumber: string,
+  services?: Service[],
 ): Promise<Invoice | null> {
   const record = invoiceRecords.find(
     (invoice) => invoice.invoiceNumber === invoiceNumber,
   );
-  return record ? resolveInvoice(record) : null;
+  return record ? resolveInvoice(record, services) : null;
 }
 
 export function calculateInvoiceStatus(
@@ -37,12 +39,12 @@ export function calculateInvoiceStatus(
   return "Unpaid";
 }
 
-async function resolveInvoice(record: InvoiceRecord): Promise<Invoice> {
+async function resolveInvoice(record: InvoiceRecord, providedServices?: Service[]): Promise<Invoice> {
   const [allAppointments, customer, appointmentSettings, services] = await Promise.all([
     getAppointments(),
     getCustomerById(record.customerId),
     getAppointmentSettings(),
-    getServices(),
+    providedServices ?? getServices(),
   ]);
   const appointments = record.appointmentIds
     .map((appointmentId) =>
