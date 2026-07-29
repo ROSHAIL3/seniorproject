@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import ExpensesPageClient from "@/components/expenses/ExpensesPageClient";
-import { getExpenseCategories, getExpenses } from "@/services/expenses.service";
+import {
+  getExpenseCategoriesFromDatabase,
+  getExpensesFromDatabase,
+} from "@/server/expenses.repository";
 
 export const metadata: Metadata = {
   title: "Expenses | Senior Project",
@@ -8,6 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ExpensesPage() {
-  const [expenses, categories] = await Promise.all([getExpenses(), getExpenseCategories()]);
+  const [expenses, categories] = await Promise.all([
+    getExpensesFromDatabase(),
+    getExpenseCategoriesFromDatabase(),
+  ]);
   return <ExpensesPageClient initialExpenses={expenses} initialCategories={categories} />;
 }

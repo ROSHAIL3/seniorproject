@@ -8,13 +8,18 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
+import { signInWithGoogle } from "@/services/auth-oauth.service";
 
 export default function SignInForm({
   organizationDeleted = false,
   accessDisabled = false,
+  authenticationFailed = false,
+  onboardingFailed = false,
 }: {
   organizationDeleted?: boolean;
   accessDisabled?: boolean;
+  authenticationFailed?: boolean;
+  onboardingFailed?: boolean;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -22,12 +27,17 @@ export default function SignInForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const router = useRouter();
   const routeError = organizationDeleted
     ? "The organization has been deleted and access is disabled."
     : accessDisabled
       ? "Your team access is disabled. Contact the organization owner."
-      : "";
+      : onboardingFailed
+        ? "Sign-in succeeded, but the business account could not be initialized."
+        : authenticationFailed
+          ? "Authentication was cancelled or could not be completed."
+          : "";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,6 +66,21 @@ export default function SignInForm({
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Google sign-in could not be started.",
+      );
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -78,8 +103,13 @@ export default function SignInForm({
             </p>
           </div>
           <div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
-              <button className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+            <div>
+              <button
+                type="button"
+                disabled={isGoogleLoading}
+                onClick={handleGoogleSignIn}
+                className="inline-flex h-11 w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+              >
                 <svg
                   width="20"
                   height="20"
@@ -104,20 +134,9 @@ export default function SignInForm({
                     fill="#EB4335"
                   />
                 </svg>
-                <span className="whitespace-nowrap">Sign in with Google</span>
-              </button>
-              <button className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-lg bg-gray-100 px-3 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
-                <svg
-                  width="21"
-                  className="fill-current"
-                  height="20"
-                  viewBox="0 0 21 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M15.6705 1.875H18.4272L12.4047 8.75833L19.4897 18.125H13.9422L9.59717 12.4442L4.62554 18.125H1.86721L8.30887 10.7625L1.51221 1.875H7.20054L11.128 7.0675L15.6705 1.875ZM14.703 16.475H16.2305L6.37054 3.43833H4.73137L14.703 16.475Z" />
-                </svg>
-                <span className="whitespace-nowrap">Sign in with X</span>
+                <span className="whitespace-nowrap">
+                  {isGoogleLoading ? "Connecting to Google..." : "Sign in with Google"}
+                </span>
               </button>
             </div>
             <div className="relative py-3 sm:py-5">

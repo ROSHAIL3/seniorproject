@@ -9,7 +9,8 @@ customers, weekly business hours, appointments, notes, status history, and
 booking-field answers. Phase 6 stores customer/service field definitions,
 organization VAT settings,
 immutable invoice and line-item snapshots, append-only payments/refunds, and
-payment allocations. Expenses remain mocked.
+payment allocations. Phase 7 stores expense categories, branch-linked expenses,
+input VAT, idempotent submissions, soft deletion, and persistent audit entries.
 
 ## Free Plan guardrails
 
@@ -75,6 +76,33 @@ The local seed owner is `owner@slotova.local` with password
 8. Run `npm run supabase:advisors` after linking and fix all security findings.
 9. Generate authoritative types from the applied schema with
    `npx supabase gen types typescript --linked > src/types/database.ts`.
+
+### Google OAuth setup
+
+Email/password authentication remains enabled. Google is an additional sign-in
+option and its secret belongs in Google/Supabase configuration, never in a
+`NEXT_PUBLIC_` environment variable.
+
+1. In Google Auth Platform, create a Web application OAuth client.
+2. Configure the `openid`, email, and profile scopes.
+3. Add the application origins, including `http://localhost:3000` for local
+   testing and the production HTTPS origin.
+4. Add the Supabase callback shown on the Google provider page as an authorized
+   redirect URI. Hosted projects normally use
+   `https://<project-ref>.supabase.co/auth/v1/callback`; local Supabase uses
+   `http://127.0.0.1:54321/auth/v1/callback`.
+5. In Supabase Dashboard → Authentication → Providers → Google, enable Google
+   and enter the Google Client ID and Client Secret.
+6. In Supabase Auth URL Configuration, keep the production Site URL and allow
+   `https://<your-domain>/auth/confirm`. The local callback is already listed in
+   `supabase/config.toml`.
+7. Disable both Twitter and X providers in the Supabase Dashboard. Slotova no
+   longer exposes either authentication option.
+
+For optional local Google-provider testing, use the commented
+`[auth.external.google]` example in `supabase/config.toml` and provide
+`SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET` only in a local, uncommitted
+environment file.
 
 The migrations explicitly grant authenticated Data API access and enable RLS.
 If the Data API exposure settings are customized, confirm that `public` is
@@ -194,8 +222,25 @@ For Phase 6, also verify:
   overwriting payment history.
 - Email delivery is intentionally not connected. Use Print / Save as PDF and
   send manually.
-- Receipts remain database-only metadata; no receipt files, payment gateway,
+- Receipts remain disabled; no receipt files, payment gateway,
   scheduled reminders, SMS, or paid provider is enabled.
+
+For Phase 7, also verify:
+
+- Expense categories and expenses are isolated by organization and require
+  trusted Expenses module permissions.
+- Expenses reference a category and branch in the same organization.
+- BHD amounts and input VAT retain three-decimal precision.
+- Submission IDs make repeated create requests idempotent.
+- Used categories are archived instead of deleted.
+- Expense deletion is soft, retained for audit, and excluded from active
+  reports.
+- Revenue, VAT, profit/loss, customer, staff, service, and busy-hour reports use
+  persisted backend sources.
+- Receipt uploads remain disabled to avoid storing base64 data or consuming the
+  Free storage quota.
+- Email/password signup and sign-in still work, Google OAuth completes through
+  `/auth/confirm`, and Twitter/X buttons and providers are disabled.
 
 ## Free usage monitoring
 
@@ -204,15 +249,14 @@ Pay particular attention to database size, Storage size, egress, cached egress,
 and monthly active users. If a feature would require a paid capability, stop
 and review it before enabling anything.
 
-## Recommended Phase 7
+## Recommended Phase 8
 
-Migrate expense categories and expenses next. Store three-decimal BHD amounts,
-expense dates, payees, notes, and payment-method metadata with tenant RLS and
-trusted Finance permissions. Add database-backed dashboard/report aggregates
-only after invoice and expense records share one source of truth.
+Build the public booking portal next. Reuse the Phase 5 availability rules in a
+carefully limited public RPC, add database rate limits and abuse protection,
+and let owners approve or reject requests. Keep automated email, SMS, CAPTCHA
+providers with usage charges, and scheduled jobs disabled until their Free-plan
+and third-party costs are reviewed.
 
-Keep receipt uploads deferred during the first Phase 7 pass. If they are later
-requested, review the current Free storage and egress quotas before creating a
-private bucket. Do not enable OCR, image transformations, a payment gateway,
-automatic email, SMS, or scheduled jobs without first confirming that the
-chosen implementation remains free.
+Receipt uploads should remain deferred. If they are later requested, review the
+current Free storage and egress quotas before creating a private bucket. Do not
+enable OCR or image transformations without confirming cost first.

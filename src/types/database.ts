@@ -415,6 +415,18 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      expense_categories: {
+        Row: { id: string; organization_id: string; name: string; color_hex: string; status: Database["public"]["Enums"]["expense_category_status"]; created_by: string | null; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      expenses: {
+        Row: { id: string; organization_id: string; category_id: string; branch_id: string; description: string; amount_bhd: number; input_vat_bhd: number; vat_treatment: Database["public"]["Enums"]["expense_vat_treatment"]; incurred_on: string; payment_method: Database["public"]["Enums"]["payment_method"]; reference_number: string; notes: string; submission_id: string; created_by: string | null; deleted_by: string | null; deleted_at: string | null; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -534,6 +546,22 @@ export type Database = {
         Args: { target_invoice_id: string; target_kind: Database["public"]["Enums"]["payment_kind"]; target_method: Database["public"]["Enums"]["payment_method"]; target_amount_bhd: number; target_note: string; target_idempotency_key: string; target_recorded_by_name: string };
         Returns: Database["public"]["Tables"]["payment_transactions"]["Row"];
       };
+      upsert_expense_category: {
+        Args: { target_category_id: string | null; category_name: string; category_color_hex: string };
+        Returns: Database["public"]["Tables"]["expense_categories"]["Row"];
+      };
+      remove_expense_category: {
+        Args: { target_category_id: string };
+        Returns: string;
+      };
+      upsert_expense: {
+        Args: { target_expense_id: string | null; target_category_id: string; target_branch_id: string; target_description: string; target_amount_bhd: number; target_input_vat_bhd: number; target_vat_treatment: Database["public"]["Enums"]["expense_vat_treatment"]; target_incurred_on: string; target_payment_method: Database["public"]["Enums"]["payment_method"]; target_reference_number: string; target_notes: string; target_submission_id: string | null };
+        Returns: Database["public"]["Tables"]["expenses"]["Row"];
+      };
+      delete_expense: {
+        Args: { target_expense_id: string };
+        Returns: undefined;
+      };
       delete_customer: {
         Args: { target_customer_id: string };
         Returns: string;
@@ -595,6 +623,8 @@ export type Database = {
       finance_vat_type: "exclusive" | "inclusive";
       payment_kind: "payment" | "refund";
       payment_method: "cash" | "card" | "bank_transfer" | "other";
+      expense_category_status: "active" | "archived";
+      expense_vat_treatment: "vat_included" | "vat_added_separately" | "no_vat";
       catalog_status: "active" | "archived";
       membership_status: "active" | "invited" | "disabled";
       organization_role: "owner" | "admin" | "manager" | "staff" | "accountant";

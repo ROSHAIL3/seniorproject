@@ -52,7 +52,7 @@ export type ExpenseCategoryInput = Pick<ExpenseCategory, "name" | "colorHex">;
 
 export type ExpenseFieldErrors = Partial<
   Record<
-    "amountBhd" | "inputVatBhd" | "incurredOn" | "categoryId" | "paymentMethod",
+    "amountBhd" | "inputVatBhd" | "incurredOn" | "categoryId" | "branchId" | "paymentMethod",
     string
   >
 >;

@@ -16,6 +16,8 @@ export default async function SignIn({
     <SignInForm
       organizationDeleted={query.error === "organization-deleted"}
       accessDisabled={query.error === "access-disabled"}
+      authenticationFailed={query.error === "confirmation-failed"}
+      onboardingFailed={query.error === "onboarding-failed"}
     />
   );
 }

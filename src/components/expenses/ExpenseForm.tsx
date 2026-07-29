@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/form/input/InputField";
-import FileInput from "@/components/form/input/FileInput";
 import Radio from "@/components/form/input/Radio";
 import TextArea from "@/components/form/input/TextArea";
 import Label from "@/components/form/Label";
@@ -26,10 +25,10 @@ import type {
   ExpenseCategory,
   ExpenseFieldErrors,
   PaymentMethod,
-  ReceiptAttachment,
   VatTreatment,
 } from "@/types/expenses";
 import type { TaxVatSettings } from "@/types/appointment-settings";
+import type { Branch } from "@/types/branches";
 import { useReturnNavigation } from "@/hooks/useGoBack";
 
 const paymentOptions = ["Cash", "Card", "Bank Transfer", "Other"].map((value) => ({ value, label: value }));
@@ -40,11 +39,13 @@ export default function ExpenseForm({
   initialExpenses,
   initialCategories,
   taxSettings,
+  branches,
 }: {
   initialExpense?: Expense;
   initialExpenses: Expense[];
   initialCategories: ExpenseCategory[];
   taxSettings: TaxVatSettings;
+  branches: Branch[];
 }) {
   const router = useRouter();
   const back = useReturnNavigation("/expenses", "Expenses");
@@ -53,12 +54,17 @@ export default function ExpenseForm({
   const [incurredOn, setIncurredOn] = useState(initialExpense?.incurredOn ?? REFERENCE_TODAY);
   const [description, setDescription] = useState(initialExpense?.description ?? "");
   const [categoryId, setCategoryId] = useState(initialExpense?.categoryId ?? "");
+  const [branchId, setBranchId] = useState(
+    initialExpense?.branchId ??
+      branches.find((branch) => branch.isMain && branch.status === "Active")?.id ??
+      branches.find((branch) => branch.status === "Active")?.id ??
+      "",
+  );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">(initialExpense?.paymentMethod ?? "");
   const [referenceNumber, setReferenceNumber] = useState(initialExpense?.referenceNumber ?? "");
   const [inputVat, setInputVat] = useState(initialExpense?.inputVatBhd.toFixed(3) ?? "0.000");
   const defaultVatTreatment: VatTreatment = taxSettings.enabled ? (taxSettings.type === "Inclusive" ? "VAT Included" : "VAT Added Separately") : "No VAT";
   const [vatTreatment, setVatTreatment] = useState<VatTreatment>(initialExpense?.vatTreatment ?? defaultVatTreatment);
-  const [receipt, setReceipt] = useState<ReceiptAttachment | undefined>(initialExpense?.receipt);
   const [notes, setNotes] = useState(initialExpense?.notes ?? "");
   const [fieldErrors, setFieldErrors] = useState<ExpenseFieldErrors>({});
   const [formError, setFormError] = useState("");
@@ -71,6 +77,22 @@ export default function ExpenseForm({
         .filter((category) => category.status === "Active" || category.id === initialExpense?.categoryId)
         .map((category) => ({ value: category.id, label: category.status === "Archived" ? `${category.name} (Archived)` : category.name })),
     [categories, initialExpense?.categoryId],
+  );
+  const branchOptions = useMemo(
+    () =>
+      branches
+        .filter(
+          (branch) =>
+            branch.status === "Active" || branch.id === initialExpense?.branchId,
+        )
+        .map((branch) => ({
+          label:
+            branch.status === "Active"
+              ? branch.name
+              : `${branch.name} (${branch.status})`,
+          value: branch.id,
+        })),
+    [branches, initialExpense?.branchId],
   );
 
   const normalizeMoney = (value: string, setter: (value: string) => void) => {
@@ -85,27 +107,13 @@ export default function ExpenseForm({
     setInputVat(calculateExpenseInputVat(numeric, treatment, taxSettings).toFixed(3));
   };
 
-  const handleReceipt = (file?: File) => {
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setFormError("Receipt attachment must be 5 MB or smaller.");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result !== "string") return;
-      setReceipt({ fileName: file.name, mimeType: file.type, sizeBytes: file.size, dataUrl: reader.result });
-      setFormError("");
-    };
-    reader.readAsDataURL(file);
-  };
-
   const save = async () => {
     if (isSaving) return;
     const errors: ExpenseFieldErrors = {};
     if (!/^\d+\.\d{3}$/.test(amount) || Number(amount) <= 0) errors.amountBhd = "Enter an amount greater than zero using three decimal places.";
     if (!incurredOn) errors.incurredOn = "Date is required.";
     if (!categoryId) errors.categoryId = "Category is required.";
+    if (!branchId) errors.branchId = "Branch is required.";
     if (!paymentMethod) errors.paymentMethod = "Payment method is required.";
     if (!/^\d+\.\d{3}$/.test(inputVat) || Number(inputVat) < 0) errors.inputVatBhd = "Enter a non-negative VAT amount using three decimal places.";
     else if (Number(inputVat) > Number(amount)) errors.inputVatBhd = "VAT cannot be greater than the expense amount.";
@@ -125,9 +133,8 @@ export default function ExpenseForm({
       referenceNumber: referenceNumber.trim(),
       inputVatBhd: Number(inputVat),
       vatTreatment,
-      receipt,
       notes: notes.trim(),
-      branchId: initialExpense?.branchId ?? "branch-manama",
+      branchId,
     };
     try {
       if (initialExpense) await updateExpense(initialExpense.id, input);
@@ -153,11 +160,12 @@ export default function ExpenseForm({
           <ExpenseField label="Date" required error={fieldErrors.incurredOn}><Input type="date" value={incurredOn} onChange={(event) => setIncurredOn(event.target.value)} error={!!fieldErrors.incurredOn} /></ExpenseField>
           <div className="md:col-span-2"><Label>Description</Label><TextArea value={description} onChange={setDescription} rows={3} placeholder="Describe this expense" /></div>
           <ExpenseField label="Category" required error={fieldErrors.categoryId}><Select key={categoryId} options={categoryOptions} defaultValue={categoryId} onChange={setCategoryId} placeholder="Select category" /></ExpenseField>
+          <ExpenseField label="Branch" required error={fieldErrors.branchId}><Select key={branchId} options={branchOptions} defaultValue={branchId} onChange={setBranchId} placeholder="Select branch" /></ExpenseField>
           <ExpenseField label="Payment Method" required error={fieldErrors.paymentMethod}><Select key={paymentMethod} options={paymentOptions} defaultValue={paymentMethod} onChange={(value) => setPaymentMethod(value as PaymentMethod)} placeholder="Select payment method" /></ExpenseField>
           <ExpenseField label="Reference Number"><Input value={referenceNumber} onChange={(event) => setReferenceNumber(event.target.value)} placeholder="Vendor invoice or payment reference" /></ExpenseField>
           <ExpenseField label="Input VAT Amount" error={fieldErrors.inputVatBhd}><Input type="number" min="0" step={0.001} value={inputVat} onChange={(event) => setInputVat(event.target.value)} onBlur={() => normalizeMoney(inputVat, setInputVat)} disabled={vatTreatment === "No VAT"} error={!!fieldErrors.inputVatBhd} /></ExpenseField>
           <div className="md:col-span-2"><Label>VAT treatment</Label><div className="flex flex-col gap-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800 sm:flex-row sm:gap-6">{vatTreatments.map((treatment) => <Radio key={treatment} id={`vat-${treatment.replaceAll(" ", "-")}`} name="vat-treatment" value={treatment} label={treatment} checked={vatTreatment === treatment} onChange={(value) => { const next = value as VatTreatment; setVatTreatment(next); setInputVat(calculateExpenseInputVat(Number(amount) || 0, next, taxSettings).toFixed(3)); }} />)}</div><p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Defaulted from Appointment Settings: {taxSettings.enabled ? `${taxSettings.type} VAT at ${taxSettings.ratePercent}%` : "VAT disabled"}.</p></div>
-          <div><Label>Receipt attachment</Label><FileInput onChange={(event) => handleReceipt(event.target.files?.[0])} />{receipt && <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Attached: {receipt.fileName}</p>}</div>
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-white/[0.02]"><Label>Receipt attachment</Label><p className="text-sm text-gray-500 dark:text-gray-400">Receipt uploads are deferred to protect the Supabase Free storage quota. Record the vendor reference above and keep the original receipt separately.</p></div>
           <div><Label>Notes</Label><TextArea value={notes} onChange={setNotes} rows={3} placeholder="Internal notes" /></div>
         </div>
         {formError && <p className="mt-5 text-sm text-error-500">{formError}</p>}

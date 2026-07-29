@@ -18,7 +18,10 @@ Phase 5 stores customers, business hours, appointments, appointment notes,
 status history, and booking-field answers with transaction-safe availability
 checks. Phase 6 stores configurable customer/service fields, VAT settings,
 immutable invoice snapshots, payments, refunds, and payment allocations.
-Expenses remain mocked. Follow
+Phase 7 stores expense categories and expenses with real branch links,
+three-decimal BHD amounts, input VAT, soft deletion, and persistent activity
+history. Finance reports now consume persisted invoice and expense sources.
+Email/password authentication remains available alongside Google OAuth. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -153,10 +156,10 @@ Page components are kept focused on rendering and interaction. Validation, owner
 
 ## Data and Architecture
 
-Authentication, organization settings, logos, branches, team access, staff
+Authentication (email/password and Google OAuth), organization settings, logos, branches, team access, staff
 schedules, time off, activity logs, the service catalog, customers, business
 hours, appointments, configurable fields, VAT settings, invoices, and payment
-history use Supabase. Expenses remain on typed mock data.
+history, expense categories, and expenses use Supabase.
 
 Stable IDs connect shared records across the application:
 
@@ -169,10 +172,10 @@ The Team Member model is the canonical source for member identity, role, status,
 
 ## Planned Supabase Integration
 
-The recommended Phase 7 migrates expense categories and expenses with
-organization isolation, immutable payment evidence metadata, and finance-report
-queries. Receipt file uploads should remain deferred unless the storage and
-egress budget is reviewed first.
+The recommended Phase 8 adds a public booking portal with database-backed
+availability, rate limiting, abuse protection, and an owner approval workflow.
+Email and SMS reminders should remain deferred until their provider costs are
+reviewed.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 

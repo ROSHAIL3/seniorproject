@@ -1,6 +1,9 @@
 import { REFERENCE_TODAY } from "@/config/business";
 import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
-import { getExpenseCategories, getExpenses } from "./expenses.service";
+import {
+  getExpenseCategoriesFromDatabase,
+  getExpensesFromDatabase,
+} from "@/server/expenses.repository";
 import { getInvoicesFromDatabase } from "@/server/invoices.repository";
 import { getServicesFromDatabase } from "@/server/catalog.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
@@ -26,8 +29,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       Promise.resolve(catalogServices),
       getStaffMembersFromDatabase(),
       getInvoicesFromDatabase(),
-      getExpenses(),
-      getExpenseCategories(),
+      getExpensesFromDatabase(),
+      getExpenseCategoriesFromDatabase(),
     ]);
   const weekEnd = "2026-07-25";
   const activeAppointments = appointments.filter(

@@ -356,5 +356,37 @@ begin
       public.organization_finance_counters.next_invoice_number,
       2
     );
+
+  insert into public.expense_categories (
+    id, organization_id, name, color_hex, status, created_by
+  )
+  values
+    ('expense-category-supplies', demo_organization_id, 'Supplies', '#465FFF', 'active', demo_user_id),
+    ('expense-category-rent', demo_organization_id, 'Rent & utilities', '#12B76A', 'active', demo_user_id),
+    ('expense-category-marketing', demo_organization_id, 'Marketing', '#F79009', 'active', demo_user_id),
+    ('expense-category-other', demo_organization_id, 'Other', '#0BA5EC', 'active', demo_user_id)
+  on conflict (id) do nothing;
+
+  insert into public.expenses (
+    id, organization_id, category_id, branch_id, description, amount_bhd,
+    input_vat_bhd, vat_treatment, incurred_on, payment_method,
+    reference_number, notes, submission_id, created_by
+  )
+  values
+    (
+      '80000000-0000-0000-0000-000000000001', demo_organization_id,
+      'expense-category-supplies', '30000000-0000-0000-0000-000000000001',
+      'Salon supplies', 54.000, 4.909, 'vat_included', '2026-08-01',
+      'card', 'LOCAL-PO-001', 'Local development seed expense.',
+      'local-seed-expense-001', demo_user_id
+    ),
+    (
+      '80000000-0000-0000-0000-000000000002', demo_organization_id,
+      'expense-category-rent', '30000000-0000-0000-0000-000000000001',
+      'Monthly rent and utilities', 385.500, 0.000, 'no_vat', '2026-08-01',
+      'bank_transfer', 'LOCAL-RENT-001', 'Local development seed expense.',
+      'local-seed-expense-002', demo_user_id
+    )
+  on conflict (id) do nothing;
 end;
 $$;
