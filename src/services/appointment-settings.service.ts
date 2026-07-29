@@ -60,6 +60,7 @@ export async function getAppointmentSettings() {
     ...schedule,
     days: cloneDays(schedule.days),
   }));
+  settings.tax = { ...loaded.tax };
   settings.updatedAt = loaded.updatedAt;
   return loaded;
 }
@@ -146,8 +147,15 @@ export async function updateTaxVatSettings(input: TaxVatSettings) {
     errors.ratePercent = "VAT rate must be between 0 and 100.";
   }
   if (Object.keys(errors).length) throw new AppointmentSettingsValidationError(errors);
+  const response = await fetch("/api/settings/appointment-settings", {
+    body: JSON.stringify({ tax: input }),
+    headers: { "Content-Type": "application/json" },
+    method: "PATCH",
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "VAT settings could not be saved.");
   const previous = { ...settings.tax };
-  settings.tax = { ...input, registrationNumber: input.registrationNumber.trim() };
+  settings.tax = { ...(body.tax as TaxVatSettings) };
   stamp();
   await logActivity({ ...DEFAULT_ACTIVITY_ACTOR, action: "VAT settings changed", category: "Settings", targetType: "VAT settings", targetId: settings.id, description: "Updated VAT configuration.", metadata: {}, oldValues: previous, newValues: settings.tax, source: "appointment-settings" });
   return { ...settings.tax };

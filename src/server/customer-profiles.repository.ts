@@ -6,7 +6,7 @@ import {
   getCustomerFromDatabase,
   getCustomersFromDatabase,
 } from "./customers.repository";
-import { getInvoices } from "@/services/invoices.service";
+import { getInvoicesFromDatabase } from "./invoices.repository";
 import type { Appointment } from "@/types/appointments";
 import type { Customer, CustomerProfile } from "@/types/customers";
 
@@ -14,7 +14,7 @@ export async function getCustomerProfilesFromDatabase(): Promise<CustomerProfile
   const [customers, appointments, invoices] = await Promise.all([
     getCustomersFromDatabase(),
     getAppointmentsFromDatabase(),
-    getInvoices(),
+    getInvoicesFromDatabase(),
   ]);
   return Promise.all(
     customers.map(async (customer) =>
@@ -27,7 +27,7 @@ export async function getCustomerProfileFromDatabase(customerId: string) {
   const [customer, appointments, invoices] = await Promise.all([
     getCustomerFromDatabase(customerId),
     getAppointmentsFromDatabase(),
-    getInvoices(),
+    getInvoicesFromDatabase(),
   ]);
   return customer
     ? build(customer, appointments, invoices, await customRecords(customer))
@@ -47,7 +47,7 @@ async function customRecords(customer: Customer) {
 function build(
   customer: Customer,
   appointments: Appointment[],
-  invoices: Awaited<ReturnType<typeof getInvoices>>,
+  invoices: Awaited<ReturnType<typeof getInvoicesFromDatabase>>,
   customFieldValues: CustomerProfile["customFieldValues"],
 ): CustomerProfile {
   const customerAppointments = appointments

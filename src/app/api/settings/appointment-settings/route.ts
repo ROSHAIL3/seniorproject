@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import {
   getAppointmentSettingsFromDatabase,
   updateBusinessHoursInDatabase,
+  updateFinanceSettingsInDatabase,
 } from "@/server/appointment-settings.repository";
-import type { ScheduleDay } from "@/types/appointment-settings";
+import type { ScheduleDay, TaxVatSettings } from "@/types/appointment-settings";
 
 export async function GET() {
   try {
@@ -22,6 +23,17 @@ export async function PUT(request: Request) {
       businessHours: await updateBusinessHoursInDatabase(
         body.businessHours as ScheduleDay[],
       ),
+    });
+  } catch (error) {
+    return response(error);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    return NextResponse.json({
+      tax: await updateFinanceSettingsInDatabase(body.tax as TaxVatSettings),
     });
   } catch (error) {
     return response(error);

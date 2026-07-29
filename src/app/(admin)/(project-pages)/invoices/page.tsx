@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import InvoicesListClient from "@/components/invoices/InvoicesListClient";
-import { getInvoices } from "@/services/invoices.service";
-import { getServicesFromDatabase } from "@/server/catalog.repository";
+import { getInvoicesFromDatabase } from "@/server/invoices.repository";
 
 export const metadata: Metadata = {
   title: "Invoices | Senior Project",
@@ -9,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function InvoicesPage() {
-  const invoices = await getInvoices(await getServicesFromDatabase());
+  const invoices = await getInvoicesFromDatabase();
   return <InvoicesListClient invoices={invoices} />;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import Input from "@/components/form/input/InputField";
@@ -22,6 +23,7 @@ import {
   recordAdvancePayment,
   updateAppointmentStatus,
 } from "@/services/appointments.service";
+import { createInvoiceFromAppointments } from "@/services/invoices.service";
 import type {
   ActivityItem,
   Appointment,
@@ -59,6 +61,7 @@ export default function AppointmentDetailsClient({
   activity,
   serviceFieldDetails,
 }: AppointmentDetailsClientProps) {
+  const router = useRouter();
   const back = useReturnNavigation("/appointments", "Appointments");
   const editHref = useOriginHref(
     `/appointments/new?edit=${appointment.bookingNumber}`,
@@ -72,6 +75,8 @@ export default function AppointmentDetailsClient({
   const [mutationState, setMutationState] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [invoiceError, setInvoiceError] = useState("");
+  const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [currentFieldDetails, setCurrentFieldDetails] = useState(serviceFieldDetails);
   useEffect(() => { queueMicrotask(() => { getAppointmentServiceFieldDetails(appointment.id, appointment.serviceId).then(setCurrentFieldDetails); }); }, [appointment.id, appointment.serviceId]);
 
@@ -110,6 +115,13 @@ export default function AppointmentDetailsClient({
           variant="success"
           title="Appointment updated"
           message="Your changes were saved successfully."
+        />
+      )}
+      {invoiceError && (
+        <Alert
+          variant="error"
+          title="Invoice not created"
+          message={invoiceError}
         />
       )}
 
@@ -168,6 +180,33 @@ export default function AppointmentDetailsClient({
         </Button>
         <Button size="sm" variant="outline" onClick={() => window.print()} startIcon={<DocsIcon />}>
           Print
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isCreatingInvoice || current.status === "Cancelled"}
+          onClick={async () => {
+            setInvoiceError("");
+            setIsCreatingInvoice(true);
+            try {
+              const invoice = await createInvoiceFromAppointments(
+                [current.id],
+                current.createdBy || "Team Member",
+              );
+              router.push(`/invoices/${encodeURIComponent(invoice.invoiceNumber)}`);
+            } catch (caught) {
+              setInvoiceError(
+                caught instanceof Error
+                  ? caught.message
+                  : "The invoice could not be created.",
+              );
+            } finally {
+              setIsCreatingInvoice(false);
+            }
+          }}
+          startIcon={<DollarLineIcon />}
+        >
+          {isCreatingInvoice ? "Creating invoice..." : "Generate Invoice"}
         </Button>
         <Button size="sm" variant="outline" onClick={() => setActiveModal("payment")} startIcon={<DollarLineIcon />} className="sm:ml-auto">
           Advance Payment

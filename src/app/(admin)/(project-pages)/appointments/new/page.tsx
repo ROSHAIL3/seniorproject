@@ -8,7 +8,7 @@ import { getCustomersFromDatabase } from "@/server/customers.repository";
 import { packageToBookingService } from "@/services/packages.service";
 import { getCatalogFromDatabase } from "@/server/catalog.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
-import { getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { getServiceBookingFieldsFromDatabase } from "@/server/field-definitions.repository";
 import { getAppointmentSettingsFromDatabase } from "@/server/appointment-settings.repository";
 
 type NewAppointmentPageProps = {
@@ -47,7 +47,13 @@ export default async function NewAppointmentPage({
     if (historicalService) services.push(historicalService);
     else if (historicalPackage) services.push(await packageToBookingService(historicalPackage, catalog.services));
   }
-  const serviceFields = (await Promise.all(services.map((service) => getServiceBookingFields(service.id)))).flat();
+  const serviceFields = (
+    await Promise.all(
+      services.map((service) =>
+        getServiceBookingFieldsFromDatabase(service.id),
+      ),
+    )
+  ).flat();
   const initialServiceFieldValues = editingAppointment
     ? await getAppointmentServiceValuesFromDatabase(editingAppointment.id)
     : {};

@@ -252,5 +252,109 @@ begin
   values (demo_organization_id, 2)
   on conflict (organization_id) do update
     set next_number = greatest(public.organization_booking_counters.next_number, 2);
+
+  insert into public.customer_field_definitions (
+    id, organization_id, label, type, required, sort_order
+  )
+  values (
+    'customer-field-contact', demo_organization_id, 'Preferred contact',
+    'dropdown', true, 0
+  )
+  on conflict (id) do nothing;
+
+  insert into public.customer_field_options (
+    id, organization_id, field_id, label, sort_order
+  )
+  values
+    ('customer-option-phone', demo_organization_id, 'customer-field-contact', 'Phone', 0),
+    ('customer-option-email', demo_organization_id, 'customer-field-contact', 'Email', 1)
+  on conflict (id) do nothing;
+
+  update public.customers
+  set custom_values = '{"customer-field-contact":"customer-option-phone"}'::jsonb
+  where id = '50000000-0000-0000-0000-000000000001';
+
+  insert into public.service_booking_field_definitions (
+    id, organization_id, service_id, label, type, required, sort_order
+  )
+  values (
+    'service-field-length', demo_organization_id, 'service-haircut',
+    'Hair length', 'dropdown', true, 0
+  )
+  on conflict (id) do nothing;
+
+  insert into public.service_booking_field_options (
+    id, organization_id, field_id, label, sort_order
+  )
+  values
+    ('service-option-short', demo_organization_id, 'service-field-length', 'Short', 0),
+    ('service-option-long', demo_organization_id, 'service-field-length', 'Long', 1)
+  on conflict (id) do nothing;
+
+  update public.appointments
+  set service_field_values = '{"service-field-length":"service-option-short"}'::jsonb,
+      advance_paid_bhd = 5.000
+  where id = '60000000-0000-0000-0000-000000000001';
+
+  insert into public.invoices (
+    id, organization_id, invoice_number, customer_id, customer_name,
+    customer_phone, customer_email, issued_on, vat_enabled, vat_type,
+    vat_rate_percent, subtotal_bhd, vat_bhd, total_bhd, created_by,
+    created_by_name
+  )
+  values (
+    '70000000-0000-0000-0000-000000000001', demo_organization_id,
+    'INV-000001', '50000000-0000-0000-0000-000000000001',
+    'Demo Customer', '+973 3900 0000', 'customer@slotova.local',
+    '2026-08-03', true, 'exclusive', 10.000, 18.000, 1.800, 19.800,
+    demo_user_id, 'Demo Owner'
+  )
+  on conflict (id) do nothing;
+
+  insert into public.invoice_items (
+    id, organization_id, invoice_id, appointment_id, service_id, description,
+    quantity, unit_price_bhd, vat_applicable, line_subtotal_bhd, line_vat_bhd,
+    line_total_bhd
+  )
+  values (
+    '71000000-0000-0000-0000-000000000001', demo_organization_id,
+    '70000000-0000-0000-0000-000000000001',
+    '60000000-0000-0000-0000-000000000001', 'service-haircut',
+    'Women''s Haircut', 1, 18.000, true, 18.000, 1.800, 19.800
+  )
+  on conflict (id) do nothing;
+
+  insert into public.payment_transactions (
+    id, organization_id, invoice_id, appointment_id, kind, method, amount_bhd,
+    note, idempotency_key, recorded_by, recorded_by_name
+  )
+  values (
+    '72000000-0000-0000-0000-000000000001', demo_organization_id,
+    '70000000-0000-0000-0000-000000000001',
+    '60000000-0000-0000-0000-000000000001', 'payment', 'cash', 5.000,
+    'Local seed advance payment', 'local-seed-payment-001', demo_user_id,
+    'Demo Owner'
+  )
+  on conflict (id) do nothing;
+
+  insert into public.payment_allocations (
+    id, organization_id, transaction_id, invoice_item_id, kind, amount_bhd
+  )
+  values (
+    '73000000-0000-0000-0000-000000000001', demo_organization_id,
+    '72000000-0000-0000-0000-000000000001',
+    '71000000-0000-0000-0000-000000000001', 'payment', 5.000
+  )
+  on conflict (id) do nothing;
+
+  insert into public.organization_finance_counters (
+    organization_id, next_invoice_number
+  )
+  values (demo_organization_id, 2)
+  on conflict (organization_id) do update
+    set next_invoice_number = greatest(
+      public.organization_finance_counters.next_invoice_number,
+      2
+    );
 end;
 $$;

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import AppointmentStatusBadge from "@/components/appointments/AppointmentStatusBadge";
 import {
@@ -21,6 +22,7 @@ import BrandLogo from "@/components/common/BrandLogo";
 
 export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
   const back = useReturnNavigation("/invoices", "Invoices");
+  const [current, setCurrent] = useState(invoice);
   return (
     <div className="invoice-page space-y-6">
       <div className="invoice-screen-heading flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -45,14 +47,14 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
           </div>
         </div>
         <InvoiceActions
-          customerEmail={invoice.customerEmail}
-          invoiceNumber={invoice.invoiceNumber}
+          invoice={current}
+          onUpdated={setCurrent}
         />
       </div>
 
       <article
         className="invoice-print-document space-y-6"
-        aria-label={`Invoice ${invoice.invoiceNumber}`}
+        aria-label={`Invoice ${current.invoiceNumber}`}
       >
         <div className="invoice-print-brand hidden items-start justify-between border-b border-gray-200 pb-4">
           <BrandLogo size="lg" className="text-gray-900" />
@@ -61,41 +63,41 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               Invoice
             </p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
-              {invoice.invoiceNumber}
+              {current.invoiceNumber}
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              Issued {formatDisplayDate(invoice.issuedOn)}
+              Issued {formatDisplayDate(current.issuedOn)}
             </p>
           </div>
         </div>
 
         <ComponentCard
-          title={invoice.invoiceNumber}
-          action={<InvoiceStatusBadge status={invoice.status} />}
+          title={current.invoiceNumber}
+          action={<InvoiceStatusBadge status={current.status} />}
           className="invoice-print-section invoice-summary"
         >
           <div className="invoice-summary-grid grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <Information label="Customer" value={invoice.customerName} />
-          <Information label="Phone" value={invoice.customerPhone} />
+          <Information label="Customer" value={current.customerName} />
+          <Information label="Phone" value={current.customerPhone} />
           <Information
             label="Email"
             value={
               <a
-                href={`mailto:${invoice.customerEmail}`}
+                href={`mailto:${current.customerEmail}`}
                 className="break-all text-brand-500 hover:text-brand-600"
               >
-                {invoice.customerEmail}
+                {current.customerEmail}
               </a>
             }
           />
           <Information
             label="Invoice date"
-            value={formatDisplayDate(invoice.issuedOn)}
+            value={formatDisplayDate(current.issuedOn)}
           />
-          <Information label="Created by" value={invoice.createdBy} />
+          <Information label="Created by" value={current.createdBy} />
           <Information
             label="Payment status"
-            value={<InvoiceStatusBadge status={invoice.status} />}
+            value={<InvoiceStatusBadge status={current.status} />}
           />
           </div>
         </ComponentCard>
@@ -127,8 +129,8 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {invoice.items.map((item) => {
-                const appointment = invoice.appointments.find(
+              {current.items.map((item) => {
+                const appointment = current.appointments.find(
                   (record) => record.id === item.appointmentId,
                 );
                 return (
@@ -164,24 +166,24 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
 
           <div className="invoice-totals-wrap flex justify-end px-4 pb-5 sm:px-6">
             <dl className="invoice-print-totals w-full max-w-sm space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-            <TotalRow label="Subtotal" value={formatBhd(invoice.subtotalBhd)} />
+            <TotalRow label="Subtotal" value={formatBhd(current.subtotalBhd)} />
             <TotalRow
-              label={`VAT (${(invoice.vatRate * 100).toFixed(0)}%)`}
-              value={formatBhd(invoice.vatBhd)}
+              label={`VAT (${(current.vatRate * 100).toFixed(0)}%)`}
+              value={formatBhd(current.vatBhd)}
             />
             <TotalRow
               label="Total amount"
-              value={formatBhd(invoice.totalBhd)}
+              value={formatBhd(current.totalBhd)}
               strong
             />
             <TotalRow
               label="Amount paid"
-              value={formatBhd(invoice.amountPaidBhd)}
+              value={formatBhd(current.amountPaidBhd)}
               valueClassName="text-success-600 dark:text-success-500"
             />
             <TotalRow
               label="Remaining balance"
-              value={formatBhd(invoice.remainingBalanceBhd)}
+              value={formatBhd(current.remainingBalanceBhd)}
               strong
               valueClassName="text-brand-600 dark:text-brand-400"
             />
@@ -217,7 +219,7 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {invoice.appointments.map((appointment) => (
+              {current.appointments.map((appointment) => (
                 <TableRow key={appointment.id}>
                   <TableCell className="px-6 py-4 text-sm">
                     <OriginAwareLink
@@ -247,6 +249,69 @@ export default function InvoiceDetails({ invoice }: { invoice: Invoice }) {
             </TableBody>
           </Table>
           </div>
+        </ComponentCard>
+
+        <ComponentCard
+          title="Payment History"
+          bodyClassName="p-0"
+          className="invoice-print-section"
+        >
+          {current.payments.length === 0 ? (
+            <p className="px-6 py-8 text-sm text-gray-500 dark:text-gray-400">
+              No payment transactions have been recorded.
+            </p>
+          ) : (
+            <div className="max-w-full overflow-x-auto">
+              <Table className="min-w-[680px]">
+                <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]">
+                  <TableRow>
+                    {["Date", "Type", "Method", "Recorded by", "Note", "Amount"].map(
+                      (heading) => (
+                        <TableCell
+                          key={heading}
+                          isHeader
+                          className="px-6 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
+                        >
+                          {heading}
+                        </TableCell>
+                      ),
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {current.payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(payment.recordedAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-sm font-medium text-gray-800 dark:text-white/90">
+                        {payment.kind}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {payment.method}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {payment.recordedBy}
+                      </TableCell>
+                      <TableCell className="max-w-48 truncate px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {payment.note || "—"}
+                      </TableCell>
+                      <TableCell
+                        className={`whitespace-nowrap px-6 py-4 text-sm font-semibold ${
+                          payment.kind === "Refund"
+                            ? "text-error-600"
+                            : "text-success-600"
+                        }`}
+                      >
+                        {payment.kind === "Refund" ? "−" : "+"}
+                        {formatBhd(payment.amountBhd)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </ComponentCard>
       </article>
     </div>

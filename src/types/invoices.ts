@@ -1,6 +1,8 @@
 import type { Appointment } from "./appointments";
 
 export type InvoiceStatus = "Paid" | "Partially Paid" | "Unpaid";
+export type PaymentKind = "Payment" | "Refund";
+export type PaymentMethod = "Cash" | "Card" | "Bank Transfer" | "Other";
 
 export type InvoiceRecord = {
   id: string;
@@ -25,6 +27,18 @@ export type InvoiceItem = {
   totalBhd: number;
 };
 
+export type PaymentTransaction = {
+  id: string;
+  invoiceId?: string;
+  appointmentId?: string;
+  kind: PaymentKind;
+  method: PaymentMethod;
+  amountBhd: number;
+  note: string;
+  recordedBy: string;
+  recordedAt: string;
+};
+
 export type Invoice = InvoiceRecord & {
   customerName: string;
   customerPhone: string;
@@ -36,4 +50,14 @@ export type Invoice = InvoiceRecord & {
   totalBhd: number;
   remainingBalanceBhd: number;
   status: InvoiceStatus;
+  payments: PaymentTransaction[];
+};
+
+export type InvoicePaymentInput = {
+  kind: PaymentKind;
+  method: PaymentMethod;
+  amountBhd: number;
+  note: string;
+  recordedBy: string;
+  idempotencyKey: string;
 };

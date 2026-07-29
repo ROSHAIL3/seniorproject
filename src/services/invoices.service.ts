@@ -1,34 +1,60 @@
-import { mockInvoiceRecords } from "@/data/mock/invoices";
 import type {
   Invoice,
-  InvoiceItem,
-  InvoiceRecord,
+  InvoicePaymentInput,
   InvoiceStatus,
 } from "@/types/invoices";
-import { mockAppointments } from "@/data/mock/appointments";
-import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
-import { mockCustomers } from "@/data/mock/customers";
-import { mockServices } from "@/data/mock/services";
-import { calculateTax } from "./appointment-settings.service";
 import type { Service } from "@/types/services";
 
-const invoiceRecords = mockInvoiceRecords.map((invoice) => ({
-  ...invoice,
-  appointmentIds: [...invoice.appointmentIds],
-}));
-
-export async function getInvoices(services?: Service[]): Promise<Invoice[]> {
-  return Promise.all(invoiceRecords.map((record) => resolveInvoice(record, services)));
+export async function getInvoices(_services?: Service[]): Promise<Invoice[]> {
+  void _services;
+  return (await invoiceRequest("/api/invoices")).invoices;
 }
 
 export async function getInvoiceByNumber(
   invoiceNumber: string,
-  services?: Service[],
-): Promise<Invoice | null> {
-  const record = invoiceRecords.find(
-    (invoice) => invoice.invoiceNumber === invoiceNumber,
+  _services?: Service[],
+) {
+  void _services;
+  return (
+    (await getInvoices()).find(
+      (invoice) => invoice.invoiceNumber === invoiceNumber,
+    ) ?? null
   );
-  return record ? resolveInvoice(record, services) : null;
+}
+
+export async function createInvoiceFromAppointments(
+  appointmentIds: string[],
+  createdBy: string,
+  issuedOn = localDate(new Date()),
+) {
+  return (
+    await invoiceRequest("/api/invoices", {
+      body: JSON.stringify({ appointmentIds, createdBy, issuedOn }),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    })
+  ).invoice as Invoice;
+}
+
+export async function recordInvoicePayment(
+  invoiceId: string,
+  input: Omit<InvoicePaymentInput, "idempotencyKey"> & {
+    idempotencyKey?: string;
+  },
+) {
+  return (
+    await invoiceRequest(
+      `/api/invoices/${encodeURIComponent(invoiceId)}/payments`,
+      {
+        body: JSON.stringify({
+          ...input,
+          idempotencyKey: input.idempotencyKey ?? crypto.randomUUID(),
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      },
+    )
+  ).invoice as Invoice;
 }
 
 export function calculateInvoiceStatus(
@@ -40,54 +66,14 @@ export function calculateInvoiceStatus(
   return "Unpaid";
 }
 
-async function resolveInvoice(record: InvoiceRecord, providedServices?: Service[]): Promise<Invoice> {
-  const allAppointments = mockAppointments;
-  const customer = mockCustomers.find((item) => item.id === record.customerId) ?? null;
-  const appointmentSettings = mockAppointmentSettings;
-  const services = providedServices ?? mockServices;
-  const appointments = record.appointmentIds
-    .map((appointmentId) =>
-      allAppointments.find((appointment) => appointment.id === appointmentId),
-    )
-    .filter((appointment) => appointment !== undefined);
+async function invoiceRequest(path: string, init?: RequestInit) {
+  const response = await fetch(path, { cache: "no-store", ...init });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Invoice request failed.");
+  return body;
+}
 
-  if (!customer || appointments.length !== record.appointmentIds.length) {
-    throw new Error(
-      `Invoice ${record.invoiceNumber} has an invalid customer or appointment link.`,
-    );
-  }
-
-  const items: InvoiceItem[] = appointments.map((appointment) => ({
-    id: `invoice-item-${record.id}-${appointment.id}`,
-    appointmentId: appointment.id,
-    serviceId: appointment.serviceId,
-    description: appointment.serviceName,
-    quantity: 1,
-    unitPriceBhd: appointment.priceBhd,
-    totalBhd: appointment.priceBhd,
-  }));
-  const taxableTotalBhd = items.filter((item) => services.find((service) => service.id === item.serviceId)?.vatApplicable !== false).reduce((total, item) => total + item.totalBhd, 0);
-  const nonTaxableTotalBhd = items.reduce((total, item) => total + item.totalBhd, 0) - taxableTotalBhd;
-  const taxableBreakdown = calculateTax(taxableTotalBhd, appointmentSettings.tax);
-  const subtotalBhd = taxableBreakdown.subtotalBhd + nonTaxableTotalBhd;
-  const vatBhd = taxableBreakdown.vatBhd;
-  const totalBhd = taxableBreakdown.totalBhd + nonTaxableTotalBhd;
-  const amountPaidBhd = Math.min(Math.max(record.amountPaidBhd, 0), totalBhd);
-
-  return {
-    ...record,
-    vatRate: appointmentSettings.tax.enabled ? appointmentSettings.tax.ratePercent / 100 : 0,
-    appointmentIds: [...record.appointmentIds],
-    customerName: customer.name,
-    customerPhone: customer.phone,
-    customerEmail: customer.email,
-    items,
-    appointments,
-    subtotalBhd,
-    vatBhd,
-    totalBhd,
-    amountPaidBhd,
-    remainingBalanceBhd: Math.max(totalBhd - amountPaidBhd, 0),
-    status: calculateInvoiceStatus(totalBhd, amountPaidBhd),
-  };
+function localDate(value: Date) {
+  const offset = value.getTimezoneOffset() * 60_000;
+  return new Date(value.getTime() - offset).toISOString().slice(0, 10);
 }

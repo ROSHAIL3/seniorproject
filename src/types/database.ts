@@ -355,6 +355,66 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      organization_finance_settings: {
+        Row: { organization_id: string; vat_enabled: boolean; vat_type: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent: number; vat_registration_number: string; created_at: string; updated_at: string };
+        Insert: { organization_id: string; vat_enabled?: boolean; vat_type?: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent?: number; vat_registration_number?: string; created_at?: string; updated_at?: string };
+        Update: { vat_enabled?: boolean; vat_type?: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent?: number; vat_registration_number?: string };
+        Relationships: [];
+      };
+      customer_field_definitions: {
+        Row: { id: string; organization_id: string; label: string; type: Database["public"]["Enums"]["customer_field_type"]; required: boolean; is_active: boolean; sort_order: number; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      customer_field_options: {
+        Row: { id: string; organization_id: string; field_id: string; label: string; sort_order: number; created_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      service_booking_field_definitions: {
+        Row: { id: string; organization_id: string; service_id: string; label: string; type: Database["public"]["Enums"]["service_booking_field_type"]; required: boolean; is_active: boolean; sort_order: number; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      service_booking_field_options: {
+        Row: { id: string; organization_id: string; field_id: string; label: string; sort_order: number; created_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      organization_finance_counters: {
+        Row: { organization_id: string; next_invoice_number: number };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      invoices: {
+        Row: { id: string; organization_id: string; invoice_number: string; customer_id: string; customer_name: string; customer_phone: string; customer_email: string; issued_on: string; currency_code: string; vat_enabled: boolean; vat_type: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent: number; vat_registration_number: string; subtotal_bhd: number; vat_bhd: number; total_bhd: number; created_by: string | null; created_by_name: string; created_at: string; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      invoice_items: {
+        Row: { id: string; organization_id: string; invoice_id: string; appointment_id: string; service_id: string | null; description: string; quantity: number; unit_price_bhd: number; vat_applicable: boolean; line_subtotal_bhd: number; line_vat_bhd: number; line_total_bhd: number; created_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      payment_transactions: {
+        Row: { id: string; organization_id: string; invoice_id: string | null; appointment_id: string | null; kind: Database["public"]["Enums"]["payment_kind"]; method: Database["public"]["Enums"]["payment_method"]; amount_bhd: number; note: string; idempotency_key: string; recorded_by: string | null; recorded_by_name: string; recorded_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      payment_allocations: {
+        Row: { id: string; organization_id: string; transaction_id: string; invoice_item_id: string; kind: Database["public"]["Enums"]["payment_kind"]; amount_bhd: number; created_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -454,6 +514,26 @@ export type Database = {
         Args: { schedule_days: Json };
         Returns: Database["public"]["Tables"]["organization_business_hours"]["Row"][];
       };
+      update_finance_settings: {
+        Args: { target_vat_enabled: boolean; target_vat_type: Database["public"]["Enums"]["finance_vat_type"]; target_vat_rate_percent: number; target_vat_registration_number: string };
+        Returns: Database["public"]["Tables"]["organization_finance_settings"]["Row"];
+      };
+      replace_customer_field_definitions: {
+        Args: { target_fields: Json };
+        Returns: Database["public"]["Tables"]["customer_field_definitions"]["Row"][];
+      };
+      replace_service_booking_fields: {
+        Args: { target_service_id: string; target_fields: Json };
+        Returns: Database["public"]["Tables"]["service_booking_field_definitions"]["Row"][];
+      };
+      create_invoice_from_appointments: {
+        Args: { target_appointment_ids: string[]; target_issued_on: string; target_created_by_name: string };
+        Returns: Database["public"]["Tables"]["invoices"]["Row"];
+      };
+      record_invoice_payment: {
+        Args: { target_invoice_id: string; target_kind: Database["public"]["Enums"]["payment_kind"]; target_method: Database["public"]["Enums"]["payment_method"]; target_amount_bhd: number; target_note: string; target_idempotency_key: string; target_recorded_by_name: string };
+        Returns: Database["public"]["Tables"]["payment_transactions"]["Row"];
+      };
       delete_customer: {
         Args: { target_customer_id: string };
         Returns: string;
@@ -510,6 +590,11 @@ export type Database = {
       customer_status: "active" | "inactive";
       appointment_status: "booked" | "confirmed" | "completed" | "cancelled" | "no_show";
       appointment_offering_type: "service" | "package";
+      customer_field_type: "text" | "number" | "email" | "phone" | "date" | "dropdown" | "checkbox" | "textarea";
+      service_booking_field_type: "text" | "number" | "date" | "dropdown" | "checkbox" | "textarea";
+      finance_vat_type: "exclusive" | "inclusive";
+      payment_kind: "payment" | "refund";
+      payment_method: "cash" | "card" | "bank_transfer" | "other";
       catalog_status: "active" | "archived";
       membership_status: "active" | "invited" | "disabled";
       organization_role: "owner" | "admin" | "manager" | "staff" | "accountant";

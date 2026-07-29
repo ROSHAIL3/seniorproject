@@ -7,7 +7,7 @@ import {
   getAppointmentServiceValuesFromDatabase,
 } from "@/server/appointments.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
-import { getServiceBookingFields } from "@/services/service-booking-fields.service";
+import { getServiceBookingFieldsFromDatabase } from "@/server/field-definitions.repository";
 
 type AppointmentDetailsPageProps = {
   params: Promise<{ bookingNumber: string }>;
@@ -31,7 +31,7 @@ export default async function AppointmentDetailsPage({
     getStaffMembersFromDatabase(),
     getAppointmentActivityFromDatabase(appointment.id),
     getAppointmentServiceValuesFromDatabase(appointment.id),
-    getServiceBookingFields(appointment.serviceId, true),
+    getServiceBookingFieldsFromDatabase(appointment.serviceId, true),
   ]);
   const serviceFieldDetails = fieldDefinitions
     .filter((field) => fieldValues[field.id] !== undefined)

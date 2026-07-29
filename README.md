@@ -16,7 +16,9 @@ persistent activity logs, service categories, services, packages, branch
 availability, staff assignments, and RLS are configured through Phase 4.
 Phase 5 stores customers, business hours, appointments, appointment notes,
 status history, and booking-field answers with transaction-safe availability
-checks. Invoices and expenses still use mock services. Follow
+checks. Phase 6 stores configurable customer/service fields, VAT settings,
+immutable invoice snapshots, payments, refunds, and payment allocations.
+Expenses remain mocked. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -153,9 +155,8 @@ Page components are kept focused on rendering and interaction. Validation, owner
 
 Authentication, organization settings, logos, branches, team access, staff
 schedules, time off, activity logs, the service catalog, customers, business
-hours, and appointments use Supabase. Finance modules and configurable customer
-and service booking-field definitions still use typed mock data and in-memory
-service stores.
+hours, appointments, configurable fields, VAT settings, invoices, and payment
+history use Supabase. Expenses remain on typed mock data.
 
 Stable IDs connect shared records across the application:
 
@@ -168,10 +169,10 @@ The Team Member model is the canonical source for member identity, role, status,
 
 ## Planned Supabase Integration
 
-The recommended Phase 6 migrates invoices, appointment payments, VAT snapshots,
-and payment history. Customer custom-field definitions and service booking-field
-definitions should be persisted in the same phase before their finance links
-become permanent.
+The recommended Phase 7 migrates expense categories and expenses with
+organization isolation, immutable payment evidence metadata, and finance-report
+queries. Receipt file uploads should remain deferred unless the storage and
+egress budget is reviewed first.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 

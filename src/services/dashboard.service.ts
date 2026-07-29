@@ -1,7 +1,7 @@
 import { REFERENCE_TODAY } from "@/config/business";
 import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
 import { getExpenseCategories, getExpenses } from "./expenses.service";
-import { getInvoices } from "./invoices.service";
+import { getInvoicesFromDatabase } from "@/server/invoices.repository";
 import { getServicesFromDatabase } from "@/server/catalog.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import type { DashboardAppointment, DashboardData } from "@/types/dashboard";
@@ -25,7 +25,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       getAppointmentsFromDatabase(),
       Promise.resolve(catalogServices),
       getStaffMembersFromDatabase(),
-      getInvoices(catalogServices),
+      getInvoicesFromDatabase(),
       getExpenses(),
       getExpenseCategories(),
     ]);

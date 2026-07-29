@@ -6,7 +6,10 @@ team memberships, roles, permissions, staff schedules, time off, and persistent
 activity logs. Phase 4 stores service categories, services, packages, prices,
 durations, branch availability, and staff assignments. Phase 5 stores
 customers, weekly business hours, appointments, notes, status history, and
-booking-field answers. Invoices and expenses remain mocked.
+booking-field answers. Phase 6 stores customer/service field definitions,
+organization VAT settings,
+immutable invoice and line-item snapshots, append-only payments/refunds, and
+payment allocations. Expenses remain mocked.
 
 ## Free Plan guardrails
 
@@ -175,6 +178,25 @@ For Phase 5, also verify:
 - Appointment notes and status history are persistent and tenant-isolated.
 - Customer photos remain disabled to avoid consuming Free storage.
 
+For Phase 6, also verify:
+
+- Customer and service booking-field definitions, dropdown options, and required
+  answers are validated again inside PostgreSQL.
+- Finance settings and every invoice-owned table are isolated by organization.
+- Invoice numbers are allocated under a transaction-level advisory lock.
+- One appointment cannot be invoiced twice, and multi-appointment invoices
+  require one customer.
+- Invoice item, customer, and VAT values remain immutable snapshots even when
+  their source records change later.
+- Payments and refunds are append-only, idempotent, allocated to invoice items,
+  and cannot exceed the outstanding or paid amount.
+- Creating or updating an advance payment creates a transaction instead of
+  overwriting payment history.
+- Email delivery is intentionally not connected. Use Print / Save as PDF and
+  send manually.
+- Receipts remain database-only metadata; no receipt files, payment gateway,
+  scheduled reminders, SMS, or paid provider is enabled.
+
 ## Free usage monitoring
 
 Check the Supabase Dashboard usage page before and after each hosted migration.
@@ -182,12 +204,15 @@ Pay particular attention to database size, Storage size, egress, cached egress,
 and monthly active users. If a feature would require a paid capability, stop
 and review it before enabling anything.
 
-## Recommended Phase 6
+## Recommended Phase 7
 
-Migrate finance next: invoices, immutable invoice-item snapshots, appointment
-payment allocation, VAT snapshots, payment history, and safe invoice numbering.
-Persist customer custom-field definitions and service booking-field definitions
-before permanently linking those definitions to finance records. Keep receipts
-database-only at first; file uploads, online payment providers, automatic email,
-and scheduled reminders can add storage, egress, or third-party cost and must be
-reviewed before enabling them.
+Migrate expense categories and expenses next. Store three-decimal BHD amounts,
+expense dates, payees, notes, and payment-method metadata with tenant RLS and
+trusted Finance permissions. Add database-backed dashboard/report aggregates
+only after invoice and expense records share one source of truth.
+
+Keep receipt uploads deferred during the first Phase 7 pass. If they are later
+requested, review the current Free storage and egress quotas before creating a
+private bucket. Do not enable OCR, image transformations, a payment gateway,
+automatic email, SMS, or scheduled jobs without first confirming that the
+chosen implementation remains free.
