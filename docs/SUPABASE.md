@@ -13,6 +13,8 @@ payment allocations. Phase 7 stores expense categories, branch-linked expenses,
 input VAT, idempotent submissions, soft deletion, and persistent audit entries.
 Phase 8 adds public booking and Phase 9 adds short-lived customer self-service
 sessions, cancellation, and approval-based rescheduling.
+Phase 10 adds persistent in-app operational notifications, per-user
+preferences, unread state, and bounded opportunistic retention cleanup.
 
 ## Free Plan guardrails
 
@@ -282,8 +284,25 @@ For Phase 9, also verify:
 
 Phase 10 recommendation: migrate notification preferences and an in-app
 notification inbox first, with retention controls and no external delivery.
-Then add optional provider integrations only after their separate costs and
-Free-plan impact are explicitly approved.
+This phase is now implemented.
+
+For Phase 10, also verify:
+
+- Notification rows are recipient- and tenant-scoped through RLS.
+- Only active members with relevant module access receive booking/payment
+  events; direct authenticated inserts and updates are revoked.
+- Dedupe keys suppress repeated trigger delivery.
+- Read state, mark-all-read, category filters, cursor pagination, and per-user
+  preferences persist.
+- Retention remains between 7 and 90 days and cleanup deletes at most 200
+  expired rows during a normal operation.
+- No Realtime subscription, cron job, email, SMS, WhatsApp, CAPTCHA, or
+  external worker is enabled.
+
+Phase 11 recommendation: inventory and product sales, beginning with products,
+stock locations, append-only stock movements, low-stock in-app alerts, and
+invoice line integration. Keep barcode scanning browser-local and do not add
+paid storage or external commerce providers.
 - The final write rechecks availability under transaction-level locks, creates
   or reuses a tenant-scoped customer, validates service answers in PostgreSQL,
   and records the correct branch, service, staff, duration, price, source, and

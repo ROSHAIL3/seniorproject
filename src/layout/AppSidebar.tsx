@@ -41,7 +41,10 @@ type NavigationSection = {
 const mainNavigation: NavigationSection[] = [
   {
     label: "Main",
-    items: [{ label: "Dashboard", href: "/dashboard", icon: GridIcon }],
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: GridIcon },
+      { label: "Notifications", href: "/notifications", icon: BellIcon },
+    ],
   },
   {
     label: "Appointments",

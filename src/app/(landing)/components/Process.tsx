@@ -39,7 +39,7 @@ const processItems: ProcessItem[] = [
     number: "05",
     title: "Send Automatic Reminders",
     description:
-      "Automatically send confirmations, upcoming appointment reminders, rescheduling updates, cancellation notices, invoice messages, and payment notifications to customers.",
+      "Track confirmations, rescheduling, cancellations, payments, and refund reviews through persistent in-app alerts, with customer messages copied and shared manually.",
   },
   {
     number: "06",

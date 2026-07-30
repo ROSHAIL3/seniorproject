@@ -379,6 +379,18 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      notification_preferences: {
+        Row: { organization_id: string; user_id: string; booking_enabled: boolean; payment_enabled: boolean; staff_enabled: boolean; system_enabled: boolean; retention_days: number; updated_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      notifications: {
+        Row: { id: string; organization_id: string; recipient_user_id: string; event_key: string; category: Database["public"]["Enums"]["notification_category"]; severity: Database["public"]["Enums"]["notification_severity"]; title: string; detail: string; href: string | null; target_type: string | null; target_id: string | null; dedupe_key: string; read_at: string | null; created_at: string; expires_at: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       organization_finance_settings: {
         Row: { organization_id: string; vat_enabled: boolean; vat_type: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent: number; vat_registration_number: string; created_at: string; updated_at: string };
         Insert: { organization_id: string; vat_enabled?: boolean; vat_type?: Database["public"]["Enums"]["finance_vat_type"]; vat_rate_percent?: number; vat_registration_number?: string; created_at?: string; updated_at?: string };
@@ -519,6 +531,26 @@ export type Database = {
       get_pending_booking_counts: {
         Args: Record<string, never>;
         Returns: Json;
+      };
+      get_my_notifications: {
+        Args: { filter_category?: string | null; unread_only?: boolean; cursor_created_at?: string | null; cursor_id?: string | null; page_limit?: number };
+        Returns: Json;
+      };
+      mark_notification_read: {
+        Args: { target_notification_id: string };
+        Returns: boolean;
+      };
+      mark_all_notifications_read: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      get_notification_preferences: {
+        Args: Record<string, never>;
+        Returns: Database["public"]["Tables"]["notification_preferences"]["Row"];
+      };
+      update_notification_preferences: {
+        Args: { target_booking_enabled: boolean; target_payment_enabled: boolean; target_staff_enabled: boolean; target_system_enabled: boolean; target_retention_days: number };
+        Returns: Database["public"]["Tables"]["notification_preferences"]["Row"];
       };
       update_general_appointment_settings: {
         Args: {
@@ -730,6 +762,8 @@ export type Database = {
       organization_status: "active" | "suspended" | "deleted";
       package_type: "combo" | "flexible";
       reschedule_request_status: "pending" | "approved" | "rejected" | "withdrawn";
+      notification_category: "booking" | "payment" | "staff" | "system";
+      notification_severity: "info" | "success" | "warning" | "error";
     };
     CompositeTypes: Record<string, never>;
   };

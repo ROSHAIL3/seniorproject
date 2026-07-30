@@ -27,7 +27,10 @@ transaction-safe appointment requests, opaque confirmation links,
 idempotency, and database-backed abuse controls. Email/password authentication
 remains available alongside Google OAuth. Phase 9 adds phone-and-access-code
 customer booking management, immediate eligible cancellation, approval-based
-rescheduling, pending staff operations, and manual message templates. Follow
+rescheduling, pending staff operations, and manual message templates. Phase 10
+adds a persistent tenant-isolated in-app inbox, unread counts, event filters,
+per-user preferences, and bounded retention cleanup without cron or external
+delivery providers. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -195,6 +198,19 @@ confirmation link can establish the same 30-minute signed, HttpOnly session.
 The customer area shows reduced booking details only; it never returns notes,
 contact data, invoices, or financial records. Cancellation and reschedule
 operations are server-only, rate-limited, and revalidated transactionally.
+
+## In-App Notifications
+
+Authenticated team members receive persistent alerts for booking operations,
+cancellations, reschedule requests and decisions, payments, refunds, and
+manual refund reviews when their role and module permissions allow access.
+The header and dashboard show unread counts, and `/notifications` provides
+filtering, pagination, and read state.
+
+Preferences are stored per user. Retention is limited to 7–90 days and expired
+rows are removed in bounded batches during ordinary inbox activity. Slotova
+does not enable Realtime subscriptions, cron, automatic email, SMS, WhatsApp,
+CAPTCHA, or an external worker in Phase 10.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 
