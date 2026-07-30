@@ -3,7 +3,7 @@ import NotificationsInboxClient from "@/components/notifications/NotificationsIn
 import { getNotificationsFromDatabase } from "@/server/notifications.repository";
 
 export const metadata: Metadata = {
-  title: "Notifications | Slotova",
+  title: "Notifications",
 };
 
 export const dynamic = "force-dynamic";

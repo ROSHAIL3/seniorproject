@@ -4,7 +4,7 @@ import { getServiceCategoriesFromDatabase, getServicesFromDatabase } from "@/ser
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Services | Senior Project",
+  title: "Services",
 };
 
 export default async function Page() {

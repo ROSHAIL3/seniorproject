@@ -15,7 +15,7 @@ type AppointmentDetailsPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Appointment Details | Senior Project",
+  title: "Appointment Details",
 };
 
 export default async function AppointmentDetailsPage({

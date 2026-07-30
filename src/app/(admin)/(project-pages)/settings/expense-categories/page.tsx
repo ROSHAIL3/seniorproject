@@ -5,7 +5,7 @@ import {
   getExpensesFromDatabase,
 } from "@/server/expenses.repository";
 
-export const metadata: Metadata = { title: "Expense Categories | Senior Project" };
+export const metadata: Metadata = { title: "Expense Categories" };
 
 export default async function ExpenseCategoriesPage() {
   const [expenses, categories] = await Promise.all([

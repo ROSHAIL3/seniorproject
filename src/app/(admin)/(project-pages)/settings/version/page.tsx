@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import BrandLogo from "@/components/common/BrandLogo";
 
 export const metadata: Metadata = {
-  title: "About Slotova | Slotova",
+  title: "About Slotova",
 };
 
-const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "2.3.0";
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "1.0.0";
 const APP_ENVIRONMENT =
   process.env.NEXT_PUBLIC_APP_ENVIRONMENT ??
   (process.env.NODE_ENV === "production" ? "Production" : "Development");

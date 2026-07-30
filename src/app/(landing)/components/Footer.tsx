@@ -1,7 +1,4 @@
 import { cn } from "../lib/utils";
-import LinkedInIcon from "@/app/(landing)/assets/icons/linkedin.svg";
-import FacebookIcon from "@/app/(landing)/assets/icons/facebook.svg";
-import TwitterIcon from "@/app/(landing)/assets/icons/twitter.svg";
 import Link from "next/link";
 import SubscriptionForm from "./SubscriptionForm";
 import Logo from "./Logo";
@@ -49,35 +46,6 @@ export default function Footer({ className }: { className?: string }) {
               ))}
             </div>
 
-            {/* Social Icons */}
-            <div className="h-[30px] relative shrink-0 flex gap-[20px] items-center">
-              {[
-                {
-                  icon: LinkedInIcon,
-                  href: ".",
-                  label: "LinkedIn",
-                },
-                {
-                  icon: FacebookIcon,
-                  href: ".",
-                  label: "Facebook",
-                },
-                {
-                  icon: TwitterIcon,
-                  href: ".",
-                  label: "Twitter",
-                },
-              ].map(({ icon: Icon, href, label }, index) => (
-                <Link
-                  key={index}
-                  href={href}
-                  className="block max-w-none size-full"
-                  aria-label={label}
-                >
-                  <Icon width={30} height={30} />
-                </Link>
-              ))}
-            </div>
           </div>
 
           {/* Middle section: Contact Info and Subscription */}
@@ -93,13 +61,9 @@ export default function Footer({ className }: { className?: string }) {
               </div>
               <div className="flex flex-col font-normal gap-[20px] items-start relative text-[18px] text-white">
                 <p className="leading-[normal] relative">
-                  Email: info@positivus.com
+                  Slotova business management platform
                 </p>
-                <p className="leading-[normal] relative">Phone: 555-567-8901</p>
-                <div className="leading-[normal] relative">
-                  <p className="mb-0">Address: 1234 Main St</p>
-                  <p>Moonstone City, Stardust State 12345</p>
-                </div>
+                <p className="leading-[normal] relative">Bahrain</p>
               </div>
             </div>
 
@@ -113,7 +77,7 @@ export default function Footer({ className }: { className?: string }) {
 
         {/* Bottom section: Line and Copyright */}
         <div className="flex font-normal gap-x-[41px] gap-y-[10px] items-start relative text-[18px]/[28px] text-white w-full flex-wrap">
-          <p className="relative">© 2023 Positivus. All Rights Reserved.</p>
+          <p className="relative">© {new Date().getFullYear()} Slotova. All Rights Reserved.</p>
           <Link
             href="."
             className="[text-decoration-skip-ink:none] [text-underline-position:from-font] decoration-solid relative underline"

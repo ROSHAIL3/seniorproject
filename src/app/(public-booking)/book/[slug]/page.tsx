@@ -15,7 +15,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const page = await getPage(slug).catch(() => null);
   return {
-    title: page ? `Book with ${page.organization.name} | Slotova` : "Booking unavailable",
+    title: page ? `Book with ${page.organization.name}` : "Booking unavailable",
     description: page
       ? `Book an appointment online with ${page.organization.name}.`
       : "This booking page is unavailable.",

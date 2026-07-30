@@ -11,7 +11,7 @@ import { getPendingBookingCountsFromDatabase } from "@/server/public-booking.rep
 import { getNotificationsFromDatabase } from "@/server/notifications.repository";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Senior Project",
+  title: "Dashboard",
   description: "Appointments and business overview dashboard",
 };
 

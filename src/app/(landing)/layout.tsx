@@ -9,22 +9,14 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Positivus - Digital Marketing Agency",
+  title: "Slotova",
   description:
-    "A modern digital marketing agency landing page. Built with Next.js, TypeScript, and Tailwind CSS. Design by Olga (@olgaaverchenko) from Figma Community.",
-  keywords: ["digital marketing", "SEO", "PPC", "social media marketing"],
-  authors: [
-    { name: "zakariamouhid", url: "https://zakariamouhid.blogspot.com/" },
-  ],
+    "Manage appointments, customers, staff, services, branches, invoices, expenses, and reports with Slotova.",
+  keywords: ["booking", "appointments", "beauty", "wellness", "business management"],
   openGraph: {
-    title: "Positivus - Digital Marketing Agency",
-    description: "A modern digital marketing agency landing page",
+    title: "Slotova",
+    description: "Booking and business management for beauty and wellness organizations.",
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Positivus - Digital Marketing Agency",
-    description: "A modern digital marketing agency landing page",
   },
 };
 
@@ -34,7 +26,7 @@ export default function LandingLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${spaceGrotesk.variable} positivus-landing`}>
+    <div className={`${spaceGrotesk.variable} slotova-landing`}>
       {children}
     </div>
   );

@@ -1,4 +1,5 @@
-import { Outfit, Space_Grotesk } from 'next/font/google';
+import type { Metadata } from "next";
+import { Outfit, Space_Grotesk } from "next/font/google";
 import './globals.css';
 import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from '@/context/SidebarContext';
@@ -13,6 +14,25 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
 });
+
+export const metadata: Metadata = {
+  applicationName: "Slotova",
+  title: {
+    default: "Slotova",
+    template: "%s | Slotova",
+  },
+  description:
+    "Booking and business management for beauty and wellness organizations.",
+  icons: {
+    icon: "/images/logo/slotova-mark.svg",
+  },
+  openGraph: {
+    title: "Slotova",
+    description:
+      "Booking and business management for beauty and wellness organizations.",
+    type: "website",
+  },
+};
 
 export default function RootLayout({
   children,

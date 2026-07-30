@@ -4,7 +4,7 @@ import { getAppointmentSettingsFromDatabase } from "@/server/appointment-setting
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 
 export const metadata: Metadata = {
-  title: "Appointment settings | Senior Project",
+  title: "Appointment settings",
 };
 
 export default async function Page() {

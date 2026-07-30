@@ -5,7 +5,7 @@ import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
 import { getPendingBookingCountsFromDatabase } from "@/server/public-booking.repository";
 
 export const metadata: Metadata = {
-  title: "Appointments | Senior Project",
+  title: "Appointments",
   description: "Search, filter, and manage appointments",
 };
 

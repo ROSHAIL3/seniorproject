@@ -1,12 +1,12 @@
-# Beauty & Wellness Business Management Platform
+# Slotova
 
-This repository contains a senior project focused on designing and developing a responsive management platform for the beauty and wellness industry. It provides businesses with one place to manage appointments, customers, team members, locations, services, invoices, expenses, schedules, and operational settings.
+Slotova is a responsive management platform for the beauty and wellness industry. It provides businesses with one place to manage appointments, customers, team members, locations, services, invoices, expenses, schedules, and operational settings.
 
-The idea is intentionally broader than one business or one type of establishment. It can support beauty salons, barbershops, spas, wellness centers, massage studios, nail studios, skincare businesses, and independent beauty or wellness professionals. The interface is based on the TailAdmin Free Next.js dashboard and has been adapted for this industry using the existing TailAdmin components and layout system.
+Slotova supports beauty salons, barbershops, spas, wellness centers, massage studios, nail studios, skincare businesses, and independent beauty or wellness professionals.
 
-## Senior Project Scope
+## Slotova Project Scope
 
-This is an academic senior project and a functional software prototype. It demonstrates requirements analysis, user-interface design, reusable component development, business-rule validation, shared data modeling, and a Supabase authentication and tenant foundation. It is not currently a commercial production system.
+Slotova is an academic project and a functional software prototype. It demonstrates requirements analysis, user-interface design, reusable component development, business-rule validation, shared data modeling, and a Supabase authentication and tenant foundation. It is not currently a commercial production system.
 
 ## Backend setup
 
@@ -111,7 +111,7 @@ deferred to conserve the Supabase Free storage quota.
 - Tailwind CSS 4
 - FullCalendar
 - ApexCharts
-- TailAdmin Free Next.js components
+- Reusable Slotova interface components
 
 ## Running Locally
 
@@ -153,15 +153,15 @@ npm start
 ```text
 src/
 ├── app/          # Next.js routes, route loading states, and error boundaries
-├── components/   # Reusable TailAdmin-based feature and UI components
-├── data/mock/    # Legacy development fixtures; runtime modules use Supabase
+├── components/   # Reusable Slotova feature and UI components
+├── config/       # Static form choices and service templates
 ├── hooks/        # Shared client-side feature hooks
 ├── lib/          # Formatting, validation, and permission logic
 ├── services/     # Data-access and business-rule boundaries
 └── types/        # Shared domain models and input types
 ```
 
-Page components are kept focused on rendering and interaction. Validation, owner safeguards, appointment eligibility, and permission logic live outside the pages in services or shared helpers. Phase 11 removed the remaining runtime imports of prototype business records; static form choices and service templates now live under `src/config`.
+Page components are kept focused on rendering and interaction. Validation, owner safeguards, appointment eligibility, and permission logic live outside the pages in services or shared helpers. Static form choices and service templates live under `src/config`.
 
 ## Data and Architecture
 
@@ -225,10 +225,6 @@ Client-side permission controls are a user-interface convenience only. Productio
 - Deactivation never removes existing appointment history.
 - Archived or inactive business records remain available where historical references require them.
 
-## Template Attribution
-
-This senior project uses the [TailAdmin Free Next.js Admin Dashboard](https://github.com/TailAdmin/free-nextjs-admin-dashboard) as its interface foundation. TailAdmin components have been retained and extended for the beauty and wellness management use case.
-
 ## License
 
-The TailAdmin Free template is distributed under the MIT License. See [LICENSE](./LICENSE) for the repository license text.
+See [LICENSE](./LICENSE) for the applicable MIT license notice.

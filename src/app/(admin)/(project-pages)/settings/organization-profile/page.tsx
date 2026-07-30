@@ -4,7 +4,7 @@ import { getOrganizationFromDatabase } from "@/server/organization.repository";
 import { getOrganizationProfileOptions } from "@/services/organization.service";
 
 export const metadata: Metadata = {
-  title: "Organization profile | Senior Project",
+  title: "Organization profile",
 };
 
 export default async function Page() {

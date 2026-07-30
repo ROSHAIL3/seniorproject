@@ -6,7 +6,7 @@ import {
 } from "@/server/expenses.repository";
 
 export const metadata: Metadata = {
-  title: "Expenses | Senior Project",
+  title: "Expenses",
   description: "Track expenses and input VAT",
 };
 

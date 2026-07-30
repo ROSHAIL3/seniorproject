@@ -4,7 +4,7 @@ import { getBranchesFromDatabase } from "@/server/branches.repository";
 import { getBranchFormOptions } from "@/services/branches.service";
 
 export const metadata: Metadata = {
-  title: "Branches | Senior Project",
+  title: "Branches",
 };
 
 export default async function Page() {

@@ -3,7 +3,7 @@ import CustomersListClient from "@/components/customers/CustomersListClient";
 import { getCustomerProfilesFromDatabase } from "@/server/customer-profiles.repository";
 
 export const metadata: Metadata = {
-  title: "Customers | Senior Project",
+  title: "Customers",
   description: "Search and manage appointment customers",
 };
 

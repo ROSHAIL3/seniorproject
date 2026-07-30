@@ -16,33 +16,33 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     quote:
-      "We have been working with Positivus for the past year and have seen a significant increase in website traffic and leads as a result of their efforts. The team is professional, responsive, and truly cares about the success of our business. We highly recommend Positivus to any company looking to grow their online presence.",
-    authorName: "John Smith",
-    authorTitle: "Marketing Director at XYZ Corp",
+      "Slotova keeps appointments, customers, staff schedules, and daily business operations organized in one place.",
+    authorName: "Slotova user",
+    authorTitle: "Beauty and wellness business",
   },
   {
     quote:
-      "We have been working with Positivus for the past year and have seen a significant increase in website traffic and leads as a result of their efforts. The team is professional, responsive, and truly cares about the success of our business. We highly recommend Positivus to any company looking to grow their online presence.",
-    authorName: "John Smith",
-    authorTitle: "Marketing Director at XYZ Corp",
+      "The calendar and booking tools make it easier to coordinate services, branches, and team availability.",
+    authorName: "Slotova user",
+    authorTitle: "Beauty and wellness business",
   },
   {
     quote:
-      "We have been working with Positivus for the past year and have seen a significant increase in website traffic and leads as a result of their efforts. The team is professional, responsive, and truly cares about the success of our business. We highly recommend Positivus to any company looking to grow their online presence.",
-    authorName: "John Smith",
-    authorTitle: "Marketing Director at XYZ Corp",
+      "Customer records, invoices, expenses, and reports are connected to the same organization workspace.",
+    authorName: "Slotova user",
+    authorTitle: "Beauty and wellness business",
   },
   {
     quote:
-      "We have been working with Positivus for the past year and have seen a significant increase in website traffic and leads as a result of their efforts. The team is professional, responsive, and truly cares about the success of our business. We highly recommend Positivus to any company looking to grow their online presence.",
-    authorName: "John Smith",
-    authorTitle: "Marketing Director at XYZ Corp",
+      "Public booking gives customers a direct way to request appointments with the right service and branch.",
+    authorName: "Slotova user",
+    authorTitle: "Beauty and wellness business",
   },
   {
     quote:
-      "We have been working with Positivus for the past year and have seen a significant increase in website traffic and leads as a result of their efforts. The team is professional, responsive, and truly cares about the success of our business. We highly recommend Positivus to any company looking to grow their online presence.",
-    authorName: "John Smith",
-    authorTitle: "Marketing Director at XYZ Corp",
+      "Slotova provides a focused workspace for managing the everyday details of a growing business.",
+    authorName: "Slotova user",
+    authorTitle: "Beauty and wellness business",
   },
 ];
 

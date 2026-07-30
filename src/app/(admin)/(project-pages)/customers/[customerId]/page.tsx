@@ -3,7 +3,7 @@ import CustomerDetailsClient from "@/components/customers/CustomerDetailsClient"
 import { getCustomerProfileFromDatabase } from "@/server/customer-profiles.repository";
 
 export const metadata: Metadata = {
-  title: "Customer Details | Senior Project",
+  title: "Customer Details",
 };
 
 export default async function CustomerDetailsPage({

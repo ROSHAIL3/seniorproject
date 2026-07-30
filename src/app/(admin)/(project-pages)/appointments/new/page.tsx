@@ -17,7 +17,7 @@ type NewAppointmentPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: "Book Appointment | Senior Project",
+  title: "Book Appointment",
 };
 
 export default async function NewAppointmentPage({

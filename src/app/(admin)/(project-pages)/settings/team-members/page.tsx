@@ -5,7 +5,7 @@ import { getTeamMembersFromDatabase } from "@/server/team-members.repository";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Team members | Senior Project",
+  title: "Team members",
 };
 
 export default async function Page() {

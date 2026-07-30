@@ -3,7 +3,7 @@ import CustomerFieldsPageClient from "@/components/settings/customer-fields/Cust
 import { getCustomerFieldDefinitionsFromDatabase } from "@/server/field-definitions.repository";
 
 export const metadata: Metadata = {
-  title: "Customer fields | Senior Project",
+  title: "Customer fields",
 };
 
 export default async function Page() {

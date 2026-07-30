@@ -5,7 +5,7 @@ import { getAppointmentsFromDatabase } from "@/server/appointments.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 
 export const metadata: Metadata = {
-  title: "Appointments Calendar | Senior Project",
+  title: "Appointments Calendar",
   description: "Review appointments by date and staff member",
 };
 export default async function CalendarPage() {

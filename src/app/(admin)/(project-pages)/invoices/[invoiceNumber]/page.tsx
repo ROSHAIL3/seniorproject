@@ -4,7 +4,7 @@ import InvoiceDetails from "@/components/invoices/InvoiceDetails";
 import { getInvoiceByNumberFromDatabase } from "@/server/invoices.repository";
 
 export const metadata: Metadata = {
-  title: "Invoice Details | Senior Project",
+  title: "Invoice Details",
 };
 
 export default async function InvoiceDetailsPage({

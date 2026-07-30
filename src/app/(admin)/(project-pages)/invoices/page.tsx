@@ -3,7 +3,7 @@ import InvoicesListClient from "@/components/invoices/InvoicesListClient";
 import { getInvoicesFromDatabase } from "@/server/invoices.repository";
 
 export const metadata: Metadata = {
-  title: "Invoices | Senior Project",
+  title: "Invoices",
   description: "Search and review appointment invoices",
 };
 

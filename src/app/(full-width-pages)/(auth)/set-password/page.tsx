@@ -4,7 +4,7 @@ import SetPasswordForm from "@/components/auth/SetPasswordForm";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Set Password | Slotova",
+  title: "Set Password",
   description: "Set your Slotova account password.",
 };
 

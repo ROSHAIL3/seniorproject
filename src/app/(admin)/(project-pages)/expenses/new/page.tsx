@@ -8,7 +8,7 @@ import {
 import { getBranchesFromDatabase } from "@/server/branches.repository";
 import { getAppointmentSettingsFromDatabase } from "@/server/appointment-settings.repository";
 
-export const metadata: Metadata = { title: "Add Expense | Senior Project" };
+export const metadata: Metadata = { title: "Add Expense" };
 
 export default async function AddExpensePage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   const { edit } = await searchParams;
