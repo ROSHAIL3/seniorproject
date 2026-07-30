@@ -1,4 +1,4 @@
-import { quickAddCategories } from "@/data/mock/quick-add-services";
+import { QUICK_ADD_SERVICE_CATEGORIES } from "@/config/service-templates";
 import type {
   QuickAddCategory,
   Service,
@@ -52,7 +52,7 @@ export async function getServiceCategories(includeArchived = false) {
   return records.filter((category) => includeArchived || category.status === "Active");
 }
 export async function getQuickAddCategories(): Promise<QuickAddCategory[]> {
-  return structuredClone(quickAddCategories);
+  return structuredClone(QUICK_ADD_SERVICE_CATEGORIES);
 }
 
 export function validateService(input: ServiceInput): ServiceFieldErrors {
@@ -126,7 +126,7 @@ export async function archiveOrDeleteServiceCategory(id: string) {
 }
 
 export async function quickAddServices(categoryName: string, templateIds: string[]) {
-  const definition = quickAddCategories.find((item) => item.name === categoryName);
+  const definition = QUICK_ADD_SERVICE_CATEGORIES.find((item) => item.name === categoryName);
   if (!definition) throw new Error("Quick Add category was not found.");
   const categories = await getServiceCategories(true);
   let category = categories.find((item) => item.name.toLowerCase() === categoryName.toLowerCase());

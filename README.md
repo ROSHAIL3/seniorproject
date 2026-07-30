@@ -154,14 +154,14 @@ npm start
 src/
 ├── app/          # Next.js routes, route loading states, and error boundaries
 ├── components/   # Reusable TailAdmin-based feature and UI components
-├── data/mock/    # Seed data used by the current prototype
+├── data/mock/    # Legacy development fixtures; runtime modules use Supabase
 ├── hooks/        # Shared client-side feature hooks
 ├── lib/          # Formatting, validation, and permission logic
 ├── services/     # Data-access and business-rule boundaries
 └── types/        # Shared domain models and input types
 ```
 
-Page components are kept focused on rendering and interaction. Validation, owner safeguards, appointment eligibility, and permission logic live outside the pages in services or shared helpers.
+Page components are kept focused on rendering and interaction. Validation, owner safeguards, appointment eligibility, and permission logic live outside the pages in services or shared helpers. Phase 11 removed the remaining runtime imports of prototype business records; static form choices and service templates now live under `src/config`.
 
 ## Data and Architecture
 

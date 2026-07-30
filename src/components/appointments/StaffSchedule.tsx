@@ -30,6 +30,7 @@ type StaffScheduleProps = {
   branchId: string;
   appointments: Appointment[];
   staffMembers: StaffMember[];
+  branchNames: Record<string, string>;
   businessHours: { startTime: string; endTime: string };
   validationContext: BookingValidationContext;
   minDate?: string;
@@ -57,6 +58,7 @@ export default function StaffSchedule({
   branchId,
   appointments,
   staffMembers,
+  branchNames,
   businessHours,
   validationContext,
   minDate,
@@ -148,7 +150,7 @@ export default function StaffSchedule({
                 {staff.name}
               </p>
               <p className="mt-0.5 truncate text-[11px] font-medium text-gray-600 dark:text-gray-300">
-                {staff.branchId === "branch-manama" ? "Manama" : "Seef"} branch
+                {branchNames[staff.branchId] ?? "Assigned"} branch
               </p>
             </div>
           ))}
@@ -287,7 +289,9 @@ export default function StaffSchedule({
 function getUnavailablePresentation(errors: BookingValidationError[]) {
   const code = errors[0]?.code;
   if (code === "past") return { label: "Past", kind: "occupied" as const };
-  if (code === "staff-break") return { label: "Break", kind: "break" as const };
+  if (code === "staff-break" || code === "business-break") {
+    return { label: "Break", kind: "break" as const };
+  }
   if (code === "staff-day-off" || code === "staff-hours") {
     return { label: code === "staff-hours" ? "Off shift" : "Day off", kind: "day-off" as const };
   }

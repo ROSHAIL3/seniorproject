@@ -74,6 +74,13 @@ export const validateBooking = (
     });
   }
 
+  if (!draft.branchId) {
+    errors.push({
+      code: "missing-branch",
+      message: "No active branch is available for this appointment.",
+    });
+  }
+
   if (!draft.appointmentDate || !draft.startTime) {
     errors.push({
       code: "missing-date-time",
@@ -145,6 +152,22 @@ export const validateStaffInterval = (
         message: `The full ${service.durationMinutes}-minute service must stay within business hours (${businessStart}–${businessEnd}).`,
       });
     }
+  }
+
+  if (
+    businessDay?.breakStartTime &&
+    businessDay.breakEndTime &&
+    intervalsOverlap(
+      draft.startTime,
+      endTime,
+      businessDay.breakStartTime,
+      businessDay.breakEndTime,
+    )
+  ) {
+    errors.push({
+      code: "business-break",
+      message: `The business break is ${businessDay.breakStartTime} to ${businessDay.breakEndTime}; the full service cannot overlap that break.`,
+    });
   }
 
   const worksSelectedDay = staffDay

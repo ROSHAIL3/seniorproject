@@ -1,4 +1,4 @@
-import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
+import { createDefaultAppointmentSettings } from "@/config/appointment-defaults";
 import type {
   AppointmentSettings,
   GeneralAppointmentSettings,
@@ -16,7 +16,7 @@ export class AppointmentSettingsValidationError extends Error {
   }
 }
 
-const settings = cloneSettings(mockAppointmentSettings);
+const settings = createDefaultAppointmentSettings();
 const listeners = new Set<() => void>();
 
 function cloneDays(days: ScheduleDay[]) {

@@ -15,6 +15,12 @@ Phase 8 adds public booking and Phase 9 adds short-lived customer self-service
 sessions, cancellation, and approval-based rescheduling.
 Phase 10 adds persistent in-app operational notifications, per-user
 preferences, unread state, and bounded opportunistic retention cleanup.
+Phase 11 is a stabilization-only pass. It removes remaining runtime mock
+dependencies, fixes organization-specific appointment branch selection,
+aligns client-side break validation with the database, prevents duplicate
+appointment submissions by returning to the saved record, improves server
+error feedback, and adds foreign-key indexes recommended by the Supabase
+advisor.
 
 ## Free Plan guardrails
 
@@ -303,6 +309,24 @@ Phase 11 recommendation: inventory and product sales, beginning with products,
 stock locations, append-only stock movements, low-stock in-app alerts, and
 invoice line integration. Keep barcode scanning browser-local and do not add
 paid storage or external commerce providers.
+
+Phase 11 was intentionally re-scoped to stabilization at the project owner's
+request. No inventory or product-sales feature was added.
+
+For Phase 11, also verify:
+
+- Appointment branch choices come from the signed-in organization and prefer
+  its active main branch; no hardcoded branch IDs or labels remain.
+- Business and staff breaks, working hours, time off, service duration, staff
+  assignment, branch assignment, and overlapping appointments are rechecked
+  by the database transaction when saving.
+- A successful appointment create opens the saved booking and cannot be
+  submitted repeatedly from the original form.
+- Runtime services do not import tenant business records from `src/data/mock`.
+- The Phase 11 indexes pass pgTAP and Supabase security/performance advisors
+  are reviewed after applying the migration.
+- No paid Supabase capability, scheduled job, external provider, or new
+  product feature is enabled.
 - The final write rechecks availability under transaction-level locks, creates
   or reuses a tenant-scoped customer, validates service answers in PostgreSQL,
   and records the correct branch, service, staff, duration, price, source, and

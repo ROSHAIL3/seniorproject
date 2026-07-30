@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Select from "@/components/form/Select";
 import TextArea from "@/components/form/input/TextArea";
@@ -14,6 +15,7 @@ import {
 import type { Appointment } from "@/types/appointments";
 import type { BookingValidationError } from "@/types/appointments";
 import type { AppointmentSettings } from "@/types/appointment-settings";
+import type { Branch } from "@/types/branches";
 import type { Customer } from "@/types/customers";
 import type { Service, ServiceCategory } from "@/types/services";
 import type { ServiceBookingFieldDefinition, ServiceBookingFieldValueMap } from "@/types/services";
@@ -36,6 +38,7 @@ import { getStaffMembers } from "@/services/staff.service";
 import { getServiceBookingFields } from "@/services/service-booking-fields.service";
 import { getAppointmentSettings } from "@/services/appointment-settings.service";
 import { useReturnNavigation } from "@/hooks/useGoBack";
+import { withReturnTo } from "@/lib/navigation";
 
 type NewAppointmentClientProps = {
   editingAppointment?: Appointment;
@@ -48,12 +51,8 @@ type NewAppointmentClientProps = {
   serviceFields: ServiceBookingFieldDefinition[];
   initialServiceFieldValues?: ServiceBookingFieldValueMap;
   appointmentSettings: AppointmentSettings;
+  branches: Branch[];
 };
-
-const branchOptions = [
-  { value: "branch-manama", label: "Manama branch" },
-  { value: "branch-seef", label: "Seef branch" },
-];
 
 const getCurrentTime = () => {
   const now = new Date();
@@ -73,7 +72,9 @@ export default function NewAppointmentClient({
   serviceFields,
   initialServiceFieldValues = {},
   appointmentSettings,
+  branches,
 }: NewAppointmentClientProps) {
+  const router = useRouter();
   const back = useReturnNavigation(
     editingAppointment
       ? `/appointments/${editingAppointment.bookingNumber}`
@@ -92,8 +93,31 @@ export default function NewAppointmentClient({
       ? services.find((item) => item.id === editingAppointment.serviceId) ?? null
       : null,
   );
+  const activeBranches = branches.filter((branch) => branch.status === "Active");
+  const defaultBranch =
+    activeBranches.find((branch) => branch.isMain) ?? activeBranches[0];
+  const currentHistoricalBranch = editingAppointment
+    ? branches.find(
+        (branch) =>
+          branch.id === editingAppointment.branchId &&
+          branch.status !== "Active",
+      )
+    : undefined;
+  const selectableBranches = currentHistoricalBranch
+    ? [...activeBranches, currentHistoricalBranch]
+    : activeBranches;
+  const branchOptions = selectableBranches.map((branch) => ({
+    value: branch.id,
+    label:
+      branch.status === "Active"
+        ? branch.name
+        : `${branch.name} (${branch.status.toLowerCase()})`,
+  }));
+  const branchNames = Object.fromEntries(
+    branches.map((branch) => [branch.id, branch.name]),
+  );
   const [branchId, setBranchId] = useState(
-    editingAppointment?.branchId ?? "branch-manama",
+    editingAppointment?.branchId ?? defaultBranch?.id ?? "",
   );
   const [appointmentDate, setAppointmentDate] = useState(
     editingAppointment?.appointmentDate ??
@@ -241,11 +265,9 @@ export default function NewAppointmentClient({
       serviceFieldValues,
     };
     try {
-      if (editingAppointment) {
-        await updateAppointmentBooking(editingAppointment.id, input);
-      } else {
-        await createAppointment(input);
-      }
+      const savedAppointment = editingAppointment
+        ? await updateAppointmentBooking(editingAppointment.id, input)
+        : await createAppointment(input);
       setSaveState("success");
       showToast(
         "success",
@@ -254,12 +276,21 @@ export default function NewAppointmentClient({
           ? "The appointment changes were saved successfully."
           : "The appointment has been booked successfully.",
       );
-    } catch {
+      const destination = editingAppointment
+        ? back.destination
+        : withReturnTo(
+            `/appointments/${savedAppointment.bookingNumber}`,
+            back.destination,
+          );
+      router.replace(destination);
+    } catch (caught) {
       setSaveState("error");
       showToast(
         "error",
         "Booking Failed",
-        "The appointment could not be saved. Please try again.",
+        caught instanceof Error
+          ? caught.message
+          : "The appointment could not be saved. Please try again.",
       );
     }
   };
@@ -418,6 +449,7 @@ export default function NewAppointmentClient({
             branchId={branchId}
             appointments={appointments}
             staffMembers={scheduleStaffMembers}
+            branchNames={branchNames}
             businessHours={scheduleBusinessHours}
             validationContext={validationContext}
             minDate={editingAppointment ? undefined : todayDate}
@@ -458,7 +490,7 @@ function getValidationToast(
     };
   }
 
-  const breakError = findError("staff-break");
+  const breakError = findError("business-break", "staff-break");
   if (breakError) {
     return {
       title: "Time Unavailable",

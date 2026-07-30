@@ -1,6 +1,10 @@
 import "server-only";
 
-import { mockAppointmentSettings } from "@/data/mock/appointment-settings";
+import {
+  createDefaultBusinessHours,
+  DEFAULT_GENERAL_APPOINTMENT_SETTINGS,
+  DEFAULT_TAX_SETTINGS,
+} from "@/config/appointment-defaults";
 import { createClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/types/database";
 import type {
@@ -12,6 +16,7 @@ import type { TaxVatSettings } from "@/types/appointment-settings";
 
 export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentSettings> {
   const supabase = await createClient();
+  const fallbackUpdatedAt = new Date(0).toISOString();
   const [
     { data: hours, error },
     { data: schedules },
@@ -27,7 +32,7 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
       supabase
         .from("organizations")
         .select(
-          "booking_allow_same_day,booking_auto_confirm,booking_cancellation_notice_value,booking_cancellation_notice_unit",
+          "id,updated_at,booking_allow_same_day,booking_auto_confirm,booking_cancellation_notice_value,booking_cancellation_notice_unit",
         )
         .maybeSingle(),
     ]);
@@ -36,7 +41,7 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
     (memberships ?? []).map((membership) => [membership.id, membership.staff_key]),
   );
   return {
-    ...mockAppointmentSettings,
+    id: organization?.id ?? "appointment-settings",
     general: organization
       ? {
           allowSameDayBookings: organization.booking_allow_same_day,
@@ -50,8 +55,11 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
           cancellationNoticeValue:
             organization.booking_cancellation_notice_value,
         }
-      : { ...mockAppointmentSettings.general },
-    businessHours: (hours ?? []).map(toScheduleDay),
+      : { ...DEFAULT_GENERAL_APPOINTMENT_SETTINGS },
+    businessHours:
+      hours && hours.length > 0
+        ? hours.map(toScheduleDay)
+        : createDefaultBusinessHours(),
     staffSchedules: (schedules ?? []).map((schedule) => ({
       days: Array.isArray(schedule.days)
         ? (schedule.days as unknown as ScheduleDay[])
@@ -66,11 +74,17 @@ export async function getAppointmentSettingsFromDatabase(): Promise<AppointmentS
           registrationNumber: financeSettings.vat_registration_number,
           type: financeSettings.vat_type === "inclusive" ? "Inclusive" : "Exclusive",
         }
-      : { ...mockAppointmentSettings.tax },
-    updatedAt:
-      (hours ?? []).reduce(
-        (latest, row) => (row.updated_at > latest ? row.updated_at : latest),
-        mockAppointmentSettings.updatedAt,
+      : { ...DEFAULT_TAX_SETTINGS },
+    updatedAt: [
+      organization?.updated_at,
+      financeSettings?.updated_at,
+      ...(hours ?? []).map((row) => row.updated_at),
+      ...(schedules ?? []).map((row) => row.updated_at),
+    ]
+      .filter((value): value is string => Boolean(value))
+      .reduce(
+        (latest, value) => (value > latest ? value : latest),
+        fallbackUpdatedAt,
       ),
   };
 }

@@ -1,4 +1,4 @@
-import { mockBranchFormOptions } from "@/data/mock/branches";
+import { BRANCH_FORM_OPTIONS } from "@/config/form-options";
 import type {
   Branch,
   BranchFieldErrors,
@@ -38,8 +38,8 @@ export async function getBranches(): Promise<Branch[]> {
 
 export async function getBranchFormOptions(): Promise<BranchFormOptions> {
   return {
-    timeZones: mockBranchFormOptions.timeZones.map((option) => ({ ...option })),
-    statuses: mockBranchFormOptions.statuses.map((option) => ({ ...option })),
+    timeZones: BRANCH_FORM_OPTIONS.timeZones.map((option) => ({ ...option })),
+    statuses: BRANCH_FORM_OPTIONS.statuses.map((option) => ({ ...option })),
   };
 }
 

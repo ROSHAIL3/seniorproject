@@ -10,6 +10,7 @@ import { getCatalogFromDatabase } from "@/server/catalog.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import { getServiceBookingFieldsFromDatabase } from "@/server/field-definitions.repository";
 import { getAppointmentSettingsFromDatabase } from "@/server/appointment-settings.repository";
+import { getBranchesFromDatabase } from "@/server/branches.repository";
 
 type NewAppointmentPageProps = {
   searchParams: Promise<{ edit?: string; date?: string }>;
@@ -23,12 +24,13 @@ export default async function NewAppointmentPage({
   searchParams,
 }: NewAppointmentPageProps) {
   const { edit, date } = await searchParams;
-  const [appointments, customers, catalog, staffMembers, appointmentSettings] = await Promise.all([
+  const [appointments, customers, catalog, staffMembers, appointmentSettings, branches] = await Promise.all([
     getAppointmentsFromDatabase(),
     getCustomersFromDatabase(),
     getCatalogFromDatabase(),
     getStaffMembersFromDatabase(),
     getAppointmentSettingsFromDatabase(),
+    getBranchesFromDatabase(),
   ]);
   const catalogServices = catalog.services.filter((service) => service.isActive);
   const packageOfferings = await Promise.all(
@@ -70,6 +72,7 @@ export default async function NewAppointmentPage({
       serviceFields={serviceFields}
       initialServiceFieldValues={initialServiceFieldValues}
       appointmentSettings={appointmentSettings}
+      branches={branches}
     />
   );
 }

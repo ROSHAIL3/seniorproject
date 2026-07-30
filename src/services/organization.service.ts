@@ -1,4 +1,4 @@
-import { mockOrganizationProfileOptions } from "@/data/mock/organization";
+import { ORGANIZATION_PROFILE_OPTIONS } from "@/config/form-options";
 import type {
   Organization,
   OrganizationDetails,
@@ -41,13 +41,13 @@ export async function getOrganization() {
 
 export async function getOrganizationProfileOptions() {
   return {
-    countries: mockOrganizationProfileOptions.countries.map((option) => ({
+    countries: ORGANIZATION_PROFILE_OPTIONS.countries.map((option) => ({
       ...option,
     })),
-    currencies: mockOrganizationProfileOptions.currencies.map((option) => ({
+    currencies: ORGANIZATION_PROFILE_OPTIONS.currencies.map((option) => ({
       ...option,
     })),
-    timeZones: mockOrganizationProfileOptions.timeZones.map((option) => ({
+    timeZones: ORGANIZATION_PROFILE_OPTIONS.timeZones.map((option) => ({
       ...option,
     })),
   };
