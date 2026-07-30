@@ -2,12 +2,16 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicServerClient } from "@/lib/supabase/public-server";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
 import type {
   PublicBookingConfirmation,
   PublicBookingCreateInput,
   PublicBookingPageData,
   PublicBookingSlot,
+  CustomerBookingPage,
+  CustomerBookingScope,
+  PendingBookingCounts,
 } from "@/types/public-booking";
 
 type PublicBookingResult = {
@@ -110,3 +114,121 @@ export async function getPublicBookingConfirmation(
   return (data as unknown as PublicBookingConfirmation | null) ?? null;
 }
 
+export async function authenticateCustomerBookings(
+  slug: string,
+  phone: string,
+  accessCode: string,
+  fingerprint: string,
+) {
+  const { data, error } = await createAdminClient().rpc(
+    "authenticate_customer_bookings",
+    {
+      access_code: accessCode,
+      booking_slug: slug,
+      customer_phone: phone,
+      request_fingerprint: fingerprint,
+    },
+  );
+  if (error) throw new Error("ACCESS_FAILED");
+  return data as unknown as {
+    ok: boolean;
+    error?: string;
+    organizationId?: string;
+    customerId?: string;
+  };
+}
+
+export async function authenticateCustomerBookingLink(
+  slug: string,
+  referenceToken: string,
+  fingerprint: string,
+) {
+  const { data, error } = await createAdminClient().rpc(
+    "authenticate_customer_booking_link",
+    {
+      booking_slug: slug,
+      reference_token: referenceToken,
+      request_fingerprint: fingerprint,
+    },
+  );
+  if (error) throw new Error("ACCESS_FAILED");
+  return data as unknown as {
+    ok: boolean;
+    error?: string;
+    organizationId?: string;
+    customerId?: string;
+  };
+}
+
+export async function getCustomerBookings(
+  organizationId: string,
+  customerId: string,
+  scope: CustomerBookingScope,
+  cursor?: { startsAt: string; id: string } | null,
+) {
+  const { data, error } = await createAdminClient().rpc("get_customer_bookings", {
+    booking_scope: scope,
+    cursor_id: cursor?.id ?? null,
+    cursor_starts_at: cursor?.startsAt ?? null,
+    page_limit: 20,
+    target_customer_id: customerId,
+    target_organization_id: organizationId,
+  });
+  if (error) throw new Error("Bookings could not be loaded.");
+  return data as unknown as CustomerBookingPage;
+}
+
+export async function cancelCustomerAppointment(
+  organizationId: string,
+  customerId: string,
+  appointmentId: string,
+  fingerprint: string,
+) {
+  const { data, error } = await createAdminClient().rpc(
+    "cancel_customer_appointment",
+    {
+      request_fingerprint: fingerprint,
+      target_appointment_id: appointmentId,
+      target_customer_id: customerId,
+      target_organization_id: organizationId,
+    },
+  );
+  if (error) throw new Error("Cancellation failed.");
+  return data as unknown as {
+    ok: boolean;
+    error?: string;
+    refundReviewRequired?: boolean;
+  };
+}
+
+export async function requestCustomerReschedule(
+  organizationId: string,
+  customerId: string,
+  appointmentId: string,
+  staffKey: string,
+  startAt: string,
+  submissionId: string,
+  fingerprint: string,
+) {
+  const { data, error } = await createAdminClient().rpc(
+    "request_customer_reschedule",
+    {
+      request_fingerprint: fingerprint,
+      target_appointment_id: appointmentId,
+      target_customer_id: customerId,
+      target_organization_id: organizationId,
+      target_staff_key: staffKey,
+      target_start_at: startAt,
+      target_submission_id: submissionId,
+    },
+  );
+  if (error) throw new Error("Reschedule request failed.");
+  return data as unknown as { ok: boolean; error?: string; requestId?: string };
+}
+
+export async function getPendingBookingCountsFromDatabase() {
+  const client = await createServerClient();
+  const { data, error } = await client.rpc("get_pending_booking_counts");
+  if (error) return { publicBookings: 0, reschedules: 0 };
+  return data as unknown as PendingBookingCounts;
+}

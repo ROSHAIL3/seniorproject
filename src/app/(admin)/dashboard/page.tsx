@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import ExpensesThisMonth from "@/components/dashboard/ExpensesThisMonth";
 import NextUpToday from "@/components/dashboard/NextUpToday";
 import RecentInvoices from "@/components/dashboard/RecentInvoices";
@@ -6,6 +7,7 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import TopServices from "@/components/dashboard/TopServices";
 import UpcomingAppointments from "@/components/dashboard/UpcomingAppointments";
 import { getDashboardData } from "@/services/dashboard.service";
+import { getPendingBookingCountsFromDatabase } from "@/server/public-booking.repository";
 
 export const metadata: Metadata = {
   title: "Dashboard | Senior Project",
@@ -13,7 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Dashboard() {
-  const dashboard = await getDashboardData();
+  const [dashboard, pending] = await Promise.all([
+    getDashboardData(),
+    getPendingBookingCountsFromDatabase(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -25,6 +30,11 @@ export default async function Dashboard() {
           Here&apos;s what&apos;s happening with your business today.
         </p>
       </div>
+      {(pending.publicBookings > 0 || pending.reschedules > 0) && (
+        <Link href="/appointments" className="block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <strong>{pending.publicBookings + pending.reschedules}</strong> booking operation{pending.publicBookings + pending.reschedules === 1 ? "" : "s"} need review.
+        </Link>
+      )}
 
       <SummaryCards
         todayCount={dashboard.todayCount}

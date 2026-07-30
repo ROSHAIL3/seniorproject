@@ -350,7 +350,7 @@ export type Database = {
         Relationships: [];
       };
       appointments: {
-        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; created_at: string; updated_at: string };
+        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; public_access_code_hash: string | null; refund_review_required: boolean; created_at: string; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -362,13 +362,19 @@ export type Database = {
         Relationships: [];
       };
       appointment_status_history: {
-        Row: { id: string; organization_id: string; appointment_id: string; old_status: Database["public"]["Enums"]["appointment_status"] | null; new_status: Database["public"]["Enums"]["appointment_status"]; changed_by: string | null; changed_at: string };
+        Row: { id: string; organization_id: string; appointment_id: string; old_status: Database["public"]["Enums"]["appointment_status"] | null; new_status: Database["public"]["Enums"]["appointment_status"]; changed_by: string | null; changed_at: string; reason: string | null; source: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
       };
       public_booking_attempts: {
-        Row: { id: string; organization_id: string; request_fingerprint: string; normalized_phone: string; attempted_at: string };
+        Row: { id: string; organization_id: string; request_fingerprint: string; normalized_phone: string; attempted_at: string; purpose: string };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      appointment_reschedule_requests: {
+        Row: { id: string; organization_id: string; appointment_id: string; proposed_membership_id: string; proposed_starts_at: string; proposed_ends_at: string; status: Database["public"]["Enums"]["reschedule_request_status"]; submission_id: string; requested_at: string; resolved_at: string | null; resolved_by: string | null; rejection_reason: string | null; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -480,6 +486,38 @@ export type Database = {
       };
       get_public_booking_confirmation: {
         Args: { booking_slug: string; reference_token: string };
+        Returns: Json;
+      };
+      authenticate_customer_bookings: {
+        Args: { booking_slug: string; customer_phone: string; access_code: string; request_fingerprint: string };
+        Returns: Json;
+      };
+      authenticate_customer_booking_link: {
+        Args: { booking_slug: string; reference_token: string; request_fingerprint: string };
+        Returns: Json;
+      };
+      get_customer_bookings: {
+        Args: { target_organization_id: string; target_customer_id: string; booking_scope: string; cursor_starts_at: string | null; cursor_id: string | null; page_limit: number };
+        Returns: Json;
+      };
+      cancel_customer_appointment: {
+        Args: { target_organization_id: string; target_customer_id: string; target_appointment_id: string; request_fingerprint: string };
+        Returns: Json;
+      };
+      request_customer_reschedule: {
+        Args: { target_organization_id: string; target_customer_id: string; target_appointment_id: string; target_staff_key: string; target_start_at: string; target_submission_id: string; request_fingerprint: string };
+        Returns: Json;
+      };
+      decide_public_booking: {
+        Args: { target_appointment_id: string; decision: string; decision_reason: string };
+        Returns: Database["public"]["Tables"]["appointments"]["Row"];
+      };
+      decide_reschedule_request: {
+        Args: { target_request_id: string; decision: string; decision_reason: string };
+        Returns: Database["public"]["Tables"]["appointment_reschedule_requests"]["Row"];
+      };
+      get_pending_booking_counts: {
+        Args: Record<string, never>;
         Returns: Json;
       };
       update_general_appointment_settings: {
@@ -691,6 +729,7 @@ export type Database = {
       organization_role: "owner" | "admin" | "manager" | "staff" | "accountant";
       organization_status: "active" | "suspended" | "deleted";
       package_type: "combo" | "flexible";
+      reschedule_request_status: "pending" | "approved" | "rejected" | "withdrawn";
     };
     CompositeTypes: Record<string, never>;
   };

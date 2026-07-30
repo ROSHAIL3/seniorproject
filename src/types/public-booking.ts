@@ -70,6 +70,7 @@ export type PublicBookingConfirmation = {
   endsAt: string;
   status: "booked" | "confirmed";
   timeZone: string;
+  accessCode: string;
 };
 
 export type PublicBookingCreateInput = {
@@ -85,3 +86,43 @@ export type PublicBookingCreateInput = {
   submissionId: string;
 };
 
+export type CustomerBookingScope = "upcoming" | "history" | "cancelled";
+
+export type CustomerBookingItem = {
+  id: string;
+  bookingNumber: string;
+  serviceId: string | null;
+  serviceName: string;
+  branchId: string;
+  branchName: string;
+  staffName: string;
+  startsAt: string;
+  endsAt: string;
+  status: "booked" | "confirmed" | "completed" | "cancelled" | "no_show";
+  priceBhd: number;
+  canCancel: boolean;
+  canReschedule: boolean;
+  refundReviewRequired: boolean;
+  pendingReschedule: {
+    id: string;
+    startsAt: string;
+    endsAt: string;
+    staffName: string;
+  } | null;
+};
+
+export type CustomerBookingPage = {
+  items: CustomerBookingItem[];
+  nextCursor: { startsAt: string; id: string } | null;
+};
+
+export type CustomerBookingSession = {
+  organizationId: string;
+  customerId: string;
+  expiresAt: number;
+};
+
+export type PendingBookingCounts = {
+  publicBookings: number;
+  reschedules: number;
+};

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import ConfirmationActions from "@/components/public-booking/ConfirmationActions";
 import { getPublicBookingConfirmation } from "@/server/public-booking.repository";
 
 export const dynamic = "force-dynamic";
@@ -56,12 +56,19 @@ export default async function BookingConfirmationPage({
           <Row label="Date" value={date} />
           <Row label="Time" value={time} />
         </dl>
-        <Link
-          href={`/book/${encodeURIComponent(slug)}`}
-          className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-medium transition hover:border-[#7b1635] hover:text-[#7b1635]"
-        >
-          Book another appointment
-        </Link>
+        <div className="mt-5 rounded-2xl border border-[#eadde1] bg-[#fbf7f8] p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+            Your booking access code
+          </p>
+          <p className="mt-2 font-mono text-xl font-semibold tracking-widest text-[#7b1635]">
+            {confirmation.accessCode}
+          </p>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            Save or print this code. Together with your phone number, it lets
+            you securely view all bookings with this business.
+          </p>
+        </div>
+        <ConfirmationActions slug={slug} referenceToken={query.token} />
         <p className="mt-6 text-xs text-gray-400">Booking powered by Slotova</p>
       </div>
     </main>
@@ -76,4 +83,3 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
@@ -190,7 +191,8 @@ export default function PublicBookingClient({ page }: Props) {
   return (
     <main className="min-h-screen bg-[#fbf7f8] text-gray-900">
       <header className="border-b border-[#eadde1] bg-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
           {organization.logoUrl ? (
             <Image
               src={organization.logoUrl}
@@ -209,6 +211,11 @@ export default function PublicBookingClient({ page }: Props) {
             <p className="truncate text-lg font-semibold">{organization.name}</p>
             <p className="text-xs text-gray-500">Online booking</p>
           </div>
+          </div>
+          <nav className="flex gap-2 text-sm">
+            <Link className="rounded-xl bg-[#7b1635]/10 px-3 py-2 font-medium text-[#7b1635]" href={`/book/${encodeURIComponent(organization.slug)}`}>Book Appointment</Link>
+            <Link className="rounded-xl px-3 py-2 hover:bg-gray-50" href={`/book/${encodeURIComponent(organization.slug)}/manage`}>View My Bookings</Link>
+          </nav>
         </div>
       </header>
 
@@ -649,4 +656,3 @@ function moveDate(value: string, days: number) {
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
-

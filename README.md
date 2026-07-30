@@ -25,7 +25,9 @@ Phase 8 adds one public `/book/<organization-slug>` page per enabled
 organization, live database availability, secure customer creation,
 transaction-safe appointment requests, opaque confirmation links,
 idempotency, and database-backed abuse controls. Email/password authentication
-remains available alongside Google OAuth. Follow
+remains available alongside Google OAuth. Phase 9 adds phone-and-access-code
+customer booking management, immediate eligible cancellation, approval-based
+rescheduling, pending staff operations, and manual message templates. Follow
 [docs/SUPABASE.md](docs/SUPABASE.md) to start the local stack, apply migrations,
 and configure a hosted project.
 
@@ -186,6 +188,13 @@ The browser cannot write appointments directly. The server hashes request
 fingerprints, calls the server-only transaction RPC, and returns only an opaque
 confirmation reference. Email and SMS reminders remain deferred until provider
 costs are reviewed.
+
+Customers can open `/book/<slug>/manage` with their booking phone number and
+the random 12-character access code shown on confirmation. A valid opaque
+confirmation link can establish the same 30-minute signed, HttpOnly session.
+The customer area shows reduced booking details only; it never returns notes,
+contact data, invoices, or financial records. Cancellation and reschedule
+operations are server-only, rate-limited, and revalidated transactionally.
 
 Client-side permission controls are a user-interface convenience only. Production authorization must also be enforced on the server and through database policies.
 

@@ -8,6 +8,7 @@ import type {
   Appointment,
   AppointmentCreateInput,
   AppointmentStatus,
+  AppointmentRescheduleRequestView,
 } from "@/types/appointments";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
@@ -82,9 +83,13 @@ export async function getAppointmentActivityFromDatabase(
     })),
     ...(history ?? []).map((change) => ({
       appointmentId,
-      detail: change.old_status
-        ? `Status changed from ${fromDatabaseStatus[change.old_status]} to ${fromDatabaseStatus[change.new_status]}.`
-        : `Appointment created as ${fromDatabaseStatus[change.new_status]}.`,
+      detail: `${
+        change.old_status
+          ? `Status changed from ${fromDatabaseStatus[change.old_status]} to ${fromDatabaseStatus[change.new_status]}.`
+          : `Appointment created as ${fromDatabaseStatus[change.new_status]}.`
+      }${change.reason ? ` ${change.reason}.` : ""}${
+        change.source === "customer" ? " Changed by customer." : ""
+      }`,
       id: change.id,
       occurredAt: change.changed_at,
       title: "Status updated",
@@ -177,6 +182,41 @@ export async function getAppointmentServiceValuesFromDatabase(id: string) {
   return (data?.service_field_values ?? {}) as Record<string, string | boolean>;
 }
 
+export async function getPendingRescheduleRequestFromDatabase(
+  appointmentId: string,
+): Promise<AppointmentRescheduleRequestView | null> {
+  const supabase = await createClient();
+  const { data: request, error } = await supabase
+    .from("appointment_reschedule_requests")
+    .select("*")
+    .eq("appointment_id", appointmentId)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (error) throw new Error("The reschedule request could not be loaded.");
+  if (!request) return null;
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("id", request.proposed_membership_id)
+    .maybeSingle();
+  const { data: profile } = membership
+    ? await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", membership.user_id)
+        .maybeSingle()
+    : { data: null };
+  return {
+    id: request.id,
+    proposedEndsAt: request.proposed_ends_at,
+    proposedStaffName: profile?.full_name ?? "Team member",
+    proposedStartsAt: request.proposed_starts_at,
+    rejectionReason: request.rejection_reason ?? "",
+    requestedAt: request.requested_at,
+    status: request.status,
+  };
+}
+
 export function appointmentError(message = "") {
   const messages: [string, string][] = [
     ["APPOINTMENT_FORBIDDEN", "You do not have permission to manage appointments."],
@@ -248,6 +288,8 @@ function toAppointment(row: AppointmentRow, staffKey: string): Appointment {
     startTime: start.time,
     status: fromDatabaseStatus[row.status],
     updatedAt: row.updated_at,
+    bookingSource: row.booking_source === "public" ? "public" : "admin",
+    financialFollowUpRequired: row.refund_review_required,
   };
 }
 

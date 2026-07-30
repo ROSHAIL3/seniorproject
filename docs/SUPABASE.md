@@ -11,6 +11,8 @@ organization VAT settings,
 immutable invoice and line-item snapshots, append-only payments/refunds, and
 payment allocations. Phase 7 stores expense categories, branch-linked expenses,
 input VAT, idempotent submissions, soft deletion, and persistent audit entries.
+Phase 8 adds public booking and Phase 9 adds short-lived customer self-service
+sessions, cancellation, and approval-based rescheduling.
 
 ## Free Plan guardrails
 
@@ -258,6 +260,30 @@ For Phase 8, also verify:
   staff breaks, approved time off, service-to-branch assignments,
   service-to-staff assignments, existing appointments, same-day settings, and
   the 90-day booking window.
+
+For Phase 9, also verify:
+
+- Public confirmations show a 12-character access code derived from the random
+  opaque token; only its SHA-256 hash is stored.
+- Phone/code failures are generic, tampered or expired cookies are rejected,
+  and “Forget this device” clears the 30-minute HttpOnly session.
+- Customer responses contain only booking number, service, branch, staff,
+  schedule, status, eligibility, and pending-reschedule summary.
+- Login, cancellation, and reschedule routes enforce fingerprint/phone rate
+  limits and no anonymous role can execute their database functions directly.
+- Cancellation is rejected at and after the configured notice boundary,
+  withdraws pending proposals, and flags paid appointments for manual review.
+- Reschedules retain the original slot until an authorized member approves;
+  approval revalidates the slot under locks and stale proposals fail atomically.
+- Pending counts, status history, activity logs, and staff decisions persist
+  and remain tenant-isolated.
+- Messages are copied manually. No email, SMS, CAPTCHA, cron, or paid provider
+  is enabled.
+
+Phase 10 recommendation: migrate notification preferences and an in-app
+notification inbox first, with retention controls and no external delivery.
+Then add optional provider integrations only after their separate costs and
+Free-plan impact are explicitly approved.
 - The final write rechecks availability under transaction-level locks, creates
   or reuses a tenant-scoped customer, validates service answers in PostgreSQL,
   and records the correct branch, service, staff, duration, price, source, and

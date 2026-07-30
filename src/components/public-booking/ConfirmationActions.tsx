@@ -1,0 +1,54 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function ConfirmationActions({
+  slug,
+  referenceToken,
+}: {
+  slug: string;
+  referenceToken: string;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const viewAll = async () => {
+    setLoading(true);
+    const response = await fetch(
+      `/api/public-booking/${encodeURIComponent(slug)}/session`,
+      {
+        body: JSON.stringify({ referenceToken }),
+        headers: { "Content-Type": "application/json" },
+        method: "PUT",
+      },
+    );
+    if (response.ok) router.push(`/book/${encodeURIComponent(slug)}/manage`);
+    else setLoading(false);
+  };
+
+  return (
+    <div className="mt-6 flex flex-wrap justify-center gap-2">
+      <button
+        onClick={() => void viewAll()}
+        disabled={loading}
+        className="inline-flex min-h-11 items-center rounded-xl bg-[#7b1635] px-4 text-sm font-medium text-white disabled:opacity-60"
+      >
+        {loading ? "Opening…" : "View all bookings"}
+      </button>
+      <Link
+        href={`/book/${encodeURIComponent(slug)}`}
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-medium"
+      >
+        Book another appointment
+      </Link>
+      <button
+        onClick={() => window.print()}
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-medium"
+      >
+        Print confirmation
+      </button>
+    </div>
+  );
+}

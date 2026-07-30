@@ -27,6 +27,7 @@ import { createInvoiceFromAppointments } from "@/services/invoices.service";
 import type {
   ActivityItem,
   Appointment,
+  AppointmentRescheduleRequestView,
   AppointmentStatus,
 } from "@/types/appointments";
 import type { StaffMember } from "@/types/staff";
@@ -39,12 +40,14 @@ import {
 import AppointmentDetailsCard from "./AppointmentDetailsCard";
 import AppointmentStatusBadge from "./AppointmentStatusBadge";
 import NotesActivityPanel from "./NotesActivityPanel";
+import BookingOperationsPanel from "./BookingOperationsPanel";
 
 type AppointmentDetailsClientProps = {
   appointment: Appointment;
   staffMembers: StaffMember[];
   activity: ActivityItem[];
   serviceFieldDetails: AppointmentServiceFieldDetail[];
+  rescheduleRequest: AppointmentRescheduleRequestView | null;
 };
 
 const statusOptions = [
@@ -60,6 +63,7 @@ export default function AppointmentDetailsClient({
   staffMembers,
   activity,
   serviceFieldDetails,
+  rescheduleRequest,
 }: AppointmentDetailsClientProps) {
   const router = useRouter();
   const back = useReturnNavigation("/appointments", "Appointments");
@@ -215,6 +219,7 @@ export default function AppointmentDetailsClient({
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 space-y-6 xl:col-span-8">
+          <BookingOperationsPanel appointment={current} request={rescheduleRequest} />
           <AppointmentDetailsCard appointment={current} />
           {currentFieldDetails.length > 0 && <ComponentCard title="Service-specific information"><dl className="grid gap-5 sm:grid-cols-2">{currentFieldDetails.map(({ field, value }) => <div key={field.id}><dt className="text-xs font-medium uppercase tracking-wide text-gray-400">{field.label}</dt><dd className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90">{field.type === "Checkbox" ? value ? "Yes" : "No" : field.type === "Dropdown" ? field.options.find((option) => option.id === value)?.label ?? String(value) : String(value)}</dd></div>)}</dl></ComponentCard>}
           <ComponentCard title="Payment summary">

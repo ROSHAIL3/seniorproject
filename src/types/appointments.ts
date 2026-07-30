@@ -31,6 +31,19 @@ export type Appointment = {
   advancePaidBhd: number;
   createdAt: string;
   updatedAt: string;
+  bookingSource?: "admin" | "public";
+  pendingRequestState?: "pending" | "approved" | "rejected" | "withdrawn";
+  financialFollowUpRequired?: boolean;
+};
+
+export type AppointmentRescheduleRequestView = {
+  id: string;
+  status: "pending" | "approved" | "rejected" | "withdrawn";
+  proposedStartsAt: string;
+  proposedEndsAt: string;
+  proposedStaffName: string;
+  requestedAt: string;
+  rejectionReason: string;
 };
 
 export type BookingFormData = {

@@ -5,6 +5,7 @@ import {
   getAppointmentActivityFromDatabase,
   getAppointmentByBookingNumberFromDatabase,
   getAppointmentServiceValuesFromDatabase,
+  getPendingRescheduleRequestFromDatabase,
 } from "@/server/appointments.repository";
 import { getStaffMembersFromDatabase } from "@/server/staff.repository";
 import { getServiceBookingFieldsFromDatabase } from "@/server/field-definitions.repository";
@@ -27,11 +28,12 @@ export default async function AppointmentDetailsPage({
 
   if (!appointment) notFound();
 
-  const [staffMembers, activity, fieldValues, fieldDefinitions] = await Promise.all([
+  const [staffMembers, activity, fieldValues, fieldDefinitions, rescheduleRequest] = await Promise.all([
     getStaffMembersFromDatabase(),
     getAppointmentActivityFromDatabase(appointment.id),
     getAppointmentServiceValuesFromDatabase(appointment.id),
     getServiceBookingFieldsFromDatabase(appointment.serviceId, true),
+    getPendingRescheduleRequestFromDatabase(appointment.id),
   ]);
   const serviceFieldDetails = fieldDefinitions
     .filter((field) => fieldValues[field.id] !== undefined)
@@ -43,6 +45,7 @@ export default async function AppointmentDetailsPage({
       staffMembers={staffMembers}
       activity={activity}
       serviceFieldDetails={serviceFieldDetails}
+      rescheduleRequest={rescheduleRequest}
     />
   );
 }
