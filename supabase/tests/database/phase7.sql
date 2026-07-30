@@ -15,7 +15,9 @@ values
 insert into public.profiles (user_id, email, full_name)
 values
   ('d1000000-0000-4000-8000-000000000001', 'phase7-owner@example.test', 'Expense Owner'),
-  ('d1000000-0000-4000-8000-000000000002', 'phase7-other@example.test', 'Other Owner');
+  ('d1000000-0000-4000-8000-000000000002', 'phase7-other@example.test', 'Other Owner')
+on conflict (user_id) do update
+set email = excluded.email, full_name = excluded.full_name;
 
 insert into public.organizations (id, name, slug, created_by)
 values

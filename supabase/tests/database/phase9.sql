@@ -13,7 +13,9 @@ insert into auth.users (
 
 insert into public.profiles (user_id, email, full_name) values
   ('f9100000-0000-4000-8000-000000000001', 'phase9-owner@example.test', 'Phase Nine Owner'),
-  ('f9100000-0000-4000-8000-000000000002', 'phase9-other@example.test', 'Other Owner');
+  ('f9100000-0000-4000-8000-000000000002', 'phase9-other@example.test', 'Other Owner')
+on conflict (user_id) do update
+set email = excluded.email, full_name = excluded.full_name;
 
 insert into public.organizations (
   id, name, slug, public_booking_enabled, created_by,
