@@ -1,45 +1,12 @@
-"use client";
+import type { ReactNode } from "react";
+import AdminShell from "@/layout/AdminShell";
+import { getWorkspaceIdentityFromDatabase } from "@/server/workspace-identity.repository";
 
-import { useSidebar } from "@/context/SidebarContext";
-import AppHeader from "@/layout/AppHeader";
-import AppSidebar from "@/layout/AppSidebar";
-import Backdrop from "@/layout/Backdrop";
-import AdminBreadcrumbs from "@/components/common/AdminBreadcrumbs";
-import React, { Suspense } from "react";
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-
-  // Dynamic class for main content margin based on sidebar state
-  const mainContentMargin = isMobileOpen
-    ? "ml-0"
-    : isExpanded || isHovered
-    ? "lg:ml-[264px]"
-    : "lg:ml-[80px]";
-
-  return (
-    <div className="dashboard-shell min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white/90 xl:flex">
-      {/* Sidebar and Backdrop */}
-      <AppSidebar />
-      <Backdrop />
-      {/* Main Content Area */}
-      <div
-        className={`admin-main-content min-w-0 flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
-      >
-        {/* Header */}
-        <AppHeader />
-        {/* Page Content */}
-        <div className="admin-page-content mx-auto max-w-(--breakpoint-2xl) p-4 md:p-5">
-          <Suspense fallback={null}>
-            <AdminBreadcrumbs />
-          </Suspense>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+  const identity = await getWorkspaceIdentityFromDatabase();
+  return <AdminShell identity={identity}>{children}</AdminShell>;
 }

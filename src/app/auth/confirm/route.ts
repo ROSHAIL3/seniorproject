@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ensureOwnerOnboarding } from "@/services/onboarding.service";
+import { syncAuthenticatedProfileFromAuth } from "@/server/workspace-identity.repository";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -44,6 +45,7 @@ export async function GET(request: Request) {
 
   try {
     await ensureOwnerOnboarding(supabase, { ownerFullName });
+    await syncAuthenticatedProfileFromAuth(data.user, supabase);
   } catch {
     await supabase.auth.signOut();
     return NextResponse.redirect(

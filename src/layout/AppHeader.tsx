@@ -6,8 +6,9 @@ import BrandLogo from "@/components/common/BrandLogo";
 import { useSidebar } from "@/context/SidebarContext";
 import Link from "next/link";
 import React, { useState } from "react";
+import type { WorkspaceIdentity } from "@/types/workspace-identity";
 
-const AppHeader: React.FC = () => {
+const AppHeader: React.FC<{ identity: WorkspaceIdentity }> = ({ identity }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
@@ -142,7 +143,7 @@ const AppHeader: React.FC = () => {
             {/* <!-- Notification Menu Area --> */}
           </div>
           {/* <!-- User Area --> */}
-          <UserDropdown /> 
+          <UserDropdown identity={identity} />
     
         </div>
       </div>

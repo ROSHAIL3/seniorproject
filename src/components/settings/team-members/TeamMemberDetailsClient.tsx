@@ -167,6 +167,7 @@ export default function TeamMemberDetailsClient({
       setForm(toInput(updated));
       setErrors({});
       showToast("success", "Changes saved", `${updated.fullName}'s profile and permissions were updated.`);
+      router.refresh();
     } catch (error) {
       if (error instanceof TeamMemberValidationError) {
         setErrors(error.fieldErrors);

@@ -68,7 +68,7 @@ export default function OrganizationProfileClient({ initialOrganization, options
     setIsSaving(true);
     try {
       const updated = await updateOrganizationDetails(details);
-      setDetails(updated); setSavedDetails(updated); showNotice("Organization details saved.");
+      setDetails(updated); setSavedDetails(updated); showNotice("Organization details saved."); router.refresh();
     } catch (error) { showError(error); }
     finally { setIsSaving(false); }
   };
@@ -91,7 +91,7 @@ export default function OrganizationProfileClient({ initialOrganization, options
       const result = await setOrganizationLogo(file);
       const updated = { ...details, logo: result.logo };
       setDetails(updated); setSavedDetails(updated); setStorage(result.storage);
-      showNotice("Organization logo saved.");
+      showNotice("Organization logo saved."); router.refresh();
     } catch (error) { showError(error); }
     finally { setIsSaving(false); }
   };
@@ -102,7 +102,7 @@ export default function OrganizationProfileClient({ initialOrganization, options
       const result = await setOrganizationLogo();
       const updated = { ...details, logo: undefined };
       setDetails(updated); setSavedDetails(updated); setStorage(result.storage);
-      showNotice("Organization logo removed.");
+      showNotice("Organization logo removed."); router.refresh();
     } catch (error) { showError(error); }
     finally { setIsSaving(false); }
   };

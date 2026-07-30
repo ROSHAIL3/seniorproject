@@ -6,6 +6,7 @@ import {
   DisabledMembershipError,
   ensureOwnerOnboarding,
 } from "@/services/onboarding.service";
+import { syncAuthenticatedProfileFromAuth } from "@/server/workspace-identity.repository";
 
 const noStoreHeaders = {
   "Cache-Control": "private, no-store",
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
 
   try {
     await ensureOwnerOnboarding(supabase, { ownerFullName });
+    await syncAuthenticatedProfileFromAuth(data.user, supabase);
   } catch (onboardingError) {
     await supabase.auth.signOut();
     if (
