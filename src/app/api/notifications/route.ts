@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabaseErrorHttpStatus } from "@/lib/supabase/error";
 import { getNotificationsFromDatabase } from "@/server/notifications.repository";
 import type { NotificationCategory } from "@/types/notifications";
 
@@ -21,10 +22,10 @@ export async function GET(request: Request) {
     return NextResponse.json(page, {
       headers: { "Cache-Control": "private, no-store" },
     });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Notifications could not be loaded." },
-      { status: 401 },
+      { status: supabaseErrorHttpStatus(error) },
     );
   }
 }

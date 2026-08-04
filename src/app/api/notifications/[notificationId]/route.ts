@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabaseErrorHttpStatus } from "@/lib/supabase/error";
 import { markNotificationReadInDatabase } from "@/server/notifications.repository";
 
 export async function PATCH(
@@ -12,10 +13,10 @@ export async function PATCH(
   try {
     await markNotificationReadInDatabase(notificationId);
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Notification could not be updated." },
-      { status: 404 },
+      { status: supabaseErrorHttpStatus(error, 404) },
     );
   }
 }

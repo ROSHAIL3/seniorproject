@@ -1,6 +1,10 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  reportSupabaseError,
+  supabaseOperationError,
+} from "@/lib/supabase/error";
 import { createPublicServerClient } from "@/lib/supabase/public-server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
@@ -27,7 +31,13 @@ export async function getPublicBookingPage(slug: string) {
   const { data, error } = await supabase.rpc("get_public_booking_page", {
     booking_slug: slug,
   });
-  if (error) throw new Error("The public booking page could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.page",
+      "The public booking page could not be loaded.",
+      error,
+    );
+  }
   const page = data
     ? (data as unknown as PublicBookingPageData)
     : await getPublicBookingShell(slug);
@@ -49,7 +59,8 @@ export async function getPublicBookingPage(slug: string) {
         .from("organization-logos")
         .createSignedUrl(page.organization.logoObjectPath, 60 * 60);
       if (signed?.signedUrl) page.organization.logoUrl = signed.signedUrl;
-    } catch {
+    } catch (error) {
+      reportSupabaseError("publicBooking.logo.sign", error);
       // The public page remains usable if optional logo signing is unavailable.
     }
   }
@@ -126,7 +137,13 @@ export async function getPublicBookingAvailability(
       target_service_id: serviceId,
     },
   );
-  if (error) throw new Error("Availability could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.availability",
+      "Availability could not be loaded.",
+      error,
+    );
+  }
   if (
     data &&
     !Array.isArray(data) &&
@@ -161,7 +178,13 @@ export async function createPublicBooking(
     target_staff_key: input.staffKey,
     target_start_at: input.startAt,
   });
-  if (error) throw new Error("BOOKING_FAILED");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.create",
+      "BOOKING_FAILED",
+      error,
+    );
+  }
   return data as unknown as PublicBookingResult;
 }
 
@@ -177,7 +200,13 @@ export async function getPublicBookingConfirmation(
       reference_token: referenceToken,
     },
   );
-  if (error) throw new Error("The booking confirmation could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.confirmation",
+      "The booking confirmation could not be loaded.",
+      error,
+    );
+  }
   return (data as unknown as PublicBookingConfirmation | null) ?? null;
 }
 
@@ -196,7 +225,13 @@ export async function authenticateCustomerBookings(
       request_fingerprint: fingerprint,
     },
   );
-  if (error) throw new Error("ACCESS_FAILED");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.customer.authenticate",
+      "ACCESS_FAILED",
+      error,
+    );
+  }
   return data as unknown as {
     ok: boolean;
     error?: string;
@@ -218,7 +253,13 @@ export async function authenticateCustomerBookingLink(
       request_fingerprint: fingerprint,
     },
   );
-  if (error) throw new Error("ACCESS_FAILED");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.customer.link",
+      "ACCESS_FAILED",
+      error,
+    );
+  }
   return data as unknown as {
     ok: boolean;
     error?: string;
@@ -241,7 +282,13 @@ export async function getCustomerBookings(
     target_customer_id: customerId,
     target_organization_id: organizationId,
   });
-  if (error) throw new Error("Bookings could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.customer.list",
+      "Bookings could not be loaded.",
+      error,
+    );
+  }
   return data as unknown as CustomerBookingPage;
 }
 
@@ -260,7 +307,13 @@ export async function cancelCustomerAppointment(
       target_organization_id: organizationId,
     },
   );
-  if (error) throw new Error("Cancellation failed.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.customer.cancel",
+      "Cancellation failed.",
+      error,
+    );
+  }
   return data as unknown as {
     ok: boolean;
     error?: string;
@@ -291,13 +344,22 @@ export async function requestCustomerReschedule(
       target_submission_id: submissionId,
     },
   );
-  if (error) throw new Error("Reschedule request failed.");
+  if (error) {
+    throw supabaseOperationError(
+      "publicBooking.customer.reschedule",
+      "Reschedule request failed.",
+      error,
+    );
+  }
   return data as unknown as { ok: boolean; error?: string; requestId?: string };
 }
 
 export async function getPendingBookingCountsFromDatabase() {
   const client = await createServerClient();
   const { data, error } = await client.rpc("get_pending_booking_counts");
-  if (error) return { publicBookings: 0, reschedules: 0 };
+  if (error) {
+    reportSupabaseError("booking.pendingCounts", error);
+    return { publicBookings: 0, reschedules: 0 };
+  }
   return data as unknown as PendingBookingCounts;
 }

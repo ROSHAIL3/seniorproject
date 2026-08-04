@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabaseErrorHttpStatus } from "@/lib/supabase/error";
 import {
   getNotificationPreferencesFromDatabase,
   updateNotificationPreferencesInDatabase,
@@ -10,10 +11,10 @@ export async function GET() {
     return NextResponse.json(await getNotificationPreferencesFromDatabase(), {
       headers: { "Cache-Control": "private, no-store" },
     });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Notification preferences could not be loaded." },
-      { status: 401 },
+      { status: supabaseErrorHttpStatus(error) },
     );
   }
 }
@@ -42,10 +43,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       await updateNotificationPreferencesInDatabase(preferences),
     );
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Notification preferences could not be saved." },
-      { status: 400 },
+      { status: supabaseErrorHttpStatus(error) },
     );
   }
 }

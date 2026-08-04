@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { supabaseOperationError } from "@/lib/supabase/error";
 import type {
   NotificationCategory,
   NotificationPage,
@@ -20,7 +21,13 @@ export async function getNotificationsFromDatabase(options?: {
     cursor_id: options?.cursor?.id ?? null,
     page_limit: 20,
   });
-  if (error) throw new Error("Notifications could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "notifications.list",
+      "Notifications could not be loaded.",
+      error,
+    );
+  }
   return data as unknown as NotificationPage;
 }
 
@@ -29,21 +36,41 @@ export async function markNotificationReadInDatabase(id: string) {
   const { data, error } = await client.rpc("mark_notification_read", {
     target_notification_id: id,
   });
-  if (error || !data) throw new Error("Notification could not be updated.");
+  if (error) {
+    throw supabaseOperationError(
+      "notifications.markRead",
+      "Notification could not be updated.",
+      error,
+    );
+  }
+  if (!data) throw new Error("Notification could not be found.");
   return true;
 }
 
 export async function markAllNotificationsReadInDatabase() {
   const client = await createClient();
   const { data, error } = await client.rpc("mark_all_notifications_read");
-  if (error) throw new Error("Notifications could not be updated.");
+  if (error) {
+    throw supabaseOperationError(
+      "notifications.markAllRead",
+      "Notifications could not be updated.",
+      error,
+    );
+  }
   return data;
 }
 
 export async function getNotificationPreferencesFromDatabase() {
   const client = await createClient();
   const { data, error } = await client.rpc("get_notification_preferences");
-  if (error || !data) throw new Error("Notification preferences could not be loaded.");
+  if (error) {
+    throw supabaseOperationError(
+      "notifications.preferences.load",
+      "Notification preferences could not be loaded.",
+      error,
+    );
+  }
+  if (!data) throw new Error("Notification preferences could not be found.");
   return mapPreferences(data);
 }
 
@@ -58,7 +85,14 @@ export async function updateNotificationPreferencesInDatabase(
     target_staff_enabled: preferences.staffEnabled,
     target_system_enabled: preferences.systemEnabled,
   });
-  if (error || !data) throw new Error("Notification preferences could not be saved.");
+  if (error) {
+    throw supabaseOperationError(
+      "notifications.preferences.update",
+      "Notification preferences could not be saved.",
+      error,
+    );
+  }
+  if (!data) throw new Error("Notification preferences could not be saved.");
   return mapPreferences(data);
 }
 

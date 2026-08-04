@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { reportSupabaseError } from "@/lib/supabase/error";
 import type { Database, Json } from "@/types/database";
 import type {
   ActivityItem,
@@ -40,7 +41,10 @@ export async function getAppointmentsFromDatabase(
     supabase.from("appointments").select("*").order("starts_at"),
     supabase.from("organization_members").select("id,staff_key"),
   ]);
-  if (error) throw new Error("Appointments could not be loaded.");
+  if (error) {
+    reportSupabaseError("appointments.list", error);
+    throw new Error("Appointments could not be loaded.");
+  }
   const staffKeys = new Map(
     (memberships ?? []).map((membership) => [membership.id, membership.staff_key]),
   );
@@ -59,7 +63,10 @@ export async function getAppointmentRequestsFromDatabase(
       .order("created_at", { ascending: false }),
     supabase.from("branches").select("id,name"),
   ]);
-  if (error) throw new Error("Appointment requests could not be loaded.");
+  if (error) {
+    reportSupabaseError("appointmentRequests.list", error);
+    throw new Error("Appointment requests could not be loaded.");
+  }
 
   const branchNames = new Map(
     (branches ?? []).map((branch) => [branch.id, branch.name]),
@@ -98,7 +105,10 @@ export async function canDecideAppointmentRequestsFromDatabase(
     action_name: "edit",
     module_name: "Appointments",
   });
-  if (error) return false;
+  if (error) {
+    reportSupabaseError("appointmentRequests.permission", error);
+    return false;
+  }
   return Boolean(data);
 }
 
@@ -131,7 +141,11 @@ export async function getAppointmentActivityFromDatabase(
         .eq("appointment_id", appointmentId)
         .order("changed_at", { ascending: false }),
     ]);
-  if (notesError || historyError) throw new Error("Appointment activity could not be loaded.");
+  if (notesError) reportSupabaseError("appointments.activity.notes", notesError);
+  if (historyError) reportSupabaseError("appointments.activity.history", historyError);
+  if (notesError || historyError) {
+    throw new Error("Appointment activity could not be loaded.");
+  }
   return [
     ...(notes ?? []).map((note) => ({
       appointmentId,
@@ -174,6 +188,7 @@ export async function saveAppointmentInDatabase(
     target_starts_at: bahrainDateTime(input.appointmentDate, input.startTime),
     target_status: toDatabaseStatus[input.status],
   });
+  if (error) reportSupabaseError("appointments.save", error);
   if (error || !data) throw new Error(appointmentError(error?.message));
   const { data: membership } = await supabase
     .from("organization_members")
@@ -192,6 +207,7 @@ export async function setAppointmentStatusInDatabase(
     target_appointment_id: id,
     target_status: toDatabaseStatus[status],
   });
+  if (error) reportSupabaseError("appointments.status", error);
   if (error || !data) throw new Error(appointmentError(error?.message));
   return hydrateAppointment(data, supabase);
 }
@@ -202,6 +218,7 @@ export async function setAppointmentPaymentInDatabase(id: string, amountBhd: num
     target_amount_bhd: amountBhd,
     target_appointment_id: id,
   });
+  if (error) reportSupabaseError("appointments.payment", error);
   if (error || !data) throw new Error(appointmentError(error?.message));
   return hydrateAppointment(data, supabase);
 }
@@ -212,6 +229,7 @@ export async function addAppointmentNoteInDatabase(id: string, note: string) {
     target_appointment_id: id,
     target_note: note,
   });
+  if (error) reportSupabaseError("appointments.notes.add", error);
   if (error || !data) throw new Error(appointmentError(error?.message));
   return {
     appointmentId: id,
@@ -227,7 +245,10 @@ export async function deleteAppointmentFromDatabase(id: string) {
   const { error } = await supabase.rpc("delete_appointment", {
     target_appointment_id: id,
   });
-  if (error) throw new Error(appointmentError(error.message));
+  if (error) {
+    reportSupabaseError("appointments.delete", error);
+    throw new Error(appointmentError(error.message));
+  }
 }
 
 export async function getAppointmentServiceValuesFromDatabase(id: string) {
@@ -237,7 +258,10 @@ export async function getAppointmentServiceValuesFromDatabase(id: string) {
     .select("service_field_values")
     .eq("id", id)
     .maybeSingle();
-  if (error) throw new Error("Appointment fields could not be loaded.");
+  if (error) {
+    reportSupabaseError("appointments.fields", error);
+    throw new Error("Appointment fields could not be loaded.");
+  }
   return (data?.service_field_values ?? {}) as Record<string, string | boolean>;
 }
 
@@ -251,7 +275,10 @@ export async function getPendingRescheduleRequestFromDatabase(
     .eq("appointment_id", appointmentId)
     .eq("status", "pending")
     .maybeSingle();
-  if (error) throw new Error("The reschedule request could not be loaded.");
+  if (error) {
+    reportSupabaseError("appointments.reschedule.pending", error);
+    throw new Error("The reschedule request could not be loaded.");
+  }
   if (!request) return null;
   const [{ data: membership }, { data: branch }] = await Promise.all([
     supabase.from("organization_members").select("user_id").eq("id", request.proposed_membership_id).maybeSingle(),
