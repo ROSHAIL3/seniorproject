@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import BrandLogo from "@/components/common/BrandLogo";
+import DatePickerControl from "@/components/form/DatePickerControl";
 import type {
   PublicFieldDefinition,
   PublicBookingPageData,
@@ -56,24 +57,26 @@ export default function PublicBookingClient({ page }: Props) {
   const [formError, setFormError] = useState("");
   const [submissionId] = useState(() => crypto.randomUUID());
 
-  const services = useMemo(
+  const offerings = useMemo(
     () =>
-      page.services.filter(
-        (service) =>
-          service.branchIds.includes(branchId) &&
-          `${service.name} ${service.description}`
+      [...page.services, ...page.packages].filter(
+        (offering) =>
+          offering.branchIds.includes(branchId) &&
+          `${offering.name} ${offering.description}`
             .toLowerCase()
             .includes(serviceSearch.trim().toLowerCase()),
       ),
-    [branchId, page.services, serviceSearch],
+    [branchId, page.packages, page.services, serviceSearch],
   );
   const selectedService =
-    page.services.find((service) => service.id === serviceId) ?? null;
+    [...page.services, ...page.packages].find(
+      (offering) => offering.id === serviceId,
+    ) ?? null;
   const selectedBranch =
     page.branches.find((branch) => branch.id === branchId) ?? null;
-  const selectedFields = page.serviceFields.filter(
-    (field) => field.serviceId === serviceId,
-  );
+  const selectedFields = selectedService?.kind === "package"
+    ? []
+    : page.serviceFields.filter((field) => field.serviceId === serviceId);
 
   useEffect(() => {
     if (!branchId || !serviceId || !date) {
@@ -150,7 +153,7 @@ export default function PublicBookingClient({ page }: Props) {
       !customerName.trim() ||
       !customerPhone.trim()
     ) {
-      setFormError("Choose a service and time, then enter your name and phone.");
+      setFormError("Choose a service or package and time, then enter your name and phone.");
       return;
     }
     if (missingField) {
@@ -206,9 +209,6 @@ export default function PublicBookingClient({ page }: Props) {
   };
 
   const groupedSlots = groupSlots(slots);
-  const quickDates = Array.from({ length: 7 }, (_, index) =>
-    moveDate(minDate, index),
-  );
 
   if (!page.bookingReady) {
     return <BookingUnavailable page={page} />;
@@ -228,54 +228,12 @@ export default function PublicBookingClient({ page }: Props) {
               Request your appointment
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-              Choose a date, service and available time. Your request will be
-              held for the business to review and confirm.
+              Choose a branch, service or package, date, staff member and
+              available time. Your booking is saved directly to the business calendar.
             </p>
           </div>
 
-          <BookingSection number="1" title="Choose an appointment date">
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
-              {quickDates.map((quickDate) => (
-                <button
-                  key={quickDate}
-                  type="button"
-                  aria-pressed={date === quickDate}
-                  onClick={() => chooseDate(quickDate)}
-                  className={`min-h-[72px] rounded-2xl border px-2 py-2 text-center transition ${
-                    date === quickDate
-                      ? "border-[#191a23] bg-[#191a23] text-white shadow-[0_3px_0_#b9ff66]"
-                      : "border-[#d5d5cf] bg-white hover:border-[#191a23]"
-                  }`}
-                >
-                  <span className="block text-[11px] font-medium uppercase tracking-wide opacity-70">
-                    {formatDatePart(quickDate, "weekday")}
-                  </span>
-                  <span className="mt-0.5 block text-lg font-semibold leading-none">
-                    {formatDatePart(quickDate, "day")}
-                  </span>
-                  <span className="mt-1 block text-[11px] opacity-70">
-                    {formatDatePart(quickDate, "month")}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <label className="mt-4 block max-w-sm text-sm font-medium">
-              Choose another date
-              <input
-                type="date"
-                min={minDate}
-                max={maxDate}
-                value={date}
-                onChange={(event) => chooseDate(event.target.value)}
-                className={`${inputClass} mt-2`}
-              />
-            </label>
-            <p className="mt-3 text-xs text-gray-500">
-              Selected: {formatSelectedDate(date)}
-            </p>
-          </BookingSection>
-
-          <BookingSection number="2" title="Choose a branch">
+          <BookingSection number="1" title="Choose a branch">
             {page.branches.length ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 {page.branches.map((branch) => (
@@ -303,16 +261,16 @@ export default function PublicBookingClient({ page }: Props) {
             )}
           </BookingSection>
 
-          <BookingSection number="3" title="Choose a service">
+          <BookingSection number="2" title="Choose a service or package">
             <input
               value={serviceSearch}
               onChange={(event) => setServiceSearch(event.target.value)}
               className={inputClass}
-              placeholder="Search services"
-              aria-label="Search services"
+              placeholder="Search services and packages"
+              aria-label="Search services and packages"
             />
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {services.map((service) => (
+              {offerings.map((service) => (
                 <button
                   key={service.id}
                   type="button"
@@ -330,6 +288,7 @@ export default function PublicBookingClient({ page }: Props) {
                     </span>
                   </span>
                   <span className="mt-2 block text-xs text-gray-500">
+                    {service.kind === "package" ? "Package · " : ""}
                     {service.durationMinutes} minutes
                   </span>
                   {service.description && (
@@ -340,28 +299,33 @@ export default function PublicBookingClient({ page }: Props) {
                 </button>
               ))}
             </div>
-            {branchId && !services.length && (
-              <EmptyText>No matching services are available at this branch.</EmptyText>
+            {branchId && !offerings.length && (
+              <EmptyText>No matching services or packages are available at this branch.</EmptyText>
             )}
           </BookingSection>
 
-          <BookingSection number="4" title="Choose an available time">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#f3f3f3] px-3.5 py-3 text-sm">
-              <span className="text-gray-500">Appointment date</span>
-              <button
-                type="button"
-                onClick={() =>
-                  document
-                    .querySelector<HTMLInputElement>('input[type="date"]')
-                    ?.focus()
-                }
-                className="font-semibold underline decoration-[#b9ff66] decoration-4 underline-offset-2"
-              >
-                {formatSelectedDate(date)}
-              </button>
+          <BookingSection number="3" title="Choose date and time">
+            <div className="rounded-2xl bg-[#f3f3f3] p-3.5 sm:p-4">
+              <label className="block text-sm font-medium">
+                Appointment date
+              </label>
+              <DatePickerControl
+                value={date}
+                min={minDate}
+                max={maxDate}
+                allowClear={false}
+                ariaLabel="Choose appointment date"
+                displayValue={formatSelectedDate}
+                onChange={chooseDate}
+                className="mt-2 flex h-12 w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#d5d5cf] bg-white px-3.5 text-left text-sm font-semibold text-[#191a23] outline-none transition hover:border-[#191a23] focus:ring-3 focus:ring-[#b9ff66]/40"
+              />
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                Click the date to open the calendar. Available times below
+                refresh for the selected day.
+              </p>
             </div>
             {!selectedService ? (
-              <EmptyText>Choose a service to see available times.</EmptyText>
+              <EmptyText>Choose a service or package to see available times.</EmptyText>
             ) : loadingSlots ? (
               <EmptyText>Checking available times…</EmptyText>
             ) : slotError ? (
@@ -406,7 +370,7 @@ export default function PublicBookingClient({ page }: Props) {
             )}
           </BookingSection>
 
-          <BookingSection number="5" title="Your details">
+          <BookingSection number="4" title="Your details">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Full name *">
                 <input
@@ -480,13 +444,18 @@ export default function PublicBookingClient({ page }: Props) {
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-lg font-semibold">Request summary</h2>
               <span className="rounded-full bg-[#b9ff66] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide">
-                Approval required
+                {organization.autoConfirmAppointments
+                  ? "Instant confirmation"
+                  : "Approval required"}
               </span>
             </div>
             <dl className="mt-4 space-y-3 text-sm">
               <Summary label="Date" value={formatSelectedDate(date)} />
               <Summary label="Branch" value={selectedBranch?.name} />
-              <Summary label="Service" value={selectedService?.name} />
+              <Summary
+                label={selectedService?.kind === "package" ? "Package" : "Service"}
+                value={selectedService?.name}
+              />
               <Summary
                 label="Duration"
                 value={
@@ -527,11 +496,16 @@ export default function PublicBookingClient({ page }: Props) {
               disabled={submitting}
               className="mt-5 min-h-12 w-full rounded-xl bg-[#191a23] px-4 text-sm font-semibold text-white transition hover:bg-[#2a2b35] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Sending request…" : "Send booking request"}
+              {submitting
+                ? "Saving booking…"
+                : organization.autoConfirmAppointments
+                  ? "Book appointment"
+                  : "Send booking request"}
             </button>
             <p className="mt-3 text-center text-xs leading-5 text-gray-400">
-              This sends a request, not a confirmed appointment. Track approval
-              and any changes in My Bookings.
+              {organization.autoConfirmAppointments
+                ? "The database rechecks availability before confirming. Track changes in My Bookings."
+                : "This sends a request for staff approval. Track approval and changes in My Bookings."}
             </p>
           </div>
         </aside>
@@ -881,23 +855,6 @@ function formatSelectedDate(value: string) {
     weekday: "short",
     year: "numeric",
   }).format(new Date(`${value}T12:00:00Z`));
-}
-
-function formatDatePart(
-  value: string,
-  part: "weekday" | "day" | "month",
-) {
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: "UTC",
-    ...(part === "weekday"
-      ? { weekday: "short" }
-      : part === "day"
-        ? { day: "numeric" }
-        : { month: "short" }),
-  };
-  return new Intl.DateTimeFormat("en-US", options).format(
-    new Date(`${value}T12:00:00Z`),
-  );
 }
 
 function dateInTimeZone(value: Date, timeZone: string) {

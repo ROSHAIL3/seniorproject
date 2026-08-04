@@ -1,5 +1,5 @@
 const SAFE_ADMIN_PATH =
-  /^\/(?:dashboard|calendar|appointments(?:\/(?:new|[^/?#]+))?|customers(?:\/[^/?#]+)?|invoices(?:\/[^/?#]+)?|expenses(?:\/new)?|reports(?:\/(?:revenue|vat-return|profit-loss|top-customers|staff-performance|service-profitability|busy-hours))?|settings(?:\/(?:organization-profile|branches|services(?:\/(?:new|[^/?#]+)(?:\/edit)?)?|packages(?:\/(?:new|[^/?#]+\/edit))?|team-members(?:\/[^/?#]+)?|appointment-settings|customer-fields|expense-categories|notifications|subscription-billing|add-ons|activity-log|version))?|profile|alerts|avatars|badge|buttons|images|modals|videos|bar-chart|line-chart|form-elements|basic-tables|blank)\/?$/;
+  /^\/(?:dashboard|calendar|appointment-requests|appointments(?:\/(?:new|[^/?#]+))?|customers(?:\/[^/?#]+)?|invoices(?:\/[^/?#]+)?|expenses(?:\/new)?|reports(?:\/(?:revenue|vat-return|profit-loss|top-customers|staff-performance|service-profitability|busy-hours))?|settings(?:\/(?:organization-profile|branches|services(?:\/(?:new|[^/?#]+)(?:\/edit)?)?|packages(?:\/(?:new|[^/?#]+\/edit))?|team-members(?:\/[^/?#]+)?|appointment-settings|customer-fields|expense-categories|notifications|subscription-billing|add-ons|activity-log|version))?|profile|alerts|avatars|badge|buttons|images|modals|videos|bar-chart|line-chart|form-elements|basic-tables|blank)\/?$/;
 
 export const RETURN_TO_PARAM = "returnTo";
 
@@ -49,6 +49,7 @@ export function returnDestinationLabel(destination: string) {
   const pathname = new URL(destination, "http://slotova.local").pathname;
 
   if (pathname === "/calendar") return "Calendar";
+  if (pathname === "/appointment-requests") return "Appointment Requests";
   if (pathname.startsWith("/appointments/")) return "Appointment";
   if (pathname === "/appointments") return "Appointments";
   if (pathname.startsWith("/customers/")) return "Customer";

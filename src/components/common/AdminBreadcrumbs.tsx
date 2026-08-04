@@ -120,6 +120,8 @@ function buildItems(
   if (pathname === "/dashboard") return [{ label: "Dashboard" }];
   if (pathname === "/calendar")
     return [dashboard, { label: "Calendar" }];
+  if (pathname === "/appointment-requests")
+    return [dashboard, { label: "Appointment Requests" }];
   if (pathname === "/appointments")
     return [dashboard, { label: "Appointments" }];
   if (pathname === "/appointments/new") {

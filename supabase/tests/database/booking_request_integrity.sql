@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(11);
+select plan(18);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
@@ -35,7 +35,7 @@ insert into public.organization_members (
   primary_branch_id
 ) values
   ('fa400000-0000-4000-8000-000000000001', 'fa200000-0000-4000-8000-000000000001', 'fa100000-0000-4000-8000-000000000001', 'integrity-owner', 'owner', 'active', 'fa100000-0000-4000-8000-000000000001', 'fa300000-0000-4000-8000-000000000001'),
-  ('fa400000-0000-4000-8000-000000000002', 'fa200000-0000-4000-8000-000000000001', 'fa100000-0000-4000-8000-000000000002', 'integrity-staff', 'member', 'active', 'fa100000-0000-4000-8000-000000000001', 'fa300000-0000-4000-8000-000000000001');
+  ('fa400000-0000-4000-8000-000000000002', 'fa200000-0000-4000-8000-000000000001', 'fa100000-0000-4000-8000-000000000002', 'integrity-staff', 'staff', 'active', 'fa100000-0000-4000-8000-000000000001', 'fa300000-0000-4000-8000-000000000001');
 
 insert into public.service_categories (id, organization_id, name)
 values ('fa500000-0000-4000-8000-000000000001', 'fa200000-0000-4000-8000-000000000001', 'Test');
@@ -45,6 +45,29 @@ insert into public.services (
 ) values (
   'integrity-service', 'fa200000-0000-4000-8000-000000000001',
   'fa500000-0000-4000-8000-000000000001', 'Integrity Service', 60, 10
+);
+
+insert into public.service_branches (organization_id, service_id, branch_id)
+values (
+  'fa200000-0000-4000-8000-000000000001', 'integrity-service',
+  'fa300000-0000-4000-8000-000000000001'
+);
+insert into public.service_staff (organization_id, service_id, membership_id)
+values (
+  'fa200000-0000-4000-8000-000000000001', 'integrity-service',
+  'fa400000-0000-4000-8000-000000000002'
+);
+insert into public.service_packages (
+  id, organization_id, name, type, selling_price_bhd
+) values (
+  'integrity-package', 'fa200000-0000-4000-8000-000000000001',
+  'Integrity Package', 'combo', 9
+);
+insert into public.package_items (
+  id, organization_id, package_id, service_id, quantity, sort_order
+) values (
+  'integrity-package-item', 'fa200000-0000-4000-8000-000000000001',
+  'integrity-package', 'integrity-service', 2, 0
 );
 
 insert into public.customers (
@@ -67,6 +90,24 @@ select is(
   'integrity-customer-country',
   'public booking page returns active customer field definitions'
 );
+select is(
+  public.get_public_booking_page('booking-integrity')
+    -> 'packages' -> 0 ->> 'id',
+  'integrity-package',
+  'public booking page returns active packages'
+);
+select is(
+  (
+    select duration_minutes
+    from booking_private.public_booking_offering(
+      'fa200000-0000-4000-8000-000000000001',
+      'fa300000-0000-4000-8000-000000000001',
+      'integrity-package'
+    )
+  ),
+  120,
+  'package booking duration reserves every included service quantity'
+);
 select ok(
   has_function_privilege(
     'service_role',
@@ -82,6 +123,26 @@ select ok(
     'EXECUTE'
   ),
   'anonymous clients cannot execute the booking mutation directly'
+);
+select has_column(
+  'public', 'appointment_reschedule_requests', 'proposed_branch_id',
+  'reschedule requests persist the proposed branch'
+);
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.request_customer_reschedule(uuid,uuid,uuid,uuid,text,timestamptz,uuid,text)',
+    'EXECUTE'
+  ),
+  'server routes can execute branch-aware customer rescheduling'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.request_customer_reschedule(uuid,uuid,uuid,uuid,text,timestamptz,uuid,text)',
+    'EXECUTE'
+  ),
+  'anonymous clients cannot execute customer rescheduling directly'
 );
 
 select ok(
@@ -223,8 +284,26 @@ insert into public.appointments (
 );
 select is(
   (select status from public.appointments where booking_number = 'BK-I00005'),
-  'booked'::public.appointment_status,
-  'public appointments always start as pending requests even when auto-confirm is enabled'
+  'confirmed'::public.appointment_status,
+  'public appointments respect the tenant auto-confirm setting'
+);
+select is(
+  (select request_status from public.appointments where booking_number = 'BK-I00005'),
+  'approved',
+  'auto-confirmed public appointments do not enter the pending request queue'
+);
+select is(
+  booking_private.authenticate_customer_bookings(
+    'booking-integrity',
+    '+97339000002',
+    booking_private.get_public_booking_confirmation(
+      'booking-integrity',
+      'fa800000-0000-4000-8000-000000000001'
+    ) ->> 'accessCode',
+    repeat('a', 64)
+  ) ->> 'ok',
+  'true',
+  'valid phone and access code authenticate without ambiguous SQL references'
 );
 
 select * from finish();

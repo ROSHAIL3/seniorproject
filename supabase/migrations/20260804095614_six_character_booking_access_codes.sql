@@ -329,3 +329,4 @@ revoke all on function booking_private.get_public_booking_confirmation(text, uui
 
 grant execute on function booking_private.authenticate_customer_bookings(text, text, text, text)
   to service_role;
+

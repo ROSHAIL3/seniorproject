@@ -350,7 +350,7 @@ export type Database = {
         Relationships: [];
       };
       appointments: {
-        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; public_access_code_seed: string | null; public_access_code_hash: string | null; public_legacy_access_code_hash: string | null; refund_review_required: boolean; created_at: string; updated_at: string };
+        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; public_access_code_seed: string | null; public_access_code_hash: string | null; public_legacy_access_code_hash: string | null; request_status: string | null; request_decided_at: string | null; request_decided_by: string | null; request_rejection_reason: string | null; refund_review_required: boolean; created_at: string; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -374,7 +374,7 @@ export type Database = {
         Relationships: [];
       };
       appointment_reschedule_requests: {
-        Row: { id: string; organization_id: string; appointment_id: string; proposed_membership_id: string; proposed_starts_at: string; proposed_ends_at: string; status: Database["public"]["Enums"]["reschedule_request_status"]; submission_id: string; requested_at: string; resolved_at: string | null; resolved_by: string | null; rejection_reason: string | null; updated_at: string };
+        Row: { id: string; organization_id: string; appointment_id: string; proposed_branch_id: string; proposed_membership_id: string; proposed_starts_at: string; proposed_ends_at: string; status: Database["public"]["Enums"]["reschedule_request_status"]; submission_id: string; requested_at: string; resolved_at: string | null; resolved_by: string | null; rejection_reason: string | null; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -518,7 +518,7 @@ export type Database = {
         Returns: Json;
       };
       request_customer_reschedule: {
-        Args: { target_organization_id: string; target_customer_id: string; target_appointment_id: string; target_staff_key: string; target_start_at: string; target_submission_id: string; request_fingerprint: string };
+        Args: { target_organization_id: string; target_customer_id: string; target_appointment_id: string; target_branch_id: string; target_staff_key: string; target_start_at: string; target_submission_id: string; request_fingerprint: string };
         Returns: Json;
       };
       decide_public_booking: {

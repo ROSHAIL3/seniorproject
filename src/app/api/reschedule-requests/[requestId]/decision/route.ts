@@ -12,6 +12,12 @@ export async function POST(
   if (!["approve", "reject"].includes(decision)) {
     return NextResponse.json({ error: "Invalid decision." }, { status: 400 });
   }
+  if (decision === "reject" && (reason.trim().length < 3 || reason.trim().length > 500)) {
+    return NextResponse.json(
+      { error: "Enter a rejection reason of 3 to 500 characters." },
+      { status: 400 },
+    );
+  }
   const { data, error } = await (await createClient()).rpc(
     "decide_reschedule_request",
     { decision, decision_reason: reason, target_request_id: requestId },
@@ -20,7 +26,7 @@ export async function POST(
     return NextResponse.json(
       {
         error: error?.message.includes("DECISION_REASON_REQUIRED")
-          ? "Enter a rejection reason."
+          ? "Enter a rejection reason of 3 to 500 characters."
           : error?.message.includes("CONFLICT")
             ? "The proposed time is no longer available."
             : "The reschedule decision could not be saved.",
@@ -30,4 +36,3 @@ export async function POST(
   }
   return NextResponse.json({ request: data });
 }
-

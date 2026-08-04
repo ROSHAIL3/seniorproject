@@ -41,6 +41,8 @@ export type AppointmentRescheduleRequestView = {
   status: "pending" | "approved" | "rejected" | "withdrawn";
   proposedStartsAt: string;
   proposedEndsAt: string;
+  proposedBranchId: string;
+  proposedBranchName: string;
   proposedStaffName: string;
   requestedAt: string;
   rejectionReason: string;

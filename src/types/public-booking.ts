@@ -29,6 +29,7 @@ export type PublicBookingCategory = {
 export type PublicBookingService = {
   id: string;
   categoryId: string;
+  kind?: "service" | "package";
   name: string;
   description: string;
   durationMinutes: number;
@@ -66,6 +67,7 @@ export type PublicBookingPageData = {
   branches: PublicBookingBranch[];
   categories: PublicBookingCategory[];
   services: PublicBookingService[];
+  packages: PublicBookingService[];
   serviceFields: PublicBookingField[];
   customerFields: PublicCustomerField[];
   bookingReady: boolean;
@@ -111,6 +113,7 @@ export type CustomerBookingItem = {
   id: string;
   bookingNumber: string;
   serviceId: string | null;
+  offeringType: "service" | "package";
   serviceName: string;
   branchId: string;
   branchName: string;
@@ -124,6 +127,8 @@ export type CustomerBookingItem = {
   refundReviewRequired: boolean;
   pendingReschedule: {
     id: string;
+    branchId: string;
+    branchName: string;
     startsAt: string;
     endsAt: string;
     staffName: string;

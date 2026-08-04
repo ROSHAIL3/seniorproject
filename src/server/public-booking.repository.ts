@@ -36,10 +36,11 @@ export async function getPublicBookingPage(slug: string) {
   if (data) page.organization.publicBookingEnabled = true;
   page.customerFields ??= [];
   page.serviceFields ??= [];
+  page.packages ??= [];
   page.bookingReady = Boolean(
     page.organization.publicBookingEnabled &&
       page.branches.length &&
-      page.services.length,
+      (page.services.length || page.packages.length),
   );
   if (page.organization.logoObjectPath) {
     try {
@@ -103,6 +104,7 @@ async function getPublicBookingShell(
     })),
     categories: [],
     services: [],
+    packages: [],
     serviceFields: [],
     customerFields: [],
   } satisfies PublicBookingPageData;
@@ -270,6 +272,7 @@ export async function requestCustomerReschedule(
   organizationId: string,
   customerId: string,
   appointmentId: string,
+  branchId: string,
   staffKey: string,
   startAt: string,
   submissionId: string,
@@ -280,6 +283,7 @@ export async function requestCustomerReschedule(
     {
       request_fingerprint: fingerprint,
       target_appointment_id: appointmentId,
+      target_branch_id: branchId,
       target_customer_id: customerId,
       target_organization_id: organizationId,
       target_staff_key: staffKey,

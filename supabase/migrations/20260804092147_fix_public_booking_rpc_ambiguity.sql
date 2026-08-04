@@ -301,3 +301,4 @@ comment on function booking_private.create_public_booking(
   jsonb, uuid, text
 ) is
   'Creates an idempotent, rate-limited public booking request with shared customer/staff locking and database overlap protection.';
+

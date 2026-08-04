@@ -11,9 +11,11 @@ import type { WorkspaceIdentity } from "@/types/workspace-identity";
 export default function AdminShell({
   children,
   identity,
+  pendingAppointmentRequestCount,
 }: {
   children: React.ReactNode;
   identity: WorkspaceIdentity;
+  pendingAppointmentRequestCount: number;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const mainContentMargin = isMobileOpen
@@ -24,7 +26,7 @@ export default function AdminShell({
 
   return (
     <div className="dashboard-shell min-h-screen bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-white/90 xl:flex">
-      <AppSidebar />
+      <AppSidebar pendingAppointmentRequestCount={pendingAppointmentRequestCount} />
       <Backdrop />
       <div
         className={`admin-main-content min-w-0 flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}

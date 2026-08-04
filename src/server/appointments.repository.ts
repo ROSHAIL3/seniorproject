@@ -10,6 +10,10 @@ import type {
   AppointmentStatus,
   AppointmentRescheduleRequestView,
 } from "@/types/appointments";
+import type {
+  AppointmentRequest,
+  AppointmentRequestStatus,
+} from "@/types/appointment-requests";
 
 type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
@@ -41,6 +45,61 @@ export async function getAppointmentsFromDatabase(
     (memberships ?? []).map((membership) => [membership.id, membership.staff_key]),
   );
   return data.map((row) => toAppointment(row, staffKeys.get(row.membership_id) ?? ""));
+}
+
+export async function getAppointmentRequestsFromDatabase(
+  client?: SupabaseClient<Database>,
+): Promise<AppointmentRequest[]> {
+  const supabase = client ?? (await createClient());
+  const [{ data: appointments, error }, { data: branches }] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select("*")
+      .eq("booking_source", "public")
+      .order("created_at", { ascending: false }),
+    supabase.from("branches").select("id,name"),
+  ]);
+  if (error) throw new Error("Appointment requests could not be loaded.");
+
+  const branchNames = new Map(
+    (branches ?? []).map((branch) => [branch.id, branch.name]),
+  );
+  return (appointments ?? []).map((row) => {
+    const start = bahrainParts(row.starts_at);
+    const end = bahrainParts(row.ends_at);
+    const status = toRequestStatus(row.request_status, row.status);
+    return {
+      appointmentDate: start.date,
+      bookingNumber: row.booking_number,
+      branchName: branchNames.get(row.branch_id) ?? "Branch unavailable",
+      customerEmail: row.customer_email,
+      customerName: row.customer_name,
+      customerPhone: row.customer_phone,
+      decidedAt: row.request_decided_at ?? "",
+      endTime: end.time,
+      id: row.id,
+      notes: row.notes,
+      priceBhd: Number(row.price_bhd),
+      rejectionReason: row.request_rejection_reason ?? "",
+      serviceName: row.offering_name,
+      staffName: row.staff_name,
+      startTime: start.time,
+      status,
+      submittedAt: row.created_at,
+    };
+  });
+}
+
+export async function canDecideAppointmentRequestsFromDatabase(
+  client?: SupabaseClient<Database>,
+) {
+  const supabase = client ?? (await createClient());
+  const { data, error } = await supabase.rpc("has_module_permission", {
+    action_name: "edit",
+    module_name: "Appointments",
+  });
+  if (error) return false;
+  return Boolean(data);
 }
 
 export async function getAppointmentByBookingNumberFromDatabase(
@@ -194,11 +253,10 @@ export async function getPendingRescheduleRequestFromDatabase(
     .maybeSingle();
   if (error) throw new Error("The reschedule request could not be loaded.");
   if (!request) return null;
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("user_id")
-    .eq("id", request.proposed_membership_id)
-    .maybeSingle();
+  const [{ data: membership }, { data: branch }] = await Promise.all([
+    supabase.from("organization_members").select("user_id").eq("id", request.proposed_membership_id).maybeSingle(),
+    supabase.from("branches").select("name").eq("id", request.proposed_branch_id).maybeSingle(),
+  ]);
   const { data: profile } = membership
     ? await supabase
         .from("profiles")
@@ -208,6 +266,8 @@ export async function getPendingRescheduleRequestFromDatabase(
     : { data: null };
   return {
     id: request.id,
+    proposedBranchId: request.proposed_branch_id,
+    proposedBranchName: branch?.name ?? "Branch unavailable",
     proposedEndsAt: request.proposed_ends_at,
     proposedStaffName: profile?.full_name ?? "Team member",
     proposedStartsAt: request.proposed_starts_at,
@@ -293,6 +353,17 @@ function toAppointment(row: AppointmentRow, staffKey: string): Appointment {
     bookingSource: row.booking_source === "public" ? "public" : "admin",
     financialFollowUpRequired: row.refund_review_required,
   };
+}
+
+function toRequestStatus(
+  requestStatus: string | null,
+  appointmentStatus: AppointmentRow["status"],
+): AppointmentRequestStatus {
+  if (requestStatus === "approved") return "Approved";
+  if (requestStatus === "rejected") return "Rejected";
+  if (requestStatus === "pending") return "Pending";
+  if (appointmentStatus === "booked") return "Pending";
+  return appointmentStatus === "cancelled" ? "Rejected" : "Approved";
 }
 
 function bahrainDateTime(date: string, time: string) {

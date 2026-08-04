@@ -74,3 +74,4 @@ comment on constraint appointments_no_customer_overlap on public.appointments is
   'Prevents a customer from holding overlapping active appointments.';
 comment on function booking_private.force_public_booking_request() is
   'Ensures every public booking starts as a pending booked request.';
+

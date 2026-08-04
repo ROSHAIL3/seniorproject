@@ -1,9 +1,4 @@
-import type {
-  PackageFieldErrors,
-  PackageInput,
-  PackageUsage,
-  ServicePackage,
-} from "@/types/packages";
+import type { PackageFieldErrors, PackageInput, ServicePackage } from "@/types/packages";
 import type { Service } from "@/types/services";
 import { getServices } from "./services.service";
 
@@ -12,8 +7,6 @@ export class PackageValidationError extends Error {
     super("Please correct the highlighted package fields.");
   }
 }
-const usageRecords: PackageUsage[] = [];
-
 export function subscribeToPackages(onChange?: () => void) {
   void onChange;
   return () => undefined;
@@ -84,9 +77,11 @@ export async function packageToBookingService(item: ServicePackage, providedServ
     categoryId: "packages",
     createdAt: item.createdAt,
     description: item.description,
-    durationMinutes: item.type === "Combo"
-      ? item.items.reduce((total, row) => total + (services.find((service) => service.id === row.serviceId)?.durationMinutes ?? 0) * row.quantity, 0)
-      : Math.max(...included.map((service) => service.durationMinutes), 0),
+    durationMinutes: item.items.reduce(
+      (total, row) => total +
+        (services.find((service) => service.id === row.serviceId)?.durationMinutes ?? 0) * row.quantity,
+      0,
+    ),
     id: item.id,
     imageUrl: item.imageUrl,
     isActive: item.isActive,
@@ -100,25 +95,6 @@ export async function packageToBookingService(item: ServicePackage, providedServ
 }
 export async function getPackageBookingOfferings() {
   return Promise.all((await getBookablePackages()).map((item) => packageToBookingService(item)));
-}
-export async function recordPackageUsage(packageId: string, customerId: string, appointmentId: string) {
-  const item = await getPackageById(packageId);
-  if (!item) return;
-  usageRecords.push({
-    appointmentId,
-    createdAt: new Date().toISOString(),
-    customerId,
-    id: `package-usage-${crypto.randomUUID()}`,
-    packageId,
-    usedQuantities: Object.fromEntries(item.items.map((row) => [row.serviceId, item.type === "Combo" ? row.quantity : 0])),
-  });
-}
-export async function getCustomerPackageUsage(customerId: string) {
-  return usageRecords.filter((item) => item.customerId === customerId).map((item) => ({ ...item, usedQuantities: { ...item.usedQuantities } }));
-}
-export async function getAppointmentPackageUsage(appointmentId: string) {
-  const item = usageRecords.find((record) => record.appointmentId === appointmentId);
-  return item ? { ...item, usedQuantities: { ...item.usedQuantities } } : null;
 }
 function normalize(input: PackageInput): PackageInput {
   return {

@@ -297,7 +297,7 @@ function BookingCard({
           Reschedule awaiting approval:{" "}
           {formatDate(new Date(booking.pendingReschedule.startsAt), timeZone)} at{" "}
           {formatTime(new Date(booking.pendingReschedule.startsAt), timeZone)} with{" "}
-          {booking.pendingReschedule.staffName}.
+          {booking.pendingReschedule.staffName} at {booking.pendingReschedule.branchName}.
         </p>
       )}
       {booking.refundReviewRequired && (
@@ -353,6 +353,7 @@ function RescheduleDialog({
     [page.organization.timeZone],
   );
   const [date, setDate] = useState(today);
+  const [branchId, setBranchId] = useState(booking.branchId);
   const [slots, setSlots] = useState<PublicBookingSlot[]>([]);
   const [selected, setSelected] = useState<PublicBookingSlot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -362,7 +363,7 @@ function RescheduleDialog({
     if (!booking.serviceId) return;
     const controller = new AbortController();
     const query = new URLSearchParams({
-      branchId: booking.branchId,
+      branchId,
       date,
       serviceId: booking.serviceId,
     });
@@ -381,7 +382,7 @@ function RescheduleDialog({
       })
       .finally(() => setBusy(false));
     return () => controller.abort();
-  }, [booking.branchId, booking.serviceId, date, page.organization.slug]);
+  }, [branchId, booking.serviceId, date, page.organization.slug]);
 
   const submit = async () => {
     if (!selected) return;
@@ -391,6 +392,7 @@ function RescheduleDialog({
       `/api/public-booking/${encodeURIComponent(page.organization.slug)}/me/appointments/${booking.id}/reschedule`,
       {
         body: JSON.stringify({
+          branchId,
           staffKey: selected.staffKey,
           startAt: selected.startAt,
           submissionId: crypto.randomUUID(),
@@ -407,6 +409,15 @@ function RescheduleDialog({
     }
     await onSaved();
   };
+
+  const offering = [...page.services, ...page.packages].find(
+    (item) => item.id === booking.serviceId,
+  );
+  const availableBranches = page.branches.filter((branch) =>
+    offering
+      ? offering.branchIds.includes(branch.id)
+      : branch.id === booking.branchId,
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
@@ -430,6 +441,22 @@ function RescheduleDialog({
             <p>{selected ? `${formatTime(new Date(selected.startAt), page.organization.timeZone)} · ${selected.staffName}` : "—"}</p>
           </div>
         </div>
+        <label className="mt-5 block text-sm font-medium">
+          New branch
+          <select
+            className={`${inputClass} mt-2`}
+            value={branchId}
+            onChange={(event) => {
+              setBusy(true);
+              setSelected(null);
+              setBranchId(event.target.value);
+            }}
+          >
+            {availableBranches.map((branch) => (
+              <option key={branch.id} value={branch.id}>{branch.name}</option>
+            ))}
+          </select>
+        </label>
         <label className="mt-5 block text-sm font-medium">
           New date
           <input className={`${inputClass} mt-2`} type="date" min={today} value={date} onChange={(event) => { setBusy(true); setDate(event.target.value); }} />

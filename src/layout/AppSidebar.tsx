@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentType, SVGProps } from "react";
+import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 import { useSidebar } from "@/context/SidebarContext";
 import BrandLogo from "@/components/common/BrandLogo";
 import {
@@ -31,6 +31,7 @@ type NavigationItem = {
   label: string;
   href: string;
   icon: Icon;
+  badge?: "appointmentRequests";
 };
 
 type NavigationSection = {
@@ -50,6 +51,12 @@ const mainNavigation: NavigationSection[] = [
     label: "Appointments",
     items: [
       { label: "Appointments", href: "/appointments", icon: TaskIcon },
+      {
+        label: "Appointment Requests",
+        href: "/appointment-requests",
+        icon: TimeIcon,
+        badge: "appointmentRequests",
+      },
       { label: "Calendar", href: "/calendar", icon: CalenderIcon },
       { label: "Customers", href: "/customers", icon: GroupIcon },
     ],
@@ -169,13 +176,37 @@ const reportsNavigation: NavigationSection[] = [
   },
 ];
 
-export default function AppSidebar() {
+export default function AppSidebar({
+  pendingAppointmentRequestCount,
+}: {
+  pendingAppointmentRequestCount: number;
+}) {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
   const isSettingsMenu = pathname === "/settings" || pathname.startsWith("/settings/");
   const isReportsMenu = pathname === "/reports" || pathname.startsWith("/reports/");
   const navigation = isSettingsMenu ? settingsNavigation : isReportsMenu ? reportsNavigation : mainNavigation;
   const showLabels = isExpanded || isHovered || isMobileOpen;
+  const [requestCount, setRequestCount] = useState(
+    pendingAppointmentRequestCount,
+  );
+
+  useEffect(() => {
+    setRequestCount(pendingAppointmentRequestCount);
+  }, [pendingAppointmentRequestCount]);
+
+  useEffect(() => {
+    const updateCount = (event: Event) => {
+      const detail = (event as CustomEvent<{ delta?: number }>).detail;
+      setRequestCount((current) => Math.max(0, current + (detail?.delta ?? 0)));
+    };
+    window.addEventListener("slotova:appointment-requests-changed", updateCount);
+    return () =>
+      window.removeEventListener(
+        "slotova:appointment-requests-changed",
+        updateCount,
+      );
+  }, []);
 
   return (
     <aside
@@ -258,7 +289,20 @@ export default function AppSidebar() {
                             <Icon />
                           </span>
                           {showLabels && (
-                            <span className="menu-item-text">{item.label}</span>
+                            <>
+                              <span className="menu-item-text min-w-0 flex-1 truncate">
+                                {item.label}
+                              </span>
+                              {item.badge === "appointmentRequests" &&
+                                requestCount > 0 && (
+                                  <span
+                                    aria-label={`${requestCount} pending appointment requests`}
+                                    className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold leading-none text-gray-900 shadow-theme-xs dark:text-gray-900"
+                                  >
+                                    {requestCount > 99 ? "99+" : requestCount}
+                                  </span>
+                                )}
+                            </>
                           )}
                         </Link>
                       </li>

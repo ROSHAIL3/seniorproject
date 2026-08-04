@@ -24,8 +24,8 @@ export default function BookingOperationsPanel({
     id: string,
     decision: "approve" | "reject",
   ) => {
-    if (decision === "reject" && !reason.trim()) {
-      setError("Enter a short rejection reason.");
+    if (decision === "reject" && reason.trim().length < 3) {
+      setError("Enter a rejection reason of at least 3 characters.");
       return;
     }
     setBusy(true);
@@ -56,7 +56,7 @@ export default function BookingOperationsPanel({
 
   const current = `${appointment.appointmentDate} ${appointment.startTime}–${appointment.endTime} with ${appointment.staffName}`;
   const proposed = request
-    ? `${formatDateTime(request.proposedStartsAt)}–${formatTime(request.proposedEndsAt)} with ${request.proposedStaffName}`
+    ? `${formatDateTime(request.proposedStartsAt)}–${formatTime(request.proposedEndsAt)} with ${request.proposedStaffName} at ${request.proposedBranchName}`
     : "";
 
   return (

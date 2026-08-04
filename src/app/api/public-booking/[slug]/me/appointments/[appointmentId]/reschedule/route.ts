@@ -13,10 +13,12 @@ export async function POST(
   const session = await getCustomerBookingSession(slug);
   if (!session) return NextResponse.json({ error: "Session expired." }, { status: 401 });
   const body = await request.json().catch(() => ({}));
+  const branchId = String(body.branchId ?? "");
   const staffKey = String(body.staffKey ?? "");
   const startAt = String(body.startAt ?? "");
   const submissionId = String(body.submissionId ?? "");
   if (
+    !/^[0-9a-f-]{36}$/i.test(branchId) ||
     !staffKey ||
     Number.isNaN(Date.parse(startAt)) ||
     !/^[0-9a-f-]{36}$/i.test(submissionId)
@@ -27,6 +29,7 @@ export async function POST(
     session.organizationId,
     session.customerId,
     appointmentId,
+    branchId,
     staffKey,
     startAt,
     submissionId,
@@ -47,4 +50,3 @@ export async function POST(
   }
   return NextResponse.json({ ok: true, requestId: result.requestId });
 }
-
