@@ -33,19 +33,19 @@ export default function ConfirmationActions({
       <button
         onClick={() => void viewAll()}
         disabled={loading}
-        className="inline-flex min-h-11 items-center rounded-xl bg-[#7b1635] px-4 text-sm font-medium text-white disabled:opacity-60"
+        className="inline-flex min-h-11 items-center rounded-xl bg-[#191a23] px-4 text-sm font-semibold text-white transition hover:bg-[#2a2b35] disabled:opacity-60"
       >
         {loading ? "Opening…" : "View all bookings"}
       </button>
       <Link
         href={`/book/${encodeURIComponent(slug)}`}
-        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-medium"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#191a23] px-4 text-sm font-medium transition hover:bg-[#b9ff66]"
       >
         Book another appointment
       </Link>
       <button
         onClick={() => window.print()}
-        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-medium"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#191a23] px-4 text-sm font-medium transition hover:bg-[#b9ff66]"
       >
         Print confirmation
       </button>

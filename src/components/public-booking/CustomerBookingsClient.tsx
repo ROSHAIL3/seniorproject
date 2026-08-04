@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import BrandLogo from "@/components/common/BrandLogo";
 import type {
   CustomerBookingItem,
   CustomerBookingPage,
@@ -21,7 +23,21 @@ const scopes: { id: CustomerBookingScope; label: string }[] = [
   { id: "cancelled", label: "Cancelled" },
 ];
 const inputClass =
-  "h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 text-sm outline-none focus:border-[#7b1635] focus:ring-3 focus:ring-[#7b1635]/10";
+  "h-11 w-full rounded-xl border border-[#d5d5cf] bg-white px-3.5 text-sm outline-none focus:border-[#191a23] focus:ring-3 focus:ring-[#b9ff66]/40";
+const currentAccessCodePattern = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/;
+const legacyAccessCodePattern = /^[A-F0-9-]{12,14}$/;
+
+function normalizeAccessCodeInput(value: string) {
+  return value.replace(/\s/g, "").toUpperCase().slice(0, 14);
+}
+
+function canSubmitAccessCode(value: string) {
+  return (
+    currentAccessCodePattern.test(value) ||
+    (legacyAccessCodePattern.test(value) &&
+      value.replace(/[^A-F0-9]/g, "").length === 12)
+  );
+}
 
 export default function CustomerBookingsClient({
   page,
@@ -128,8 +144,8 @@ export default function CustomerBookingsClient({
   if (!authenticated) {
     return (
       <PublicShell page={page}>
-        <div className="mx-auto max-w-md rounded-3xl border border-[#eadde1] bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-[#7b1635]">Customer access</p>
+        <div className="mx-auto max-w-md rounded-3xl border border-[#191a23] bg-white p-6 shadow-[0_6px_0_#191a23] sm:p-8">
+          <p className="inline-flex rounded-md bg-[#b9ff66] px-2 py-1 text-sm font-semibold text-[#191a23]">Customer access</p>
           <h1 className="mt-1 text-2xl font-semibold">View my bookings</h1>
           <p className="mt-2 text-sm leading-6 text-gray-500">
             Enter the phone number used for booking and the access code shown on
@@ -150,16 +166,22 @@ export default function CustomerBookingsClient({
             <input
               className={`${inputClass} mt-2 font-mono uppercase tracking-wider`}
               value={accessCode}
-              onChange={(event) => setAccessCode(event.target.value)}
+              onChange={(event) =>
+                setAccessCode(normalizeAccessCodeInput(event.target.value))
+              }
               autoComplete="one-time-code"
               maxLength={14}
-              placeholder="XXXX-XXXX-XXXX"
+              placeholder="7KX4PM"
+              spellCheck={false}
             />
+            <span className="mt-1.5 block text-xs font-normal text-gray-500">
+              Enter the six-character code from your confirmation.
+            </span>
           </label>
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
           <button
-            className="mt-5 min-h-11 w-full rounded-xl bg-[#7b1635] px-4 text-sm font-semibold text-white disabled:opacity-60"
-            disabled={loading || !phone.trim() || !accessCode.trim()}
+            className="mt-5 min-h-11 w-full rounded-xl bg-[#191a23] px-4 text-sm font-semibold text-white transition hover:bg-[#2a2b35] disabled:opacity-60"
+            disabled={loading || !phone.trim() || !canSubmitAccessCode(accessCode)}
             onClick={() => void login()}
           >
             {loading ? "Verifying…" : "View bookings"}
@@ -173,7 +195,7 @@ export default function CustomerBookingsClient({
     <PublicShell page={page}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-[#7b1635]">Customer area</p>
+          <p className="inline-flex rounded-md bg-[#b9ff66] px-2 py-1 text-sm font-semibold text-[#191a23]">Customer area</p>
           <h1 className="mt-1 text-3xl font-semibold">My bookings</h1>
         </div>
         <button className="text-sm text-gray-500 underline" onClick={() => void forget()}>
@@ -190,7 +212,7 @@ export default function CustomerBookingsClient({
               setScope(item.id);
             }}
             className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium ${
-              scope === item.id ? "bg-[#7b1635] text-white" : "bg-white text-gray-600"
+              scope === item.id ? "bg-[#191a23] text-white" : "border border-[#d5d5cf] bg-white text-gray-600 hover:border-[#191a23]"
             }`}
           >
             {item.label}
@@ -210,7 +232,7 @@ export default function CustomerBookingsClient({
           />
         ))}
         {!loading && !bookings.length && (
-          <div className="rounded-3xl border border-[#eadde1] bg-white p-8 text-center text-sm text-gray-500">
+          <div className="rounded-3xl border border-[#d5d5cf] bg-white p-8 text-center text-sm text-gray-500">
             No bookings in this section.
           </div>
         )}
@@ -254,10 +276,10 @@ function BookingCard({
 }) {
   const start = new Date(booking.startsAt);
   return (
-    <article className="rounded-3xl border border-[#eadde1] bg-white p-5 shadow-sm">
+    <article className="rounded-3xl border border-[#d5d5cf] bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-[#7b1635]">{booking.bookingNumber}</p>
+          <p className="text-xs font-semibold text-[#191a23]">{booking.bookingNumber}</p>
           <h2 className="mt-1 text-lg font-semibold">{booking.serviceName}</h2>
         </div>
         <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium capitalize">
@@ -278,13 +300,19 @@ function BookingCard({
           {booking.pendingReschedule.staffName}.
         </p>
       )}
+      {booking.refundReviewRequired && (
+        <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+          An advance payment is attached to this cancelled appointment. The
+          business must review any refund manually.
+        </p>
+      )}
       {(booking.canCancel || booking.canReschedule) && (
         <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
           {booking.canReschedule && (
             <button
               disabled={disabled}
               onClick={onReschedule}
-              className="rounded-xl bg-[#7b1635] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-xl bg-[#191a23] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#2a2b35] disabled:opacity-50"
             >
               Request reschedule
             </button>
@@ -411,7 +439,7 @@ function RescheduleDialog({
             <button
               key={`${slot.staffKey}-${slot.startAt}`}
               onClick={() => setSelected(slot)}
-              className={`rounded-xl border px-3 py-2 text-sm ${selected === slot ? "border-[#7b1635] bg-[#7b1635] text-white" : "border-gray-200"}`}
+              className={`rounded-xl border px-3 py-2 text-sm ${selected === slot ? "border-[#191a23] bg-[#191a23] text-white" : "border-[#d5d5cf] hover:border-[#191a23]"}`}
             >
               {formatTime(new Date(slot.startAt), page.organization.timeZone)} · {slot.staffName}
             </button>
@@ -421,7 +449,7 @@ function RescheduleDialog({
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">
           <button onClick={onClose} className="rounded-xl border px-4 py-2 text-sm">Cancel</button>
-          <button disabled={!selected || busy} onClick={() => void submit()} className="rounded-xl bg-[#7b1635] px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+          <button disabled={!selected || busy} onClick={() => void submit()} className="rounded-xl bg-[#191a23] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#2a2b35] disabled:opacity-50">
             Submit request
           </button>
         </div>
@@ -432,17 +460,41 @@ function RescheduleDialog({
 
 function PublicShell({ page, children }: { page: PublicBookingPageData; children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-[#fbf7f8] text-gray-900">
-      <header className="border-b border-[#eadde1] bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <p className="text-lg font-semibold">{page.organization.name}</p>
-          <nav className="flex gap-2 text-sm">
-            <Link className="rounded-xl px-3 py-2 hover:bg-gray-50" href={`/book/${encodeURIComponent(page.organization.slug)}`}>Book Appointment</Link>
-            <Link className="rounded-xl bg-[#7b1635]/10 px-3 py-2 font-medium text-[#7b1635]" href={`/book/${encodeURIComponent(page.organization.slug)}/manage`}>View My Bookings</Link>
+    <main className="min-h-screen bg-[#f3f3f3] text-[#191a23]">
+      <header className="border-b border-[#191a23] bg-white">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            {page.organization.logoUrl ? (
+              <Image
+                src={page.organization.logoUrl}
+                alt={`${page.organization.name} logo`}
+                width={48}
+                height={48}
+                unoptimized
+                className="size-12 shrink-0 rounded-2xl object-cover"
+              />
+            ) : (
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#191a23] text-lg font-semibold text-white">
+                {page.organization.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold sm:text-lg">
+                {page.organization.name}
+              </p>
+              <p className="text-xs text-gray-500">Online booking</p>
+            </div>
+          </div>
+          <nav className="flex w-full gap-2 text-xs sm:w-auto sm:text-sm">
+            <Link className="flex min-h-10 min-w-0 flex-1 items-center justify-center rounded-xl px-3 text-center hover:bg-gray-50 sm:flex-none" href={`/book/${encodeURIComponent(page.organization.slug)}`}><span className="sm:hidden">Book</span><span className="hidden sm:inline">Book Appointment</span></Link>
+            <Link className="flex min-h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-[#b9ff66] px-3 text-center font-semibold text-[#191a23] sm:flex-none" href={`/book/${encodeURIComponent(page.organization.slug)}/manage`}><span className="sm:hidden">My Bookings</span><span className="hidden sm:inline">View My Bookings</span></Link>
           </nav>
         </div>
       </header>
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</div>
+      <footer className="mt-10 border-t border-[#d5d5cf] bg-white px-4 py-5 text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-2">Booking powered by <BrandLogo size="sm" /></span>
+      </footer>
     </main>
   );
 }

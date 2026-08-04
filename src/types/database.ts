@@ -350,7 +350,7 @@ export type Database = {
         Relationships: [];
       };
       appointments: {
-        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; public_access_code_hash: string | null; refund_review_required: boolean; created_at: string; updated_at: string };
+        Row: { id: string; organization_id: string; booking_number: string; customer_id: string; membership_id: string; branch_id: string; offering_type: Database["public"]["Enums"]["appointment_offering_type"]; service_id: string | null; package_id: string | null; starts_at: string; ends_at: string; customer_name: string; customer_phone: string; customer_email: string; staff_name: string; offering_name: string; package_type: Database["public"]["Enums"]["package_type"] | null; price_bhd: number; status: Database["public"]["Enums"]["appointment_status"]; notes: string; service_field_values: Json; advance_paid_bhd: number; created_by: string | null; created_by_name: string; booking_source: string; public_submission_id: string | null; public_reference_token: string | null; public_access_code_seed: string | null; public_access_code_hash: string | null; public_legacy_access_code_hash: string | null; refund_review_required: boolean; created_at: string; updated_at: string };
         Insert: Record<string, never>;
         Update: Record<string, never>;
         Relationships: [];
@@ -490,6 +490,7 @@ export type Database = {
           customer_phone: string;
           customer_email: string;
           customer_notes: string;
+          target_customer_field_values: Json;
           target_service_field_values: Json;
           submission_id: string;
           request_fingerprint: string;

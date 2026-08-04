@@ -193,7 +193,9 @@ confirmation reference. Email and SMS reminders remain deferred until provider
 costs are reviewed.
 
 Customers can open `/book/<slug>/manage` with their booking phone number and
-the random 12-character access code shown on confirmation. A valid opaque
+the random six-character access code shown on confirmation. Codes use uppercase
+letters and numbers without `0`, `O`, `1`, or `I`; only a SHA-256 hash is stored.
+Codes issued before this migration remain accepted. A valid opaque
 confirmation link can establish the same 30-minute signed, HttpOnly session.
 The customer area shows reduced booking details only; it never returns notes,
 contact data, invoices, or financial records. Cancellation and reschedule

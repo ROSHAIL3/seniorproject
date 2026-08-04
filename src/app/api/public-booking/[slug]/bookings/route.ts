@@ -66,7 +66,11 @@ function isValidInput(
       input.customerName?.trim() &&
       input.customerPhone?.trim() &&
       /^[0-9a-f-]{36}$/i.test(input.submissionId) &&
+      input.customerFieldValues &&
+      !Array.isArray(input.customerFieldValues) &&
+      typeof input.customerFieldValues === "object" &&
       input.serviceFieldValues &&
+      !Array.isArray(input.serviceFieldValues) &&
       typeof input.serviceFieldValues === "object",
   );
 }
@@ -101,6 +105,12 @@ function bookingError(code = "") {
       status: 400,
     };
   }
+  if (code.startsWith("CUSTOMER_FIELD_")) {
+    return {
+      message: "Complete the required customer information.",
+      status: 400,
+    };
+  }
   if (code === "BOOKING_CUSTOMER_CONFLICT") {
     return {
       message: "Those customer details conflict with an existing profile. Contact the business for help.",
@@ -115,4 +125,3 @@ function bookingError(code = "") {
     status: 400,
   };
 }
-

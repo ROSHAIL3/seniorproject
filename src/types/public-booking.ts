@@ -10,6 +10,7 @@ export type PublicBookingOrganization = {
   logoUrl?: string;
   allowSameDayBookings: boolean;
   autoConfirmAppointments: boolean;
+  publicBookingEnabled: boolean;
 };
 
 export type PublicBookingBranch = {
@@ -35,15 +36,30 @@ export type PublicBookingService = {
   branchIds: string[];
 };
 
-export type PublicBookingField = {
+export type PublicFieldType =
+  | "text"
+  | "number"
+  | "email"
+  | "phone"
+  | "date"
+  | "checkbox"
+  | "dropdown"
+  | "textarea";
+
+export type PublicFieldDefinition = {
   id: string;
-  serviceId: string;
   label: string;
-  type: "text" | "number" | "date" | "checkbox" | "dropdown";
+  type: PublicFieldType;
   required: boolean;
   sortOrder: number;
   options: { id: string; label: string }[];
 };
+
+export type PublicBookingField = PublicFieldDefinition & {
+  serviceId: string;
+};
+
+export type PublicCustomerField = PublicFieldDefinition;
 
 export type PublicBookingPageData = {
   organization: PublicBookingOrganization;
@@ -51,6 +67,8 @@ export type PublicBookingPageData = {
   categories: PublicBookingCategory[];
   services: PublicBookingService[];
   serviceFields: PublicBookingField[];
+  customerFields: PublicCustomerField[];
+  bookingReady: boolean;
 };
 
 export type PublicBookingSlot = {
@@ -68,7 +86,7 @@ export type PublicBookingConfirmation = {
   branchName: string;
   startsAt: string;
   endsAt: string;
-  status: "booked" | "confirmed";
+  status: "booked" | "confirmed" | "completed" | "cancelled" | "no_show";
   timeZone: string;
   accessCode: string;
 };
@@ -82,6 +100,7 @@ export type PublicBookingCreateInput = {
   customerPhone: string;
   customerEmail: string;
   customerNotes: string;
+  customerFieldValues: Record<string, string | boolean>;
   serviceFieldValues: Record<string, string | boolean>;
   submissionId: string;
 };

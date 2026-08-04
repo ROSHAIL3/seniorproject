@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(27);
+select plan(32);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -108,13 +108,19 @@ where organization_id = 'f9200000-0000-4000-8000-000000000001';
 select is(
   (select public_access_code_hash from public.appointments
    where organization_id = 'f9200000-0000-4000-8000-000000000001'),
-  booking_private.hash_access_code('1111-2222-3333'),
+  booking_private.hash_access_code(
+    booking_private.access_code_from_token(
+      '11112222-3333-4444-8555-666677778888'
+    )
+  ),
   'the trigger stores the access-code hash'
 );
 select isnt(
   (select public_access_code_hash from public.appointments
    where organization_id = 'f9200000-0000-4000-8000-000000000001'),
-  '1111-2222-3333',
+  booking_private.access_code_from_token(
+    '11112222-3333-4444-8555-666677778888'
+  ),
   'the plaintext access code is not stored'
 );
 select is(
@@ -127,28 +133,109 @@ select is(
   public.get_public_booking_confirmation(
     'self-service-a', '11112222-3333-4444-8555-666677778888'
   ) ->> 'accessCode',
-  '1111-2222-3333',
+  booking_private.access_code_from_token(
+    '11112222-3333-4444-8555-666677778888'
+  ),
   'the confirmation displays the deterministic random-token code'
 );
+select is(
+  char_length(booking_private.access_code_from_token(
+    '11112222-3333-4444-8555-666677778888'
+  )),
+  6,
+  'the customer access code contains exactly six characters'
+);
+select matches(
+  booking_private.access_code_from_token(
+    '11112222-3333-4444-8555-666677778888'
+  ),
+  '^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$',
+  'the code uses only the unambiguous uppercase alphabet'
+);
+
+insert into public.appointments (
+  organization_id, booking_number, customer_id, membership_id, branch_id,
+  offering_type, service_id, starts_at, ends_at, customer_name,
+  customer_phone, customer_email, staff_name, offering_name, price_bhd,
+  status, notes, service_field_values, created_by_name, booking_source,
+  public_submission_id, public_reference_token, public_access_code_seed
+)
+select
+  organization_id, 'BK-999998', customer_id, membership_id, branch_id,
+  offering_type, service_id, starts_at + interval '10 days',
+  ends_at + interval '10 days', customer_name, customer_phone,
+  customer_email, staff_name, offering_name, price_bhd, status, notes,
+  service_field_values, created_by_name, booking_source,
+  'f9600000-0000-4000-8000-000000000002',
+  '99992222-3333-4444-8555-666677778888', public_access_code_seed
+from public.appointments
+where organization_id = 'f9200000-0000-4000-8000-000000000001'
+  and booking_number <> 'BK-999998'
+limit 1;
+
+select is(
+  (select count(distinct public_access_code_hash)::integer
+   from public.appointments
+   where organization_id = 'f9200000-0000-4000-8000-000000000001'),
+  2,
+  'a same-tenant code collision is retried with a new secure seed'
+);
+select is(
+  (select public_reference_token
+   from public.appointments
+   where organization_id = 'f9200000-0000-4000-8000-000000000001'
+     and booking_number = 'BK-999998'),
+  '99992222-3333-4444-8555-666677778888'::uuid,
+  'collision retry preserves the opaque confirmation link token'
+);
+
+delete from public.appointments
+where organization_id = 'f9200000-0000-4000-8000-000000000001'
+  and booking_number = 'BK-999998';
+
+update public.appointments
+set public_legacy_access_code_hash =
+  booking_private.hash_legacy_access_code('1111-2222-3333')
+where organization_id = 'f9200000-0000-4000-8000-000000000001';
 
 set local role service_role;
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);
 select ok(
   (public.authenticate_customer_bookings(
-    'self-service-a', '+973 3900 9999', '1111-2222-3333', repeat('a', 64)
+    'self-service-a', '+973 3900 9999',
+    lower(
+      substr(booking_private.access_code_from_token(
+        '11112222-3333-4444-8555-666677778888'
+      ), 1, 3)
+      || ' ' ||
+      substr(booking_private.access_code_from_token(
+        '11112222-3333-4444-8555-666677778888'
+      ), 4, 3)
+    ),
+    repeat('a', 64)
   ) ->> 'ok')::boolean,
   'phone plus a valid code authenticates the customer'
 );
+select ok(
+  (public.authenticate_customer_bookings(
+    'self-service-a', '+973 3900 9999', '1111-2222-3333', repeat('0', 64)
+  ) ->> 'ok')::boolean,
+  'a previously issued legacy code remains valid after migration'
+);
 select is(
   public.authenticate_customer_bookings(
-    'self-service-a', '+973 3900 9999', 'ffff-ffff-ffff', repeat('b', 64)
+    'self-service-a', '+973 3900 9999', 'OOOOOO', repeat('b', 64)
   ) ->> 'error',
   'ACCESS_INVALID',
   'an invalid code returns the generic access error'
 );
 select is(
   public.authenticate_customer_bookings(
-    'self-service-b', '+973 3900 9999', '1111-2222-3333', repeat('c', 64)
+    'self-service-b', '+973 3900 9999',
+    booking_private.access_code_from_token(
+      '11112222-3333-4444-8555-666677778888'
+    ),
+    repeat('c', 64)
   ) ->> 'error',
   'ACCESS_INVALID',
   'a code cannot cross organization slugs'

@@ -238,6 +238,8 @@ export function appointmentError(message = "") {
     ["STAFF_TIME_OFF", "The selected staff member is on approved time off."],
     ["STAFF_CONFLICT", "The selected staff member already has an overlapping appointment."],
     ["CUSTOMER_CONFLICT", "The customer already has an overlapping appointment."],
+    ["appointments_no_staff_overlap", "The selected staff member was just booked for an overlapping time. Refresh availability and choose another slot."],
+    ["appointments_no_customer_overlap", "The customer already has an overlapping active appointment."],
     ["APPOINTMENT_NOT_FOUND", "The appointment could not be found."],
   ];
   return messages.find(([code]) => message.includes(code))?.[1] ??

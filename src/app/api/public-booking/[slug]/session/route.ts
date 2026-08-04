@@ -18,8 +18,10 @@ export async function POST(
   const { slug } = await context.params;
   const body = await request.json().catch(() => ({}));
   const phone = String(body.phone ?? "").trim();
-  const accessCode = String(body.accessCode ?? "").trim();
-  if (!phone || !accessCode) return invalid(400);
+  const accessCode = String(body.accessCode ?? "")
+    .replace(/\s/g, "")
+    .toUpperCase();
+  if (!phone || !accessCode || accessCode.length > 32) return invalid(401);
   try {
     const result = await authenticateCustomerBookings(
       slug,

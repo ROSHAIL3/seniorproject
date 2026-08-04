@@ -28,9 +28,19 @@ export async function getPublicBookingPage(slug: string) {
     booking_slug: slug,
   });
   if (error) throw new Error("The public booking page could not be loaded.");
-  if (!data) return null;
+  const page = data
+    ? (data as unknown as PublicBookingPageData)
+    : await getPublicBookingShell(slug);
+  if (!page) return null;
 
-  const page = data as unknown as PublicBookingPageData;
+  if (data) page.organization.publicBookingEnabled = true;
+  page.customerFields ??= [];
+  page.serviceFields ??= [];
+  page.bookingReady = Boolean(
+    page.organization.publicBookingEnabled &&
+      page.branches.length &&
+      page.services.length,
+  );
   if (page.organization.logoObjectPath) {
     try {
       const admin = createAdminClient();
@@ -43,6 +53,59 @@ export async function getPublicBookingPage(slug: string) {
     }
   }
   return page;
+}
+
+async function getPublicBookingShell(
+  slug: string,
+): Promise<PublicBookingPageData | null> {
+  const memberClient = await createServerClient();
+  const normalizedSlug = slug.trim().toLowerCase();
+  const { data: organization, error } = await memberClient
+    .from("organizations")
+    .select(
+      "id,name,slug,address,business_phone,website,currency_code,time_zone,logo_object_path,booking_allow_same_day,booking_auto_confirm,public_booking_enabled",
+    )
+    .eq("slug", normalizedSlug)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error || !organization) return null;
+
+  const { data: branches } = await memberClient
+    .from("branches")
+    .select("id,name,address,phone,is_main")
+    .eq("organization_id", organization.id)
+    .eq("status", "active")
+    .order("is_main", { ascending: false })
+    .order("name");
+
+  return {
+    bookingReady: false,
+    organization: {
+      name: organization.name,
+      slug: organization.slug,
+      address: organization.address ?? "",
+      businessPhone: organization.business_phone ?? "",
+      website: organization.website ?? "",
+      currencyCode: organization.currency_code,
+      timeZone: organization.time_zone,
+      logoObjectPath: organization.logo_object_path,
+      allowSameDayBookings: organization.booking_allow_same_day,
+      autoConfirmAppointments: organization.booking_auto_confirm,
+      publicBookingEnabled: organization.public_booking_enabled,
+    },
+    branches: (branches ?? []).map((branch) => ({
+      id: branch.id,
+      name: branch.name,
+      address: branch.address ?? "",
+      phone: branch.phone ?? "",
+      isMain: branch.is_main,
+    })),
+    categories: [],
+    services: [],
+    serviceFields: [],
+    customerFields: [],
+  } satisfies PublicBookingPageData;
 }
 
 export async function getPublicBookingAvailability(
@@ -85,6 +148,8 @@ export async function createPublicBooking(
     customer_name: input.customerName,
     customer_notes: input.customerNotes,
     customer_phone: input.customerPhone,
+    target_customer_field_values:
+      input.customerFieldValues as unknown as Json,
     request_fingerprint: requestFingerprint,
     submission_id: input.submissionId,
     target_branch_id: input.branchId,

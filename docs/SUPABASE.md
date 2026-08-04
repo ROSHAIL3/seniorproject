@@ -271,8 +271,10 @@ For Phase 8, also verify:
 
 For Phase 9, also verify:
 
-- Public confirmations show a 12-character access code derived from the random
-  opaque token; only its SHA-256 hash is stored.
+- Public confirmations show an unambiguous six-character uppercase access code
+  derived from cryptographically random booking material; only its SHA-256 hash
+  is used for current-code lookup. Legacy hashes are retained only so codes
+  issued before this migration continue to work.
 - Phone/code failures are generic, tampered or expired cookies are rejected,
   and “Forget this device” clears the 30-minute HttpOnly session.
 - Customer responses contain only booking number, service, branch, staff,
